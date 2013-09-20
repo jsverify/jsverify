@@ -39,9 +39,51 @@ intersects try 4: true
 
 Check [jasmineHelpers.js](speclib/jasmineHelpers.js) file.
 
-### API
+## API
+
+Types and function signatures are shown in [Coq](http://coq.inria.fr/) influented style:
+C# -style `List<T> filter(List<T> v, Func<T, bool> predicate)` is represented by
+`filter (v : list T) (predicate : T -> bool) : list T` in our style.
+
+### jsc._ - miscellaneous utilities
+
+#### assert (exp : bool) (message : string) : void
+
+Throw an error with `message` if `exp` is falsy.
+
+#### isPromise p : bool
+
+Optimistic duck-type check for promises.
+Returns `true` if p is an object with `.then` function property.
+
+#### withPromise (p : promise a + a) (f : a -> b) : promise b + b
+
+Essentially `f(p)`. If `p` is promise, returns new promise.
+[CPS-style](http://en.wikipedia.org/wiki/Continuation-passing_style) with promises.
+
+#### getRandomInt (min max : int) : int
+
+Returns random int from `[min, max]` range inclusively.
+
+```js
+getRandomInt(2, 3) // either 2 or 3
+```
+
+### Properties
 
 TBD
+
+### Primitive generators
+
+TBD
+
+### Generator combinators
+
+TBD
+
+#### pair (a : generator A) (b : generator B) : generator (A * B)
+
+If not specified `a` and `b` are equal to `integer()`.
 
 ## Contributing
 

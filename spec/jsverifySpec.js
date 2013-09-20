@@ -136,16 +136,18 @@
 		});
 
 		it("booleans", function () {
-			var true_and_right_prop = jsc.forall(jsc.bool(), function (x) {
-				return x && true === x;
-			});
-
 			var true_and_left_prop = jsc.forall(jsc.bool(), function (x) {
 				return true && x === x;
 			});
 
-			expect(true_and_right_prop).not.toHold(); // be careful!
 			expect(true_and_left_prop).toHold();
+
+			var true_and_right_prop = jsc.forall(jsc.bool(), function (x) {
+				return x && true === x;
+			});
+
+			expect(true_and_right_prop).not.toHold(); // be careful!
+
 
 			var true_and_right_fixed_prop = jsc.forall(jsc.bool(), function (x) {
 				return (x && true) === x;
