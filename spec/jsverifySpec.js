@@ -154,5 +154,74 @@
 			});
 			*/
 		});
+
+		it("booleans", function () {
+			var true_and_right_prop = jsc.forall(jsc.bool(), function (x) {
+				return x && true === x;
+			});
+
+			var true_and_left_prop = jsc.forall(jsc.bool(), function (x) {
+				return true && x === x;
+			});
+
+			expect(true_and_right_prop).not.toHold(); // be careful!
+			expect(true_and_left_prop).toHold();
+
+			var true_and_right_fixed_prop = jsc.forall(jsc.bool(), function (x) {
+				return (x && true) === x;
+			});
+
+			var true_and_left_fixed_prop = jsc.forall(jsc.bool(), function (x) {
+				return (true && x) === x;
+			});
+
+			expect(true_and_right_fixed_prop).toHold();
+			expect(true_and_left_fixed_prop).toHold();
+		});
+
+		it("oneof", function () {
+			var prop1 = jsc.forall(jsc.oneof(["foo", "bar", "quux"]), function (el) {
+				return _.contains(["foo", "bar"], el);
+			});
+
+			expect(prop1).not.toHold();
+
+			var prop2 = jsc.forall(jsc.oneof(["foo", "bar", "quux"]), function (el) {
+				return _.contains(["foo", "bar", "quux"], el);
+			});
+
+			expect(prop2).toHold();
+		});
+
+		it("suchthat", function () {
+			function isOdd(n) {
+				return n % 2 === 1;
+			}
+
+			var oddInteger = jsc.suchthat(jsc.integer(), isOdd);
+
+			var odd_mult_odd_is_odd_property = jsc.forall(jsc.pair(oddInteger, oddInteger), function (p) {
+				var x = p[0];
+				var y = p[1];
+
+				return isOdd(x * y);
+			});
+
+			expect(odd_mult_odd_is_odd_property).toHold();
+		});
+
+		it("array indexOf", function () {
+			var nonemptylist = jsc.suchthat(jsc.list(), function (l) {
+				return l.length !== 0;
+			});
+
+			var prop = jsc.forall(nonemptylist, function (l) {
+				return jsc.forall(jsc.oneof(l), function (x) {
+					return l.indexOf(x) !== -1;
+				});
+			});
+
+			expect(prop).toHold();
+		});
 	});
 }());
