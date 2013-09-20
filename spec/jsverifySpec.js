@@ -61,6 +61,20 @@
       expect(prop).not.toHold();
     });
 
+    it("other failing add", function () {
+      function add(i, j) {
+        return i + (j && 1);
+      }
+
+      var prop = jsc.forall(jsc.pair(jsc.integer(), jsc.integer()), function (p) {
+        var i = p[0];
+        var j = p[1];
+        return add(i, j) === i + j;
+      });
+
+      expect(prop).not.toHold();
+    });
+
     it("fixed add", function () {
       function add(i, j) {
           return i + j;
