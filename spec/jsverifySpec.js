@@ -43,7 +43,7 @@
 
 		it("other failing add", function () {
 			function add(i, j) {
-			return i + (j && 1);
+				return i + (j && 1);
 			}
 
 			var prop = jsc.forall(jsc.pair(jsc.integer(), jsc.integer()), function (p) {
@@ -224,6 +224,30 @@
 			});
 
 			expect(number_round_noop_property).not.toHold();
+		});
+
+		it("_.sortBy idempotent", function () {
+			var prop1 = jsc.forall(jsc.list(), function (l) {
+				return _.isEqual(_.sortBy(l), l);
+			});
+
+			expect(prop1).toHold();
+
+			function sort(l) {
+				return _.sortBy(l, _.identity);
+			}
+
+			var prop2 = jsc.forall(jsc.list(), function (l) {
+				return _.isEqual(sort(l), l);
+			});
+
+			expect(prop2).not.toHold();
+
+			var prop3 = jsc.forall(jsc.list(), function (l) {
+				return _.isEqual(sort(sort(l)), sort(l));
+			});
+
+			expect(prop3).toHold();
 		});
 	});
 }());
