@@ -35,11 +35,20 @@ intersects try 4: true
 
 ## Documentation
 
+### Use with [jasmine](http://pivotal.github.io/jasmine/) 1.3.x
+
+Check [jasmineHelpers.js](speclib/jasmineHelpers.js) file.
+
+### API
+
+TBD
+
 ## Contributing
 
 In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
 
 - You can use `grunt jasmine-build` to generate `_SpecRunner.html` to run tests in your browser of choice.
+- Use tabs for indentation
 
 ### Preparing for release
 
