@@ -205,5 +205,25 @@
 
 			expect(prop).toHold();
 		});
+
+		it("numbers", function () {
+			var nat_nonnegative_prop = jsc.forall(jsc.nat(), function (n) {
+				return n >= 0;
+			});
+
+			expect(nat_nonnegative_prop).toHold();
+
+			var integer_round_noop_property = jsc.forall(jsc.integer(), function (n) {
+				return Math.round(n) === n;
+			});
+
+			expect(integer_round_noop_property).toHold();
+
+			var number_round_noop_property = jsc.forall(jsc.number(), function (n) {
+				return Math.round(n) === n;
+			});
+
+			expect(number_round_noop_property).not.toHold();
+		});
 	});
 }());
