@@ -61,6 +61,10 @@ Returns `true` if p is an object with `.then` function property.
 Essentially `f(p)`. If `p` is promise, returns new promise.
 [CPS-style](http://en.wikipedia.org/wiki/Continuation-passing_style) with promises.
 
+#### getRandomArbitrary (min max : number) : number
+
+Returns random number from `[min, max)` range.
+
 #### getRandomInt (min max : int) : int
 
 Returns random int from `[min, max]` range inclusively.
@@ -71,7 +75,21 @@ getRandomInt(2, 3) // either 2 or 3
 
 ### Properties
 
-TBD
+Some type definitions to keep developers sane:
+
+- property (size : nat) : promise result + result
+- result := true | { counterexample: any }
+- property_rec' := result | property
+- property_rec := promise property_rec' + property_rec'
+- generator a := { arbitrary : a, shrink : a -> [a] }
+
+#### forall (gen : generator a) (prop : a -> property_rec) : property
+
+Property constructor
+
+#### check (prop : property) : promise result + result
+
+Run random checks for given `prop`. If `prop` is promise based, result is also wrapped in promise.
 
 ### Primitive generators
 
@@ -79,11 +97,13 @@ TBD
 
 ### Generator combinators
 
-TBD
-
 #### pair (a : generator A) (b : generator B) : generator (A * B)
 
 If not specified `a` and `b` are equal to `integer()`.
+
+#### suchthat (gen : generator a) (p : a -> bool) : generator {a | p a == true}
+
+Generator of values that satisfy `p` predicate. It's adviced that `p`'s accept rate is high.
 
 ## Contributing
 
