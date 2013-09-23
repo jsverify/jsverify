@@ -41,9 +41,30 @@ Check [jasmineHelpers.js](speclib/jasmineHelpers.js) file.
 
 ## API
 
-Types and function signatures are shown in [Coq](http://coq.inria.fr/) influented style:
+> _Testing shows the presence, not the absence of bugs._
+>
+> Edsger W. Dijkstra
+
+To show that propositions hold, we need to construct proofs.
+There are two extremes: proof by example (unit tests) and formal (machine-checked) proof.
+Property-based testing is something in between.
+We formulate propositions, invariants or other properties we believe to hold, but
+only test it to hold for numerous (random generated) values.
+
+Types and function signatures are written in [Coq](http://coq.inria.fr/)/[Haskell](http://www.haskell.org/haskellwiki/Haskell) influented style:
 C# -style `List<T> filter(List<T> v, Func<T, bool> predicate)` is represented by
-`filter (v : list T) (predicate : T -> bool) : list T` in our style.
+`filter (v : array T) (predicate : T -> bool) : array T` in our style.
+
+`jsverify` can operate with both synchronous and asynchronous-promise properties.
+Generally every property can be wrapped inside [functor](http://learnyouahaskell.com/functors-applicative-functors-and-monoids),
+for now in either identity or promise functor, for synchronous and promise properties respectively.
+
+Some type definitions to keep developers sane:
+
+- Functor f => property (size : nat) : f result
+- result := true | { counterexample: any }
+- Functor f => property_rec := f (result | property)
+- generator a := { arbitrary : a, shrink : a -> [a] }
 
 ### jsc._ - miscellaneous utilities
 
@@ -56,10 +77,11 @@ Throw an error with `message` if `exp` is falsy.
 Optimistic duck-type check for promises.
 Returns `true` if p is an object with `.then` function property.
 
-#### withPromise (p : promise a + a) (f : a -> b) : promise b + b
+#### withPromise (Functor f) (p : f a) (f : a -> b) : f b
 
+This is functor map, `fmap`, with arguments flipped.
 Essentially `f(p)`. If `p` is promise, returns new promise.
-[CPS-style](http://en.wikipedia.org/wiki/Continuation-passing_style) with promises.
+Using `withPromise` makes code look very much [CPS-style](http://en.wikipedia.org/wiki/Continuation-passing_style).
 
 #### getRandomArbitrary (min max : number) : number
 
@@ -75,14 +97,6 @@ getRandomInt(2, 3) // either 2 or 3
 
 ### Properties
 
-Some type definitions to keep developers sane:
-
-- property (size : nat) : promise result + result
-- result := true | { counterexample: any }
-- property_rec' := result | property
-- property_rec := promise property_rec' + property_rec'
-- generator a := { arbitrary : a, shrink : a -> [a] }
-
 #### forall (gen : generator a) (prop : a -> property_rec) : property
 
 Property constructor
@@ -93,7 +107,27 @@ Run random checks for given `prop`. If `prop` is promise based, result is also w
 
 ### Primitive generators
 
-TBD
+#### integer (maxsize : nat) : generator integer
+
+Integers, ℤ
+
+#### nat (maxsize : nat) : generator nat
+
+Natural numbers, ℕ (0, 1, 2...)
+
+#### number (maxsize : number) : generator number
+
+JavaScript numbers, "doubles", ℝ. `NaN` and `Infinity` are not included.
+
+#### bool () : generator bool
+
+Booleans, `true` or `false`.
+
+#### oneof (args : array any) : generator any
+
+Random element of `args` array.
+
+#### array (gen : generator a) : generator (array a)
 
 ### Generator combinators
 
@@ -118,7 +152,8 @@ In lieu of a formal styleguide, take care to maintain the existing coding style.
 
 ## Release History
 
-- 0.0.0 Initial preview
+- 0.0.2 Documented preview
+- 0.0.1 Initial preview
 
 ## License
 

@@ -121,24 +121,24 @@
 				});
 			}
 
-			var prop = jsc.forall(jsc.nonshrinklist(), function (a) {
-				return jsc.forall(jsc.nonshrinklist(), function (b) {
+			var prop = jsc.forall(jsc.nonshrinkarray(), function (a) {
+				return jsc.forall(jsc.nonshrinkarray(), function (b) {
 					return intersects(a, b) === (_.intersection(a, b) !== []);
 				});
 			});
 
 			expect(prop).not.toHold();
 
-			var prop2 = jsc.forall(jsc.list(), function (a) {
-				return jsc.forall(jsc.list(), function (b) {
+			var prop2 = jsc.forall(jsc.array(), function (a) {
+				return jsc.forall(jsc.array(), function (b) {
 					return intersects(a, b) === (_.intersection(a, b) !== []);
 				});
 			});
 
 			expect(prop2).not.toHold();
 
-			var prop3 = jsc.forall(jsc.list(), function (a) {
-				return jsc.forall(jsc.list(), function (b) {
+			var prop3 = jsc.forall(jsc.array(), function (a) {
+				return jsc.forall(jsc.array(), function (b) {
 					return intersects(a, b) === (_.intersection(a, b).length !== 0);
 				});
 			});
@@ -146,8 +146,8 @@
 			expect(prop3).toHold();
 
 			/*
-			var prop4 = jsc.forall(jsc.list(), function (a) {
-				return jsc.forall(jsc.list(), function (b) {
+			var prop4 = jsc.forall(jsc.array(), function (a) {
+				return jsc.forall(jsc.array(), function (b) {
 					return q.delay(10).then(function () {
 						return intersects(a, b) === (_.intersection(a, b).length !== 0);
 					});
@@ -218,11 +218,11 @@
 		});
 
 		it("array indexOf", function () {
-			var nonemptylist = jsc.suchthat(jsc.list(), function (l) {
+			var nonemptyarray = jsc.suchthat(jsc.array(), function (l) {
 				return l.length !== 0;
 			});
 
-			var prop = jsc.forall(nonemptylist, function (l) {
+			var prop = jsc.forall(nonemptyarray, function (l) {
 				return jsc.forall(jsc.oneof(l), function (x) {
 					return l.indexOf(x) !== -1;
 				});
@@ -252,7 +252,7 @@
 		});
 
 		it("_.sortBy idempotent", function () {
-			var prop1 = jsc.forall(jsc.list(), function (l) {
+			var prop1 = jsc.forall(jsc.array(), function (l) {
 				return _.isEqual(_.sortBy(l), l);
 			});
 
@@ -262,13 +262,13 @@
 				return _.sortBy(l, _.identity);
 			}
 
-			var prop2 = jsc.forall(jsc.list(), function (l) {
+			var prop2 = jsc.forall(jsc.array(), function (l) {
 				return _.isEqual(sort(l), l);
 			});
 
 			expect(prop2).not.toHold();
 
-			var prop3 = jsc.forall(jsc.list(), function (l) {
+			var prop3 = jsc.forall(jsc.array(), function (l) {
 				return _.isEqual(sort(sort(l)), sort(l));
 			});
 
