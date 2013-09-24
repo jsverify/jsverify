@@ -3,6 +3,28 @@
 	"use strict";
 
 	describe("examples", function () {
+		it("collatz conjecture", function () {
+			function collatz(n) {
+				while (true) {
+					if (n === 1) {
+						break;
+					} else if (n % 2 === 0) {
+						n = n / 2;
+					} else {
+						n = 3 * n + 1;
+					}
+				}
+			}
+
+			var prop = jsc.forall(jsc.suchthat(jsc.nat(), function (n) { return n > 0; }), function (n) {
+				// if collatz loop forever, we never return and test eventually fails
+				collatz(n);
+				return true;
+			});
+
+			expect(prop).toHold();
+		});
+
 		it("failing inc", function () {
 			function inc(i) {
 				return i + 1;
