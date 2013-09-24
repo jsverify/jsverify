@@ -25,6 +25,17 @@
 			expect(prop).toHold();
 		});
 
+		it("forall (f : bool -> bool) (b : bool), f (f (f b)) = f b", function () {
+			var prop = jsc.forall(jsc.pair(jsc.fun(jsc.bool()), jsc.bool()), function (p) {
+				var f = p[0];
+				var b = p[1];
+
+				return f(f(f(b))) === f(b);
+			});
+
+			expect(prop).toHold();
+		});
+
 		it("failing inc", function () {
 			function inc(i) {
 				return i + 1;
