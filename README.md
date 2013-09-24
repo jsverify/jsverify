@@ -101,9 +101,14 @@ getRandomInt(2, 3) // either 2 or 3
 
 Property constructor
 
-#### check (prop : property) : promise result + result
+#### check (prop : property) (opts : checkoptions) : promise result + result
 
 Run random checks for given `prop`. If `prop` is promise based, result is also wrapped in promise.
+
+Options:
+- `opts.tests` - test count to run, default 100
+- `opts.size`  - maximum size of generated values, default 5
+- `opts.quiet` - do not `console.log`
 
 ### Primitive generators
 
