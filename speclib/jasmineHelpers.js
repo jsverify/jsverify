@@ -5,7 +5,7 @@ beforeEach(function () {
 		var actual = this.actual;
 		var notText = this.isNot ? " not" : "";
 
-		var r = jsc.check(actual);
+		var r = jsc.check(actual, { quiet: true });
 
 		var counterExampleText = r === true ? "" : "Counter example found: " + JSON.stringify(r.counterexample);
 
