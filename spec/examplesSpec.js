@@ -26,10 +26,7 @@
 		});
 
 		it("forall (f : bool -> bool) (b : bool), f (f (f b)) = f b", function () {
-			var prop = jsc.forall(jsc.pair(jsc.fun(jsc.bool()), jsc.bool()), function (p) {
-				var f = p[0];
-				var b = p[1];
-
+			var prop = jsc.forall(jsc.fun(jsc.bool()), jsc.bool(), function (f, b) {
 				return f(f(f(b))) === f(b);
 			});
 
@@ -104,10 +101,8 @@
 				return i + (j && 1);
 			}
 
-			var prop = jsc.forall(jsc.pair(jsc.integer(), jsc.integer()), function (p) {
-			var i = p[0];
-			var j = p[1];
-			return add(i, j) === i + j;
+			var prop = jsc.forall(jsc.integer(), jsc.integer(), function (i, j) {
+				return add(i, j) === i + j;
 			});
 
 			expect(prop).not.toHold();
@@ -240,10 +235,7 @@
 
 			var oddInteger = jsc.suchthat(jsc.integer(), isOdd);
 
-			var odd_mult_odd_is_odd_property = jsc.forall(jsc.pair(oddInteger, oddInteger), function (p) {
-				var x = p[0];
-				var y = p[1];
-
+			var odd_mult_odd_is_odd_property = jsc.forall(oddInteger, oddInteger, function (x, y) {
 				return isOdd(x * y);
 			});
 
