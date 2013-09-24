@@ -72,6 +72,24 @@ Some type definitions to keep developers sane:
 
 Throw an error with `message` if `exp` is falsy.
 
+#### id (x : any) : any
+
+Identity function.
+
+#### isEqual (a b : value) : bool
+
+Equality test for `value` objects. See `value` generator.
+
+#### FMap (eq : a -> a -> bool) : FMap a
+
+Finite map, with any object a key.
+
+Short summary of member functions:
+
+- FMap.insert (key : a) (value : any) : void
+- FMap.get (key : a) : any
+- FMap.contains (key : a) : obool
+
 #### isPromise p : bool
 
 Optimistic duck-type check for promises.
@@ -133,6 +151,16 @@ Booleans, `true` or `false`.
 Random element of `args` array.
 
 #### array (gen : generator a) : generator (array a)
+
+#### value : generator value
+
+JavaScript value: boolean, number, string, array of values or object with `value` values.
+
+**TODO**: currently returns only integers.
+
+#### fun (gen : generator a) : generator (b -> a)
+
+Unary functions.
 
 ### Generator combinators
 
