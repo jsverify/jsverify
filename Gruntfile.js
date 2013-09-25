@@ -19,6 +19,20 @@ module.exports = function(grunt) {
 					helpers: 'helpers/*.js'
 				},
 			},
+			underscore: {
+				src: [ 'lib/**/*.js', 'dep/underscore.js' ],
+				options: {
+					specs: 'spec/underscore/*Spec.js',
+					helpers: 'helpers/*.js'
+				},
+			},
+			lodash: {
+				src: [ 'lib/**/*.js', 'dep/lodash.underscore.js' ],
+				options: {
+					specs: 'spec/underscore/*Spec.js',
+					helpers: 'helpers/*.js'
+				},
+			},
 		},
 		jshint: {
 			options: {
