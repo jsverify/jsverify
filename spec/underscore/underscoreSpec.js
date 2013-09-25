@@ -44,6 +44,19 @@
 					})).toHold();
 				});
 			});
+
+			describe("filter", function () {
+				it("filter_in", function () {
+					expect(jsc.forall(jsc.fun(jsc.bool()), jsc.array(),  function (f, l) {
+						var filtered = _.filter(l, f);
+
+						// In x (filter f l) <-> In x l /\ f x = true
+						return _.every(filtered, f) && _.every(filtered, function (x) {
+							return _.contains(l, x);
+						});
+					})).toHold();
+				});
+			});
 		});
 
 		describe("utility", function () {
