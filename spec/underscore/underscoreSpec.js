@@ -47,13 +47,40 @@
 
 			describe("filter", function () {
 				it("filter_in", function () {
-					expect(jsc.forall(jsc.fun(jsc.bool()), jsc.array(),  function (f, l) {
+					expect(jsc.forall(jsc.fun(), jsc.array(), function (f, l) {
 						var filtered = _.filter(l, f);
 
 						// In x (filter f l) <-> In x l /\ f x = true
 						return _.every(filtered, f) && _.every(filtered, function (x) {
 							return _.contains(l, x);
 						});
+					})).toHold();
+				});
+			});
+
+			describe("reject", function () {
+				it("is filter with negated predicate", function () {
+					expect(jsc.forall(jsc.fun(), jsc.array(), function (f, l) {
+						return _.isEqual(_.filter(l, f), _.reject(l, function (x) {
+							return !f(x);
+						}));
+					})).toHold();
+				});
+
+				it("produces disjoint set of filter", function () {
+					expect(jsc.forall(jsc.fun(), jsc.array(), function (f, l) {
+						var filtered = _.filter(l, f);
+						var rejected = _.reject(l, f);
+
+						// every element of l is either in filtered or rejected
+						// but not in both
+						return filtered.length + rejected.length === l.length &&
+							_.every(l, function (x) {
+								var inf = _.contains(filtered, x);
+								var inr = _.contains(rejected, x);
+
+								return (inf || inr) && (inf !== inr);
+							});
 					})).toHold();
 				});
 			});
