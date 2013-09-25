@@ -1,4 +1,4 @@
-/* global jsc, _, Q, describe, it, expect, waitsFor, runs */
+/* global jsc, describe, it, expect */
 (function () {
 	"use strict";
 
@@ -57,31 +57,6 @@
 			expect(prop).toHold();
 		});
 
-		it("fixed inc - promise", function () {
-			function inc(i) {
-				return i + 1;
-			}
-
-			var propPromise = Q.delay(100).then(function () {
-				return jsc.forall(jsc.integer(), function (i) {
-					return inc(i) === i + 1;
-				});
-			});
-
-			// TODO: how to make matcher on promise?
-			var done = false;
-			propPromise.fin(function () { done = true; });
-			waitsFor(function () { return done; });
-
-			runs(function () {
-				propPromise.then(function (prop) {
-					expect(prop).toHold();
-				}, function (e) {
-					expect(false).toBe(true); // should be never executed
-				});
-			});
-		});
-
 		it("failing add", function () {
 			function add(i, j) {
 				return i + (j && 1);
@@ -138,56 +113,6 @@
 			expect(prop).not.toHold();
 		});
 
-		it("intersects", function () {
-			function contains(arr, x) {
-				return arr.indexOf(x) !== -1;
-			}
-
-			function intersects(a, b) {
-				return a.some(function (x) {
-					return contains(b, x);
-				});
-			}
-
-			var prop = jsc.forall(jsc.nonshrinkarray(), function (a) {
-				return jsc.forall(jsc.nonshrinkarray(), function (b) {
-					return intersects(a, b) === (_.intersection(a, b) !== []);
-				});
-			});
-
-			expect(prop).not.toHold();
-
-			var prop2 = jsc.forall(jsc.array(), function (a) {
-				return jsc.forall(jsc.array(), function (b) {
-					return intersects(a, b) === (_.intersection(a, b) !== []);
-				});
-			});
-
-			expect(prop2).not.toHold();
-
-			var prop3 = jsc.forall(jsc.array(), function (a) {
-				return jsc.forall(jsc.array(), function (b) {
-					return intersects(a, b) === (_.intersection(a, b).length !== 0);
-				});
-			});
-
-			expect(prop3).toHold();
-
-			/*
-			var prop4 = jsc.forall(jsc.array(), function (a) {
-				return jsc.forall(jsc.array(), function (b) {
-					return q.delay(10).then(function () {
-						return intersects(a, b) === (_.intersection(a, b).length !== 0);
-					});
-				});
-			});
-
-			jsc.check(prop4).then(function (res) {
-				console.log("intersects try 4:", res);
-			});
-			*/
-		});
-
 		it("booleans", function () {
 			var true_and_left_prop = jsc.forall(jsc.bool(), function (x) {
 				return true && x === x;
@@ -216,13 +141,13 @@
 
 		it("oneof", function () {
 			var prop1 = jsc.forall(jsc.oneof(["foo", "bar", "quux"]), function (el) {
-				return _.contains(["foo", "bar"], el);
+				return ["foo", "bar"].indexOf(el) !== -1;
 			});
 
 			expect(prop1).not.toHold();
 
 			var prop2 = jsc.forall(jsc.oneof(["foo", "bar", "quux"]), function (el) {
-				return _.contains(["foo", "bar", "quux"], el);
+				return ["foo", "bar", "quux"].indexOf(el) !== -1;
 			});
 
 			expect(prop2).toHold();
@@ -276,28 +201,22 @@
 			expect(number_round_noop_property).not.toHold();
 		});
 
-		it("_.sortBy idempotent", function () {
-			var prop1 = jsc.forall(jsc.array(), function (l) {
-				return _.isEqual(_.sortBy(l), l);
-			});
-
-			expect(prop1).toHold();
-
+		it("sort idempotent", function () {
 			function sort(l) {
-				return _.sortBy(l, _.identity);
+				return l.slice().sort();
 			}
 
+			var prop1 = jsc.forall(jsc.array(), function (l) {
+				return jsc._.isEqual(sort(l), l);
+			});
+
+			expect(prop1).not.toHold();
+
 			var prop2 = jsc.forall(jsc.array(), function (l) {
-				return _.isEqual(sort(l), l);
+				return jsc._.isEqual(sort(sort(l)), sort(l));
 			});
 
-			expect(prop2).not.toHold();
-
-			var prop3 = jsc.forall(jsc.array(), function (l) {
-				return _.isEqual(sort(sort(l)), sort(l));
-			});
-
-			expect(prop3).toHold();
+			expect(prop2).toHold();
 		});
 	});
 }());

@@ -8,10 +8,17 @@ module.exports = function(grunt) {
 			jsverify: {
 				src: 'lib/**/*.js',
 				options: {
-					specs: 'spec/*Spec.js',
-					helpers: 'speclib/*.js'
-				}
-			}
+					specs: 'spec/jsverify/*Spec.js',
+					helpers: 'helpers/*.js'
+				},
+			},
+			q: {
+				src: [ 'lib/**/*.js', 'dep/q.js' ],
+				options: {
+					specs: 'spec/q/*Spec.js',
+					helpers: 'helpers/*.js'
+				},
+			},
 		},
 		jshint: {
 			options: {
