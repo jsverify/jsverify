@@ -33,6 +33,13 @@ module.exports = function(grunt) {
 					helpers: 'helpers/*.js'
 				},
 			},
+			all: {
+				src: [ 'lib/**/*.js', 'dep/underscore.js', 'dep/q.js' ],
+				options: {
+					specs: 'spec/**/*Spec.js',
+					helpers: 'helpers/*.js'
+				},
+			},
 		},
 		jshint: {
 			options: {
@@ -70,8 +77,8 @@ module.exports = function(grunt) {
 
 	// Default task.
 	grunt.registerTask('default', ['jshint']);
-	grunt.registerTask('test', ['jshint', 'jasmine']);
-	grunt.registerTask('jasmine-build', ['jasmine:jsverify:build']);
+	grunt.registerTask('test', ['jshint', 'jasmine:all', 'jasmine:lodash']);
+	grunt.registerTask('jasmine-build', ['jasmine:all:build']);
 
 	// use esprima to generate README.md from source
 	grunt.registerTask("readme", "Generate README.md", function () {
