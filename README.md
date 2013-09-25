@@ -10,27 +10,15 @@ Install the module with: `npm install jsverify`
 
 ```js
 var jsc = require("jsverify");
-```
 
-Example output of `node example.js`:
+// forall (f : bool -> bool) (b : bool), f (f (f b)) = f(b).
+var bool_fn_applied_thrice =
+	jsc.forall(jsc.fun(jsc.bool()), jsc.bool(), function (f, b) {
+		return f(f(f(b))) === f(b);
+	});
 
-```
-Propery doesn't hold, counterexample with undefined
-inc failing: false
-inc fixed: true
-Propery doesn't hold, counterexample with [ 0 ]
-add failing: { counterexample: [ 0 ] }
-add fixed: true
-Propery doesn't hold, counterexample with [ 0, -1 ]
-add3 failing: { counterexample: [ 0, -1 ] }
-intersects([1, 2], [1, 3]) true
-intersects([1, 2], [3, 4]) false
-Propery doesn't hold, counterexample with [ [] ]
-intersects try 1: { counterexample: [ [] ] }
-Propery doesn't hold, counterexample with [ [] ]
-intersects try 2: { counterexample: [ [] ] }
-intersects try 3: true
-intersects try 4: true
+jsc.check(bool_fn_applied_thrice);
+// OK, passed 100 tests
 ```
 
 ## Documentation
@@ -115,7 +103,7 @@ getRandomInt(2, 3) // either 2 or 3
 
 ### Properties
 
-#### forall (gen : generator a) (prop : a -> property_rec) : property
+#### forall (gens : generator a ...) (prop : a -> property_rec) : property
 
 Property constructor
 
@@ -150,13 +138,15 @@ Booleans, `true` or `false`.
 
 Random element of `args` array.
 
+#### string () : generator string
+
+Strings
+
 #### array (gen : generator a) : generator (array a)
 
 #### value : generator value
 
 JavaScript value: boolean, number, string, array of values or object with `value` values.
-
-**TODO**: currently returns only integers.
 
 #### fun (gen : generator a) : generator (b -> a)
 
@@ -185,6 +175,7 @@ In lieu of a formal styleguide, take care to maintain the existing coding style.
 
 ## Release History
 
+- 0.1.0 Usable library
 - 0.0.2 Documented preview
 - 0.0.1 Initial preview
 
