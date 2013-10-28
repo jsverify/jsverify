@@ -1,48 +1,49 @@
 {
-	"name": "jsverify",
-	"description": "Property-based testing for JavaScript.",
-	"version": "0.1.0",
-	"homepage": "https://github.com/phadej/jsverify",
-	"author": {
-		"name": "Oleg Grenrus",
-		"email": "oleg.grenrus@iki.fi",
-		"url": "http://oleg.fi"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git://github.com/phadej/jsverify.git"
-	},
-	"bugs": {
-		"url": "https://github.com/phadej/jsverify/issues"
-	},
-	"licenses": [
-		{
-			"type": "BSD",
-			"url": "https://github.com/phadej/jsverify/blob/master/LICENSE"
-		}
-	],
-	"main": "lib/jsverify",
-	"engines": {
-		"node": ">= 0.8.0"
-	},
-	"scripts": {
-		"test": "grunt test"
-	},
-	"devDependencies": {
-		"grunt-contrib-jshint": "~0.6.0",
-		"grunt-contrib-watch": "~0.4.0",
-		"grunt-contrib-jasmine": "~0.5.1",
-		"underscore": "~1.5.2",
-		"esprima": "~1.0.4",
-		"grunt": "~0.4.1"
-	},
-	"keywords": [
-		"testing",
-		"unit testing",
-		"TDD",
-		"property-based testing",
-		"quickcheck",
-		"quick check",
-		"jscheck"
-	]
+  "name": "jsverify",
+  "description": "Property-based testing for JavaScript.",
+  "version": "0.1.0",
+  "homepage": "https://github.com/phadej/jsverify",
+  "author": {
+    "name": "Oleg Grenrus",
+    "email": "oleg.grenrus@iki.fi",
+    "url": "http://oleg.fi"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/phadej/jsverify.git"
+  },
+  "bugs": {
+    "url": "https://github.com/phadej/jsverify/issues"
+  },
+  "licenses": [
+    {
+      "type": "BSD",
+      "url": "https://github.com/phadej/jsverify/blob/master/LICENSE"
+    }
+  ],
+  "main": "lib/jsverify",
+  "engines": {
+    "node": ">= 0.8.0"
+  },
+  "scripts": {
+    "test": "grunt test"
+  },
+  "devDependencies": {
+    "grunt-contrib-jshint": "~0.6.0",
+    "grunt-contrib-watch": "~0.4.0",
+    "grunt-contrib-jasmine": "~0.5.1",
+    "underscore": "~1.5.2",
+    "esprima": "~1.0.4",
+    "grunt": "~0.4.1",
+    "grunt-literate": "~0.1.1"
+  },
+  "keywords": [
+    "testing",
+    "unit testing",
+    "TDD",
+    "property-based testing",
+    "quickcheck",
+    "quick check",
+    "jscheck"
+  ]
 }

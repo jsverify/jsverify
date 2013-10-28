@@ -1,4 +1,3 @@
-
 # JSVerify [![Build Status](https://secure.travis-ci.org/phadej/jsverify.png?branch=master)](http://travis-ci.org/phadej/jsverify)
 
 Property based checking.
@@ -20,7 +19,6 @@ var bool_fn_applied_thrice =
 jsc.check(bool_fn_applied_thrice);
 // OK, passed 100 tests
 ```
-
 ## Documentation
 
 ### Use with [jasmine](http://pivotal.github.io/jasmine/) 1.3.x
@@ -53,21 +51,16 @@ Some type definitions to keep developers sane:
 - result := true | { counterexample: any }
 - Functor f => property_rec := f (result | property)
 - generator a := { arbitrary : a, shrink : a -> [a] }
-
 ### jsc._ - miscellaneous utilities
-
 #### assert (exp : bool) (message : string) : void
 
 Throw an error with `message` if `exp` is falsy.
-
 #### id (x : any) : any
 
 Identity function.
-
 #### isEqual (a b : value) : bool
 
 Equality test for `value` objects. See `value` generator.
-
 #### FMap (eq : a -> a -> bool) : FMap a
 
 Finite map, with any object a key.
@@ -77,22 +70,18 @@ Short summary of member functions:
 - FMap.insert (key : a) (value : any) : void
 - FMap.get (key : a) : any
 - FMap.contains (key : a) : obool
-
 #### isPromise p : bool
 
 Optimistic duck-type check for promises.
 Returns `true` if p is an object with `.then` function property.
-
 #### withPromise (Functor f) (p : f a) (f : a -> b) : f b
 
 This is functor map, `fmap`, with arguments flipped.
 Essentially `f(p)`. If `p` is promise, returns new promise.
 Using `withPromise` makes code look very much [CPS-style](http://en.wikipedia.org/wiki/Continuation-passing_style).
-
 #### getRandomArbitrary (min max : number) : number
 
 Returns random number from `[min, max)` range.
-
 #### getRandomInt (min max : int) : int
 
 Returns random int from `[min, max]` range inclusively.
@@ -100,13 +89,10 @@ Returns random int from `[min, max]` range inclusively.
 ```js
 getRandomInt(2, 3) // either 2 or 3
 ```
-
 ### Properties
-
 #### forall (gens : generator a ...) (prop : a -> property_rec) : property
 
 Property constructor
-
 #### check (prop : property) (opts : checkoptions) : promise result + result
 
 Run random checks for given `prop`. If `prop` is promise based, result is also wrapped in promise.
@@ -115,53 +101,39 @@ Options:
 - `opts.tests` - test count to run, default 100
 - `opts.size`  - maximum size of generated values, default 5
 - `opts.quiet` - do not `console.log`
-
 ### Primitive generators
-
 #### integer (maxsize : nat) : generator integer
 
 Integers, ℤ
-
 #### nat (maxsize : nat) : generator nat
 
 Natural numbers, ℕ (0, 1, 2...)
-
 #### number (maxsize : number) : generator number
 
 JavaScript numbers, "doubles", ℝ. `NaN` and `Infinity` are not included.
-
 #### bool () : generator bool
 
 Booleans, `true` or `false`.
-
 #### oneof (args : array any) : generator any
 
 Random element of `args` array.
-
 #### string () : generator string
 
 Strings
-
 #### array (gen : generator a) : generator (array a)
-
 #### value : generator value
 
 JavaScript value: boolean, number, string, array of values or object with `value` values.
-
 #### fun (gen : generator a) : generator (b -> a)
 
 Unary functions.
-
 ### Generator combinators
-
 #### pair (a : generator A) (b : generator B) : generator (A * B)
 
 If not specified `a` and `b` are equal to `integer()`.
-
 #### suchthat (gen : generator a) (p : a -> bool) : generator {a | p a == true}
 
 Generator of values that satisfy `p` predicate. It's adviced that `p`'s accept rate is high.
-
 ## Contributing
 
 In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
