@@ -143,10 +143,11 @@ In lieu of a formal styleguide, take care to maintain the existing coding style.
 
 ### Preparing for release
 
-- run `grunt readme` to regenerate `README.md`
+- run `grunt literate` to regenerate `README.md`
 
 ## Release History
 
+- 0.1.1 Use grunt-literate
 - 0.1.0 Usable library
 - 0.0.2 Documented preview
 - 0.0.1 Initial preview
