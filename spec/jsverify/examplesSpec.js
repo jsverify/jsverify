@@ -218,5 +218,15 @@
 
 			expect(prop2).toHold();
 		});
+
+		it("assert throws if property doesn't hold", function () {
+			var prop = jsc.forall(jsc.number(), function (n) {
+				return n === n + 1;
+			});
+
+			expect(function () {
+				jsc.assert(prop);
+			}).toThrow();
+		});
 	});
 }());
