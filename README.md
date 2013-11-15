@@ -179,6 +179,7 @@ In lieu of a formal styleguide, take care to maintain the existing coding style.
 
 ## Release History
 
+- 0.1.3 gen.show and exception catching
 - 0.1.2 Added jsc.assert
 - 0.1.1 Use grunt-literate
 - 0.1.0 Usable library
