@@ -9,10 +9,10 @@ beforeEach(function () {
 
 			var r = jsc.check(actual, { quiet: quiet });
 
-			var counterExampleText = r === true ? "" : "Counter example found: " + JSON.stringify(r.counterexample);
+			var counterExampleText = r === true ? "" : "Counterexample found: " + r.counterexamplestr;
 
 			this.message = function() {
-				return "Expected property to " + notText + " to not hold." + counterExampleText;
+				return "Expected property to" + notText + " hold. " + counterExampleText;
 			};
 
 			return r === true;
