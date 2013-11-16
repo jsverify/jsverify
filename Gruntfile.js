@@ -17,7 +17,7 @@ module.exports = function(grunt) {
             jsverify: {
                 src: "lib/**/*.js",
                 options: {
-                    specs: "spec/jsverify/*.js",
+                    specs: "spec/*.js",
                     helpers: "helpers/*.js"
                 },
             },
