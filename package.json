@@ -37,7 +37,8 @@
     "grunt": "~0.4.1",
     "grunt-literate": "~0.1.1",
     "grunt-simple-mocha": "~0.4.0",
-    "lodash": "~2.3.0"
+    "lodash": "~2.3.0",
+    "q": "~0.9.7"
   },
   "keywords": [
     "testing",

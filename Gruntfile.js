@@ -11,27 +11,13 @@ module.exports = function(grunt) {
 				reporter: "spec"
 			},
 
-			all: { src: "test/*.js" }
+			all: { src: "test/**/*.js" }
 		},
 		jasmine: {
 			jsverify: {
 				src: "lib/**/*.js",
 				options: {
 					specs: "spec/jsverify/*Spec.js",
-					helpers: "helpers/*.js"
-				},
-			},
-			q: {
-				src: [ "lib/**/*.js", "dep/q.js" ],
-				options: {
-					specs: "spec/q/*Spec.js",
-					helpers: "helpers/*.js"
-				},
-			},
-			all: {
-				src: [ "lib/**/*.js", "dep/q.js" ],
-				options: {
-					specs: "spec/**/*Spec.js",
 					helpers: "helpers/*.js"
 				},
 			},
@@ -81,5 +67,5 @@ module.exports = function(grunt) {
 	// Default task.
 	grunt.registerTask("default", ["jshint"]);
 	grunt.registerTask("test", ["jshint", "simplemocha", "jasmine"]);
-	grunt.registerTask("jasmine-build", ["jasmine:all:build"]);
+	grunt.registerTask("jasmine-build", ["jasmine:jsverify:build"]);
 };
