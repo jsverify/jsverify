@@ -19,7 +19,7 @@ function utilityTest(lib) {
 				var nonemptylist = jsc.suchthat(jsc.array(), function (l) {
 					return l.length !== 0;
 				});
-				
+
 				jsc.assert(jsc.forall(nonemptylist, function (l) {
 					return _.identity.apply(undefined, l) === l[0];
 				}));
