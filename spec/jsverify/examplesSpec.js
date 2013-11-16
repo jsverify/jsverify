@@ -33,81 +33,13 @@
 			expect(prop).toHold();
 		});
 
-		it("failing inc", function () {
+		it("failing test", function () {
 			function inc(i) {
 				return i + 1;
 			}
 
 			var prop = jsc.forall(jsc.integer(), function (i) {
 				return inc(i) === i + 2;
-			});
-
-			expect(prop).not.toHold();
-		});
-
-		it("fixed inc", function () {
-			function inc(i) {
-				return i + 1;
-			}
-
-			var prop = jsc.forall(jsc.integer(), function (i) {
-				return inc(i) === i + 1;
-			});
-
-			expect(prop).toHold();
-		});
-
-		it("failing add", function () {
-			function add(i, j) {
-				return i + (j && 1);
-			}
-
-			var prop = jsc.forall(jsc.integer(), function (i) {
-				return jsc.forall(jsc.integer(), function (j) {
-					return add(i, j) === i + j;
-				});
-			});
-
-			expect(prop).not.toHold();
-		});
-
-		it("other failing add", function () {
-			function add(i, j) {
-				return i + (j && 1);
-			}
-
-			var prop = jsc.forall(jsc.integer(), jsc.integer(), function (i, j) {
-				return add(i, j) === i + j;
-			});
-
-			expect(prop).not.toHold();
-		});
-
-		it("fixed add", function () {
-			function add(i, j) {
-				return i + j;
-			}
-
-			var prop = jsc.forall(jsc.integer(), function (i) {
-				return jsc.forall(jsc.integer(), function (j) {
-					return add(i, j) === i + j;
-				});
-			});
-
-			expect(prop).toHold();
-		});
-
-		it("failing add3", function () {
-			function add(i, j, k) {
-				return i + (j && 1) + k;
-			}
-
-			var prop = jsc.forall(jsc.integer(), function (i) {
-				return jsc.forall(jsc.integer(), function (j) {
-					return jsc.forall(jsc.integer(), function (k) {
-						return add(i, j, k) === i + j + k;
-					});
-				});
 			});
 
 			expect(prop).not.toHold();
