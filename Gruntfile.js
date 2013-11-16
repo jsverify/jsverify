@@ -4,6 +4,15 @@
 module.exports = function(grunt) {
 	// Project configuration.
 	grunt.initConfig({
+		simplemocha: {
+			options: {
+				timeout: 3000,
+				ui: "bdd",
+				reporter: "spec"
+			},
+
+			all: { src: "test/*.js" }
+		},
 		jasmine: {
 			jsverify: {
 				src: "lib/**/*.js",
@@ -19,22 +28,8 @@ module.exports = function(grunt) {
 					helpers: "helpers/*.js"
 				},
 			},
-			underscore: {
-				src: [ "lib/**/*.js", "dep/underscore.js" ],
-				options: {
-					specs: "spec/underscore/*Spec.js",
-					helpers: "helpers/*.js"
-				},
-			},
-			lodash: {
-				src: [ "lib/**/*.js", "dep/lodash.underscore.js" ],
-				options: {
-					specs: "spec/underscore/*Spec.js",
-					helpers: "helpers/*.js"
-				},
-			},
 			all: {
-				src: [ "lib/**/*.js", "dep/underscore.js", "dep/q.js" ],
+				src: [ "lib/**/*.js", "dep/q.js" ],
 				options: {
 					specs: "spec/**/*Spec.js",
 					helpers: "helpers/*.js"
@@ -56,7 +51,10 @@ module.exports = function(grunt) {
 			},
 			spec: {
 				src: ["spec/**/*.js"]
-			}
+			},
+			test: {
+				src: ["test/**/*.js"],
+			},
 		},
 		watch: {
 			gruntfile: {
@@ -77,10 +75,11 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks("grunt-contrib-jshint");
 	grunt.loadNpmTasks("grunt-contrib-watch");
 	grunt.loadNpmTasks("grunt-contrib-jasmine");
+	grunt.loadNpmTasks("grunt-simple-mocha");
 	grunt.loadNpmTasks("grunt-literate");
 
 	// Default task.
 	grunt.registerTask("default", ["jshint"]);
-	grunt.registerTask("test", ["jshint", "jasmine:all", "jasmine:lodash"]);
+	grunt.registerTask("test", ["jshint", "simplemocha", "jasmine"]);
 	grunt.registerTask("jasmine-build", ["jasmine:all:build"]);
 };

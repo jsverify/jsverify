@@ -1,8 +1,13 @@
-/* global jsc, describe, it, expect, _ */
-(function () {
-	"use strict";
+/* jshint node:true */
+/* global describe, it */
+"use strict";
 
-	describe("intersection", function () {
+var jsc = require("../../lib/jsverify.js");
+
+function intersectionTests(lib) {
+	var _ = require(lib);
+
+	describe(lib + " intersection", function () {
 		it("intersects", function () {
 			function contains(arr, x) {
 				return arr.indexOf(x) !== -1;
@@ -20,7 +25,10 @@
 				});
 			});
 
-			expect(prop).toHold();
+			jsc.assert(prop);
 		});
 	});
-}());
+}
+
+intersectionTests("underscore");
+intersectionTests("lodash");
