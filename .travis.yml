@@ -5,3 +5,5 @@ node_js:
   - "0.8"
 before_script:
   - npm install -g grunt-cli
+  - npm install -g browserify
+  - npm run-script browserify

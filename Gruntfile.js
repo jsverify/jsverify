@@ -15,7 +15,7 @@ module.exports = function(grunt) {
         },
         jasmine: {
             jsverify: {
-                src: "lib/**/*.js",
+                src: "jsverify.standalone.js",
                 options: {
                     specs: "spec/*.js",
                     helpers: "helpers/*.js"

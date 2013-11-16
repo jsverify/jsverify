@@ -26,7 +26,8 @@
     "node": ">= 0.8.0"
   },
   "scripts": {
-    "test": "grunt test"
+    "test": "grunt test",
+    "browserify": "browserify -s jsc -o jsverify.standalone.js ./lib/jsverify.js"
   },
   "devDependencies": {
     "grunt-contrib-jshint": "~0.7.0",
