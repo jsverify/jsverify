@@ -1,6 +1,11 @@
-# JSVerify [![Build Status](https://secure.travis-ci.org/phadej/jsverify.png?branch=master)](http://travis-ci.org/phadej/jsverify)
+# JSVerify
 
 Property based checking.
+
+[![Build Status](https://secure.travis-ci.org/phadej/jsverify.png?branch=master)](http://travis-ci.org/phadej/jsverify)
+[![NPM version](https://badge.fury.io/js/jsverify.png)](http://badge.fury.io/js/jsverify)
+[![Dependency Status](https://gemnasium.com/phadej/jsverify.png)](https://gemnasium.com/phadej/jsverify)
+[![Code Climate](https://codeclimate.com/github/phadej/jsverify.png)](https://codeclimate.com/github/phadej/jsverify)
 
 ## Getting Started
 Install the module with: `npm install jsverify`
@@ -12,9 +17,9 @@ var jsc = require("jsverify");
 
 // forall (f : bool -> bool) (b : bool), f (f (f b)) = f(b).
 var bool_fn_applied_thrice =
-	jsc.forall(jsc.fun(jsc.bool()), jsc.bool(), function (f, b) {
-		return f(f(f(b))) === f(b);
-	});
+  jsc.forall(jsc.fun(jsc.bool()), jsc.bool(), function (f, b) {
+    return f(f(f(b))) === f(b);
+  });
 
 jsc.check(bool_fn_applied_thrice);
 // OK, passed 100 tests
@@ -59,10 +64,6 @@ Some type definitions to keep developers sane:
 
 Throw an error with `message` if `exp` is falsy.
 Resembles [node.js assert](http://nodejs.org/api/assert.html).
-
-#### id (x : any) : any
-
-Identity function.
 
 #### isEqual (a b : value) : bool
 
@@ -160,7 +161,7 @@ Unary functions.
 
 #### pair (a : generator A) (b : generator B) : generator (A * B)
 
-If not specified `a` and `b` are equal to `integer()`.
+If not specified `a` and `b` are equal to `value()`.
 
 #### suchthat (gen : generator a) (p : a -> bool) : generator {a | p a == true}
 
