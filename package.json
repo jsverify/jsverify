@@ -29,8 +29,8 @@
     "test": "grunt test"
   },
   "devDependencies": {
-    "grunt-contrib-jshint": "~0.6.0",
-    "grunt-contrib-watch": "~0.4.0",
+    "grunt-contrib-jshint": "~0.7.0",
+    "grunt-contrib-watch": "~0.5.0",
     "grunt-contrib-jasmine": "~0.5.1",
     "underscore": "~1.5.2",
     "esprima": "~1.0.4",
