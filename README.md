@@ -1,6 +1,6 @@
 # JSVerify
 
-Property based checking.
+> Property based checking.
 
 [![Build Status](https://secure.travis-ci.org/phadej/jsverify.png?branch=master)](http://travis-ci.org/phadej/jsverify)
 [![NPM version](https://badge.fury.io/js/jsverify.png)](http://badge.fury.io/js/jsverify)
@@ -167,29 +167,30 @@ If not specified `a` and `b` are equal to `value()`.
 
 Generator of values that satisfy `p` predicate. It's adviced that `p`'s accept rate is high.
 
+
 ## Contributing
 
-In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
+In lieu of a formal styleguide, take care to maintain the existing coding style.
 
-- You can use `grunt jasmine-build` to generate `_SpecRunner.html` to run tests in your browser of choice.
-- Use tabs for indentation
+- Add unit tests for any new or changed functionality.
+- Lint and test your code using [Grunt](http://gruntjs.com/).
+- Use `istanbul cover grunt simplemocha` to run tests with coverage with [istanbul](http://gotwarlost.github.io/istanbul/).
+- Create a pull request
 
-### Preparing for release
+### Before release
 
 - run `grunt literate` to regenerate `README.md`
 
 ## Release History
 
+- 0.1.4 Mocha test suite
+    - major cleanup
 - 0.1.3 gen.show and exception catching
 - 0.1.2 Added jsc.assert
 - 0.1.1 Use grunt-literate
 - 0.1.0 Usable library
 - 0.0.2 Documented preview
 - 0.0.1 Initial preview
-
-## License
-
-Copyright (c) 2013 Oleg Grenrus. Licensed under the BSD3 license.
 
 ## Related work
 
@@ -209,3 +210,33 @@ Copyright (c) 2013 Oleg Grenrus. Licensed under the BSD3 license.
 - [Erlang - QuviQ](http://www.quviq.com/index.html)
 - [Erlang - triq](https://github.com/krestenkrab/triq)
 - [Scala - ScalaCheck](https://github.com/rickynils/scalacheck)
+Copyright Oleg Grenrus 2013
+
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+
+    * Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+
+    * Neither the name of Oleg Grenrus nor the names of other
+      contributors may be used to endorse or promote products derived
+      from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
