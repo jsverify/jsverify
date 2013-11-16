@@ -2,3 +2,4 @@
 _SpecRunner.html
 .grunt/
 def/dist
+coverage/
