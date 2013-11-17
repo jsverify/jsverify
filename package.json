@@ -27,7 +27,8 @@
   },
   "scripts": {
     "test": "grunt test",
-    "browserify": "browserify -s jsc -o jsverify.standalone.js ./lib/jsverify.js"
+    "browserify": "browserify -s jsc -o jsverify.standalone.js ./lib/jsverify.js",
+    "prepare-release": "grunt test && grunt literate && npm run-script browserify"
   },
   "devDependencies": {
     "grunt-contrib-jshint": "~0.7.0",
