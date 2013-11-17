@@ -66,9 +66,9 @@ describe("primitive generators", function () {
     });
   });
 
-  describe("nonshrinkarray", function () {
+  describe("nonshrink array", function () {
     it("generates array", function () {
-      jsc.assert(jsc.forall(jsc.nonshrinkarray(), function (arr) {
+      jsc.assert(jsc.forall(jsc.nonshrink(jsc.array()), function (arr) {
         return _.isArray(arr);
       }));
     });
