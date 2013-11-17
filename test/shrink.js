@@ -80,9 +80,9 @@ describe("shrink", function () {
     });
   });
 
-  describe("nonshrinkarray", function () {
+  describe("nonshrink array", function () {
     it("cannot be shrinked", function () {
-      var property = jsc.forall(jsc.nonshrinkarray(jsc.nat()), function (arr) {
+      var property = jsc.forall(jsc.nonshrink(jsc.array(jsc.nat())), function (arr) {
         return arr.length === 0 || arr[0] === 0;
       });
 
