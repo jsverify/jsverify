@@ -8,6 +8,7 @@
 [![Code Climate](https://codeclimate.com/github/phadej/jsverify.png)](https://codeclimate.com/github/phadej/jsverify)
 
 ## Getting Started
+
 Install the module with: `npm install jsverify`
 
 ## Synopsis
@@ -21,7 +22,7 @@ var bool_fn_applied_thrice =
     return f(f(f(b))) === f(b);
   });
 
-jsc.check(bool_fn_applied_thrice);
+jsc.assert(bool_fn_applied_thrice);
 // OK, passed 100 tests
 ```
 
@@ -57,50 +58,6 @@ Some type definitions to keep developers sane:
 - result := true | { counterexample: any }
 - Functor f => property_rec := f (result | property)
 - generator a := { arbitrary : a, shrink : a -> [a] }
-
-### jsc._ - miscellaneous utilities
-
-#### assert (exp : bool) (message : string) : void
-
-Throw an error with `message` if `exp` is falsy.
-Resembles [node.js assert](http://nodejs.org/api/assert.html).
-
-#### isEqual (a b : value) : bool
-
-Equality test for `value` objects. See `value` generator.
-
-#### FMap (eq : a -> a -> bool) : FMap a
-
-Finite map, with any object a key.
-
-Short summary of member functions:
-
-- FMap.insert (key : a) (value : any) : void
-- FMap.get (key : a) : any
-- FMap.contains (key : a) : obool
-
-#### isPromise p : bool
-
-Optimistic duck-type check for promises.
-Returns `true` if p is an object with `.then` function property.
-
-#### withPromise (Functor f) (p : f a) (f : a -> b) : f b
-
-This is functor map, `fmap`, with arguments flipped.
-Essentially `f(p)`. If `p` is promise, returns new promise.
-Using `withPromise` makes code look very much [CPS-style](http://en.wikipedia.org/wiki/Continuation-passing_style).
-
-#### getRandomArbitrary (min max : number) : number
-
-Returns random number from `[min, max)` range.
-
-#### getRandomInt (min max : int) : int
-
-Returns random int from `[min, max]` range inclusively.
-
-```js
-getRandomInt(2, 3) // either 2 or 3
-```
 
 ### Properties
 
@@ -147,11 +104,15 @@ Random element of `args` array.
 
 Strings
 
-#### array (gen : generator a) : generator (array a)
-
 #### value : generator value
 
 JavaScript value: boolean, number, string, array of values or object with `value` values.
+
+#### array (gen : generator a) : generator (array a)
+
+#### pair (a : generator A) (b : generator B) : generator (A * B)
+
+If not specified `a` and `b` are equal to `value()`.
 
 #### fun (gen : generator a) : generator (b -> a)
 
@@ -159,13 +120,46 @@ Unary functions.
 
 ### Generator combinators
 
-#### pair (a : generator A) (b : generator B) : generator (A * B)
-
-If not specified `a` and `b` are equal to `value()`.
-
 #### suchthat (gen : generator a) (p : a -> bool) : generator {a | p a == true}
 
 Generator of values that satisfy `p` predicate. It's adviced that `p`'s accept rate is high.
+
+#### nonshrink (gen : generator a) : generator a
+
+Non shrinkable version of generator `gen`.
+
+### jsc._ - miscellaneous utilities
+
+#### assert (exp : bool) (message : string) : void
+
+Throw an error with `message` if `exp` is falsy.
+Resembles [node.js assert](http://nodejs.org/api/assert.html).
+
+#### isEqual (a b : value) : bool
+
+Equality test for `value` objects. See `value` generator.
+
+#### random (min max : int) : int
+
+Returns random int from `[min, max]` range inclusively.
+
+```js
+getRandomInt(2, 3) // either 2 or 3
+```
+
+#### random.number (min max : number) : number
+
+Returns random number from `[min, max)` range.
+
+#### FMap (eq : a -> a -> bool) : FMap a
+
+Finite map, with any object a key.
+
+Short summary of member functions:
+
+- FMap.insert (key : a) (value : any) : void
+- FMap.get (key : a) : any
+- FMap.contains (key : a) : obool
 
 
 ## Contributing
@@ -179,10 +173,16 @@ In lieu of a formal styleguide, take care to maintain the existing coding style.
 
 ### Before release
 
-- run `grunt literate` to regenerate `README.md`
+Don't add `README.md` or `jsverify.standalone.js` into pull requests.
+They will be regenerated before each release.
+
+- run `npm run-script prepare-release`
+   - run `grunt literate` to regenerate `README.md`
+   - run `npm run-script browserify` to regenerate `jsverify.standalone.js`
 
 ## Release History
 
+- 0.2.0 Use browserify
 - 0.1.4 Mocha test suite
     - major cleanup
 - 0.1.3 gen.show and exception catching
