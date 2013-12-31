@@ -35,4 +35,32 @@ describe("properties that throws", function () {
       });
     }));
   });
+
+  it("throwed string is in assert exception", function () {
+    var err;
+    try {
+      jsc.assert(jsc.forall(jsc.nat(), function (n) {
+        throw "foo";
+      }));
+    } catch (e) {
+      err = e.message;
+    }
+
+    assert(err);
+    assert(/foo/.test(err));
+  });
+
+  it("throwed exception message is in assert exception", function () {
+    var err;
+    try {
+      jsc.assert(jsc.forall(jsc.nat(), function (n) {
+        throw new Error("foo");
+      }));
+    } catch (e) {
+      err = e.message;
+    }
+
+    assert(err);
+    assert(/foo/.test(err));
+  });
 });
