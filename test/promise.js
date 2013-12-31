@@ -5,8 +5,8 @@
 var jsc = require("../lib/jsverify.js");
 var q = require("q");
 
-describe("promises", function (done) {
-  it("check", function () {
+describe("promises", function () {
+  it("check", function (done) {
     var p = jsc.check(jsc.forall(jsc.nat(), function (n) {
       return q.delay(10).then(function () {
         return n === n;
