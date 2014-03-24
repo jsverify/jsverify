@@ -134,12 +134,14 @@ describe("shrink", function () {
       });
     });
 
-    checkShrink(undefined, property);
+    it("find minimal", function () {
+      checkShrink(undefined, property);
 
-    var property2 = jsc.forall(jsc.nat(), jsc.nat(), function (n, m) {
-      return n === 0 || m === 0 || m !== m;
+      var property2 = jsc.forall(jsc.nat(), jsc.nat(), function (n, m) {
+        return n === 0 || m === 0 || m !== m;
+      });
+
+      checkShrink([1,1], property2);
     });
-
-    checkShrink([1,1], property2);
   });
 });
