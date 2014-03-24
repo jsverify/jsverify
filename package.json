@@ -27,7 +27,7 @@
   },
   "scripts": {
     "test": "grunt test",
-    "browserify": "mkdir -p dist/ && browserify -s jsc -o dist/jsverify.standalone.js ./lib/jsverify.js",
+    "browserify": "mkdir -p dist/ && browserify --no-detect-globals -s jsc -o dist/jsverify.standalone.js ./lib/jsverify.js",
     "prepare-release": "npm run-script browserify && grunt test && grunt literate"
   },
   "devDependencies": {
@@ -40,7 +40,8 @@
     "grunt-contrib-jasmine": "0.5.1",
     "underscore": "~1.6.0",
     "lodash": "~2.4.1",
-    "q": "~1.0.0"
+    "q": "~1.0.0",
+    "browserify": "~3.33.0"
   },
   "keywords": [
     "testing",
