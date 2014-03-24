@@ -17,7 +17,7 @@
   },
   "licenses": [
     {
-      "type": "BSD",
+      "type": "MIT",
       "url": "https://github.com/phadej/jsverify/blob/master/LICENSE"
     }
   ],
