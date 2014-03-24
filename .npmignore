@@ -4,6 +4,7 @@
 .travis.yml
 
 dist/
+examples/
 node_modules/
 test/
 helpers/
