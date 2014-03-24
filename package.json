@@ -50,5 +50,8 @@
     "quickcheck",
     "quick check",
     "jscheck"
-  ]
+  ],
+  "dependencies": {
+    "rc4": "~0.1.2"
+  }
 }
