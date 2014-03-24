@@ -1,5 +1,3 @@
-/node_modules/
-_SpecRunner.html
-.grunt/
-def/dist
+node_modules/
 coverage/
+tests-bundle.js
