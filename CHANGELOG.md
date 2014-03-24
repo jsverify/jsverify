@@ -1,5 +1,11 @@
 ## Release History
 
+- 0.3.0 Major changes
+    - random generate state handling
+    - `--jsverifyRngState` parameter value used when run on node
+    - karma tests
+    - use make
+    - dependencies update
 - 0.2.0 Use browserify
 - 0.1.4 Mocha test suite
     - major cleanup

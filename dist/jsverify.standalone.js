@@ -1,8 +1,8 @@
-!function(e){"object"==typeof exports?module.exports=e():"function"==typeof define&&define.amd?define(e):"undefined"!=typeof window?window.jsc=e():"undefined"!=typeof global?global.jsc=e():"undefined"!=typeof self&&(self.jsc=e())}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+!function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.jsc=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 /* jshint node: true */
 "use strict";
 
-var random = require("./random.js");
+var random = _dereq_("./random.js");
 
 function arbitraryArray(arbitrary, size) {
   var arrsize = random(0, size);
@@ -33,11 +33,12 @@ module.exports = {
   string: arbitraryString,
   object: arbitraryObject,
 };
-},{"./random.js":9}],2:[function(require,module,exports){
+
+},{"./random.js":9}],2:[function(_dereq_,module,exports){
 /* jshint node:true */
 "use strict";
 
-var shrink = require("./shrink.js");
+var shrink = _dereq_("./shrink.js");
 
 /**
   ### Generator combinators
@@ -90,14 +91,15 @@ module.exports = {
   suchthat: suchthat,
   nonshrink: nonshrink,
 };
-},{"./shrink.js":11}],3:[function(require,module,exports){
+
+},{"./shrink.js":11}],3:[function(_dereq_,module,exports){
 /* jshint node:true */
 "use strict";
 
-var arbitrary = require("./arbitrary.js");
-var shrink = require("./shrink.js");
-var show = require("./show.js");
-var primitive = require("./primitive.js");
+var arbitrary = _dereq_("./arbitrary.js");
+var shrink = _dereq_("./shrink.js");
+var show = _dereq_("./show.js");
+var primitive = _dereq_("./primitive.js");
 
 /**
   #### array (gen : generator a) : generator (array a)
@@ -141,11 +143,12 @@ module.exports = {
   pair: pair,
   array: array,
 };
-},{"./arbitrary.js":1,"./primitive.js":8,"./show.js":10,"./shrink.js":11}],4:[function(require,module,exports){
+
+},{"./arbitrary.js":1,"./primitive.js":8,"./show.js":10,"./shrink.js":11}],4:[function(_dereq_,module,exports){
 /* jshint node:true */
 "use strict";
 
-var utils = require("./utils.js");
+var utils = _dereq_("./utils.js");
 
 /**
   #### FMap (eq : a -> a -> bool) : FMap a
@@ -193,14 +196,15 @@ FMap.prototype.get = function FMap_get(key) {
 };
 
 module.exports = FMap;
-},{"./utils.js":12}],5:[function(require,module,exports){
+
+},{"./utils.js":12}],5:[function(_dereq_,module,exports){
 /* jshint node:true */
 "use strict";
 
-var shrink = require("./shrink.js");
-var show = require("./show.js");
-var primitive = require("./primitive.js");
-var FMap = require("./finitemap.js");
+var shrink = _dereq_("./shrink.js");
+var show = _dereq_("./show.js");
+var primitive = _dereq_("./primitive.js");
+var FMap = _dereq_("./finitemap.js");
 
 /**
   #### fun (gen : generator a) : generator (b -> a)
@@ -233,7 +237,8 @@ function fun(gen) {
 module.exports = {
   fun: fun,
 };
-},{"./finitemap.js":4,"./primitive.js":8,"./show.js":10,"./shrink.js":11}],6:[function(require,module,exports){
+
+},{"./finitemap.js":4,"./primitive.js":8,"./show.js":10,"./shrink.js":11}],6:[function(_dereq_,module,exports){
 /* jshint node:true */
 "use strict";
 
@@ -292,7 +297,8 @@ module.exports = {
   map: map,
   bind: bind,
 };
-},{}],7:[function(require,module,exports){
+
+},{}],7:[function(_dereq_,module,exports){
 /**
   # JSVerify
 
@@ -328,6 +334,26 @@ module.exports = {
 /**
   ## Documentation
 
+  ### Usaage with [mocha](http://visionmedia.github.io/mocha/)
+
+  Using *jsverify* with mocha is easy, just define properties and user `jsverify.assert`.
+
+  You can also provide `--jsverifyRngState state` command line argument, to run tests with particular random generator state.
+
+  ```
+  $ mocha examples/nat.js
+
+  1) natural numbers are less than 90:
+   Error: Failed after 49 tests and 1 shrinks. rngState: 074e9b5f037a8c21d6; Counterexample: 90;
+
+  $ mocha examples/nat.js --grep 'are less than' --jsverifyRngState 074e9b5f037a8c21d6
+
+  1) natural numbers are less than 90:
+     Error: Failed after 1 tests and 1 shrinks. rngState: 074e9b5f037a8c21d6; Counterexample: 90;
+  ```
+
+  Errorneous case is found with first try.
+
   ### Use with [jasmine](http://pivotal.github.io/jasmine/) 1.3.x
 
   Check [jasmineHelpers.js](speclib/jasmineHelpers.js) file.
@@ -360,17 +386,17 @@ module.exports = {
   - generator a := { arbitrary : a, shrink : a -> [a] }
 */
 
-var assert = require("assert");
-var shrink = require("./shrink.js");
-var random = require("./random.js");
-var primitive = require("./primitive.js");
-var composite = require("./composite.js");
-var fun = require("./fun.js");
-var combinator = require("./combinator.js");
-var show = require("./show.js");
-var FMap = require("./finitemap.js");
-var utils = require("./utils.js");
-var functor = require("./functor.js");
+var assert = _dereq_("assert");
+var shrink = _dereq_("./shrink.js");
+var random = _dereq_("./random.js");
+var primitive = _dereq_("./primitive.js");
+var composite = _dereq_("./composite.js");
+var fun = _dereq_("./fun.js");
+var combinator = _dereq_("./combinator.js");
+var show = _dereq_("./show.js");
+var FMap = _dereq_("./finitemap.js");
+var utils = _dereq_("./utils.js");
+var functor = _dereq_("./functor.js");
 
 /**
   ### Properties
@@ -379,17 +405,17 @@ var functor = require("./functor.js");
 function shrinkResult(gens, x, test, size, shrinks, exc, transform) {
   var shrinked = shrink.tuple(utils.pluck(gens, "shrink"), x);
   var shrinkP = shrinked.reduce(function (res, y) {
-    return functor.map(res, function (res) {
-      if (res !== true) {
-        return res;
+    return functor.map(res, function (resPrime) {
+      if (resPrime !== true) {
+        return resPrime;
       }
 
       return test(size, y, shrinks + 1);
     });
   }, true);
 
-  return functor.map(shrinkP, function (shrinkP) {
-    if (shrinkP === true) {
+  return functor.map(shrinkP, function (shrinkPPrime) {
+    if (shrinkPPrime === true) {
       var res = {
         counterexample: x,
         counterexamplestr: show.tuple(utils.pluck(gens, "show"), x),
@@ -398,7 +424,7 @@ function shrinkResult(gens, x, test, size, shrinks, exc, transform) {
       };
       return transform ? transform(res) : res;
     } else {
-      return shrinkP;
+      return shrinkPPrime;
     }
   });
 }
@@ -423,16 +449,16 @@ function forall() {
       if (typeof r === "function") {
         var r_rec = r(size);
 
-        return functor.map(r_rec, function (r_rec) {
-          if (r_rec === true) {
+        return functor.map(r_rec, function (r_recPrime) {
+          if (r_recPrime === true) {
             return true;
           } else {
             return shrinkResult(gens, x, test, size, shrinks, exc, function (r) {
               return {
-                counterexample: r.counterexample.concat(r_rec.counterexample),
+                counterexample: r.counterexample.concat(r_recPrime.counterexample),
                 counterexamplestr: r.counterexamplestr ,//+ "; " + r_rec.counterexamplestr,
                 shrinks: r.shrinks,
-                exc: r.exc || r_rec.exc,
+                exc: r.exc || r_recPrime.exc,
               };
             });
           }
@@ -451,7 +477,21 @@ function forall() {
 }
 
 function formatFailedCase(r) {
-  return "Failed after " + r.tests + " tests and " + r.shrinks + " shrinks. Counterexample: " + r.counterexamplestr;
+  var msg =  "Failed after " + r.tests + " tests and " + r.shrinks + " shrinks. ";
+  msg += "rngState: " + r.rngState + "; ";
+  msg += "Counterexample: " + r.counterexamplestr + "; ";
+  if (r.exc) {
+    msg += "Exception: " + (r.exc instanceof Error ? r.exc.message : r.exc);
+  }
+  return msg;
+}
+
+function findRngState(argv) {
+  for (var i = 0; i < argv.length - 1; i++) {
+    if (argv[i] === "--jsverifyRngState") {
+      return argv[i + 1];
+    }
+  }
 }
 
 /**
@@ -463,6 +503,7 @@ function formatFailedCase(r) {
   - `opts.tests` - test count to run, default 100
   - `opts.size`  - maximum size of generated values, default 5
   - `opts.quiet` - do not `console.log`
+  - `opts.rngState` - state string for the rng
 */
 function check(property, opts) {
   opts = opts || {};
@@ -472,24 +513,36 @@ function check(property, opts) {
 
   assert(typeof property === "function", "property should be a function");
 
+  var state;
+
+  if (opts.rngState) {
+    random.setStateString(opts.rngState);
+  } else if (typeof process !== "undefined") {
+    var argvState = findRngState(process.argv);
+    if (argvState) {
+      random.setStateString(argvState);
+    }
+  }
+
   function loop(i) {
+    state = random.currentStateString();
     if (i > opts.tests) {
       return true;
     }
 
-    var size = i % (opts.size + 1);
+    var size = random(0, opts.size);
 
     var r = property(size);
-    return functor.map(r, function (r) {
-      if (r === true) {
+    return functor.map(r, function (rPrime) {
+      if (rPrime === true) {
         return loop(i + 1);
       } else {
-        r.tests = i;
+        rPrime.tests = i;
         /* global console */
         if (!opts.quiet) {
-          console.error(formatFailedCase(r), r.counterexample);
+          console.error(formatFailedCase(rPrime), rPrime.counterexample);
         }
-        return r;
+        return rPrime;
       }
     });
   }
@@ -497,7 +550,10 @@ function check(property, opts) {
   return functor.map(loop(1), function (r) {
     if (r === true) {
       if (!opts.quiet) { console.info("OK, passed " + opts.tests + " tests"); }
+    } else {
+      r.rngState = state;
     }
+
     return r;
   });
 }
@@ -573,14 +629,14 @@ module.exports = jsc;
 /// plain ../related-work.md
 /// plain ../LICENSE
 
-},{"./combinator.js":2,"./composite.js":3,"./finitemap.js":4,"./fun.js":5,"./functor.js":6,"./primitive.js":8,"./random.js":9,"./show.js":10,"./shrink.js":11,"./utils.js":12,"assert":14}],8:[function(require,module,exports){
+},{"./combinator.js":2,"./composite.js":3,"./finitemap.js":4,"./fun.js":5,"./functor.js":6,"./primitive.js":8,"./random.js":9,"./show.js":10,"./shrink.js":11,"./utils.js":12,"assert":13}],8:[function(_dereq_,module,exports){
 /* jshint node:true */
 "use strict";
-var assert = require("assert");
-var random = require("./random.js");
-var arbitrary = require("./arbitrary.js");
-var shrink = require("./shrink.js");
-var show = require("./show.js");
+var assert = _dereq_("assert");
+var random = _dereq_("./random.js");
+var arbitrary = _dereq_("./arbitrary.js");
+var shrink = _dereq_("./shrink.js");
+var show = _dereq_("./show.js");
 
 /**
   ### Primitive generators
@@ -743,8 +799,8 @@ function value() {
   return {
     arbitrary: arbitraryValue,
     shrink: shrink.noop,
-    show: function (value) {
-      return JSON.stringify(value);
+    show: function (v) {
+      return JSON.stringify(v);
     }
   };
 }
@@ -758,9 +814,12 @@ module.exports = {
   oneof: oneof,
   bool: bool,
 };
-},{"./arbitrary.js":1,"./random.js":9,"./show.js":10,"./shrink.js":11,"assert":14}],9:[function(require,module,exports){
+
+},{"./arbitrary.js":1,"./random.js":9,"./show.js":10,"./shrink.js":11,"assert":13}],9:[function(_dereq_,module,exports){
 /* jshint node: true */
 "use strict";
+
+var generator = new (_dereq_("rc4").RC4small)();
 
 /**
   #### random (min max : int) : int
@@ -772,7 +831,7 @@ module.exports = {
   ```
 */
 function randomInteger(min, max) {
-  return Math.floor(Math.random() * (max - min + 1) + min);
+  return generator.random(min, max);
 }
 
 /**
@@ -781,18 +840,22 @@ function randomInteger(min, max) {
   Returns random number from `[min, max)` range.
 */
 function randomNumber(min, max) {
-  return Math.random() * (max - min) + min;
+  return generator.randomFloat() * (max - min) + min;
 }
 
 randomInteger.integer = randomInteger;
 randomInteger.number = randomNumber;
 
+randomInteger.currentStateString = generator.currentStateString.bind(generator);
+randomInteger.setStateString = generator.setStateString.bind(generator);
+
 module.exports = randomInteger;
-},{}],10:[function(require,module,exports){
+
+},{"rc4":17}],10:[function(_dereq_,module,exports){
 /* jshint node: true */
 "use strict";
 
-function showDef(gen, obj) {
+function showDef(obj) {
   return "" + obj;
 }
 
@@ -813,10 +876,12 @@ module.exports = {
   tuple: showTuple,
   array: showArray,
 };
-},{}],11:[function(require,module,exports){
+
+},{}],11:[function(_dereq_,module,exports){
+"use strict";
 /* jshint node:true */
 
-var assert = require("assert");
+var assert = _dereq_("assert");
 
 function shrinkNoop() {
   return [];
@@ -859,7 +924,8 @@ module.exports = {
   tuple: shrinkTuple,
   array: shrinkArray,
 };
-},{"assert":14}],12:[function(require,module,exports){
+
+},{"assert":13}],12:[function(_dereq_,module,exports){
 /* jshint node:true */
 "use strict";
 
@@ -916,250 +982,39 @@ module.exports = {
   isEqual: isEqual,
   pluck: pluck,
 };
-},{}],13:[function(require,module,exports){
 
-
+},{}],13:[function(_dereq_,module,exports){
+// http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
-// The shims in this file are not fully implemented shims for the ES5
-// features, but do work for the particular usecases there is in
-// the other modules.
+// THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
 //
-
-var toString = Object.prototype.toString;
-var hasOwnProperty = Object.prototype.hasOwnProperty;
-
-// Array.isArray is supported in IE9
-function isArray(xs) {
-  return toString.call(xs) === '[object Array]';
-}
-exports.isArray = typeof Array.isArray === 'function' ? Array.isArray : isArray;
-
-// Array.prototype.indexOf is supported in IE9
-exports.indexOf = function indexOf(xs, x) {
-  if (xs.indexOf) return xs.indexOf(x);
-  for (var i = 0; i < xs.length; i++) {
-    if (x === xs[i]) return i;
-  }
-  return -1;
-};
-
-// Array.prototype.filter is supported in IE9
-exports.filter = function filter(xs, fn) {
-  if (xs.filter) return xs.filter(fn);
-  var res = [];
-  for (var i = 0; i < xs.length; i++) {
-    if (fn(xs[i], i, xs)) res.push(xs[i]);
-  }
-  return res;
-};
-
-// Array.prototype.forEach is supported in IE9
-exports.forEach = function forEach(xs, fn, self) {
-  if (xs.forEach) return xs.forEach(fn, self);
-  for (var i = 0; i < xs.length; i++) {
-    fn.call(self, xs[i], i, xs);
-  }
-};
-
-// Array.prototype.map is supported in IE9
-exports.map = function map(xs, fn) {
-  if (xs.map) return xs.map(fn);
-  var out = new Array(xs.length);
-  for (var i = 0; i < xs.length; i++) {
-    out[i] = fn(xs[i], i, xs);
-  }
-  return out;
-};
-
-// Array.prototype.reduce is supported in IE9
-exports.reduce = function reduce(array, callback, opt_initialValue) {
-  if (array.reduce) return array.reduce(callback, opt_initialValue);
-  var value, isValueSet = false;
-
-  if (2 < arguments.length) {
-    value = opt_initialValue;
-    isValueSet = true;
-  }
-  for (var i = 0, l = array.length; l > i; ++i) {
-    if (array.hasOwnProperty(i)) {
-      if (isValueSet) {
-        value = callback(value, array[i], i, array);
-      }
-      else {
-        value = array[i];
-        isValueSet = true;
-      }
-    }
-  }
-
-  return value;
-};
-
-// String.prototype.substr - negative index don't work in IE8
-if ('ab'.substr(-1) !== 'b') {
-  exports.substr = function (str, start, length) {
-    // did we get a negative start, calculate how much it is from the beginning of the string
-    if (start < 0) start = str.length + start;
-
-    // call the original function
-    return str.substr(start, length);
-  };
-} else {
-  exports.substr = function (str, start, length) {
-    return str.substr(start, length);
-  };
-}
-
-// String.prototype.trim is supported in IE9
-exports.trim = function (str) {
-  if (str.trim) return str.trim();
-  return str.replace(/^\s+|\s+$/g, '');
-};
-
-// Function.prototype.bind is supported in IE9
-exports.bind = function () {
-  var args = Array.prototype.slice.call(arguments);
-  var fn = args.shift();
-  if (fn.bind) return fn.bind.apply(fn, args);
-  var self = args.shift();
-  return function () {
-    fn.apply(self, args.concat([Array.prototype.slice.call(arguments)]));
-  };
-};
-
-// Object.create is supported in IE9
-function create(prototype, properties) {
-  var object;
-  if (prototype === null) {
-    object = { '__proto__' : null };
-  }
-  else {
-    if (typeof prototype !== 'object') {
-      throw new TypeError(
-        'typeof prototype[' + (typeof prototype) + '] != \'object\''
-      );
-    }
-    var Type = function () {};
-    Type.prototype = prototype;
-    object = new Type();
-    object.__proto__ = prototype;
-  }
-  if (typeof properties !== 'undefined' && Object.defineProperties) {
-    Object.defineProperties(object, properties);
-  }
-  return object;
-}
-exports.create = typeof Object.create === 'function' ? Object.create : create;
-
-// Object.keys and Object.getOwnPropertyNames is supported in IE9 however
-// they do show a description and number property on Error objects
-function notObject(object) {
-  return ((typeof object != "object" && typeof object != "function") || object === null);
-}
-
-function keysShim(object) {
-  if (notObject(object)) {
-    throw new TypeError("Object.keys called on a non-object");
-  }
-
-  var result = [];
-  for (var name in object) {
-    if (hasOwnProperty.call(object, name)) {
-      result.push(name);
-    }
-  }
-  return result;
-}
-
-// getOwnPropertyNames is almost the same as Object.keys one key feature
-//  is that it returns hidden properties, since that can't be implemented,
-//  this feature gets reduced so it just shows the length property on arrays
-function propertyShim(object) {
-  if (notObject(object)) {
-    throw new TypeError("Object.getOwnPropertyNames called on a non-object");
-  }
-
-  var result = keysShim(object);
-  if (exports.isArray(object) && exports.indexOf(object, 'length') === -1) {
-    result.push('length');
-  }
-  return result;
-}
-
-var keys = typeof Object.keys === 'function' ? Object.keys : keysShim;
-var getOwnPropertyNames = typeof Object.getOwnPropertyNames === 'function' ?
-  Object.getOwnPropertyNames : propertyShim;
-
-if (new Error().hasOwnProperty('description')) {
-  var ERROR_PROPERTY_FILTER = function (obj, array) {
-    if (toString.call(obj) === '[object Error]') {
-      array = exports.filter(array, function (name) {
-        return name !== 'description' && name !== 'number' && name !== 'message';
-      });
-    }
-    return array;
-  };
-
-  exports.keys = function (object) {
-    return ERROR_PROPERTY_FILTER(object, keys(object));
-  };
-  exports.getOwnPropertyNames = function (object) {
-    return ERROR_PROPERTY_FILTER(object, getOwnPropertyNames(object));
-  };
-} else {
-  exports.keys = keys;
-  exports.getOwnPropertyNames = getOwnPropertyNames;
-}
-
-// Object.getOwnPropertyDescriptor - supported in IE8 but only on dom elements
-function valueObject(value, key) {
-  return { value: value[key] };
-}
-
-if (typeof Object.getOwnPropertyDescriptor === 'function') {
-  try {
-    Object.getOwnPropertyDescriptor({'a': 1}, 'a');
-    exports.getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
-  } catch (e) {
-    // IE8 dom element issue - use a try catch and default to valueObject
-    exports.getOwnPropertyDescriptor = function (value, key) {
-      try {
-        return Object.getOwnPropertyDescriptor(value, key);
-      } catch (e) {
-        return valueObject(value, key);
-      }
-    };
-  }
-} else {
-  exports.getOwnPropertyDescriptor = valueObject;
-}
-
-},{}],14:[function(require,module,exports){
-// Copyright Joyent, Inc. and other Node contributors.
+// Originally from narwhal.js (http://narwhaljs.org)
+// Copyright (c) 2009 Thomas Robinson <280north.com>
 //
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the 'Software'), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
+// THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+// ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-// UTILITY
-var util = require('util');
-var shims = require('_shims');
+// when used in node, this will actually load the util module we depend on
+// versus loading the builtin util module as happens otherwise
+// this is a bug in node module loading as far as I am concerned
+var util = _dereq_('util/');
+
 var pSlice = Array.prototype.slice;
+var hasOwn = Object.prototype.hasOwnProperty;
 
 // 1. The assert module provides functions that throw
 // AssertionError's when particular conditions are not met. The
@@ -1177,7 +1032,37 @@ assert.AssertionError = function AssertionError(options) {
   this.actual = options.actual;
   this.expected = options.expected;
   this.operator = options.operator;
-  this.message = options.message || getMessage(this);
+  if (options.message) {
+    this.message = options.message;
+    this.generatedMessage = false;
+  } else {
+    this.message = getMessage(this);
+    this.generatedMessage = true;
+  }
+  var stackStartFunction = options.stackStartFunction || fail;
+
+  if (Error.captureStackTrace) {
+    Error.captureStackTrace(this, stackStartFunction);
+  }
+  else {
+    // non v8 browsers so we can have a stacktrace
+    var err = new Error();
+    if (err.stack) {
+      var out = err.stack;
+
+      // try to strip useless frames
+      var fn_name = stackStartFunction.name;
+      var idx = out.indexOf('\n' + fn_name);
+      if (idx >= 0) {
+        // once we have located the function frame
+        // we need to strip out everything before it (and its line)
+        var next_line = out.indexOf('\n', idx + 1);
+        out = out.substring(next_line + 1);
+      }
+
+      this.stack = out;
+    }
+  }
 };
 
 // assert.AssertionError instanceof Error
@@ -1337,8 +1222,8 @@ function objEquiv(a, b) {
     return _deepEqual(a, b);
   }
   try {
-    var ka = shims.keys(a),
-        kb = shims.keys(b),
+    var ka = objectKeys(a),
+        kb = objectKeys(b),
         key, i;
   } catch (e) {//happens when one is a string literal and the other isn't
     return false;
@@ -1451,7 +1336,23 @@ assert.doesNotThrow = function(block, /*optional*/message) {
 };
 
 assert.ifError = function(err) { if (err) {throw err;}};
-},{"_shims":13,"util":15}],15:[function(require,module,exports){
+
+var objectKeys = Object.keys || function (obj) {
+  var keys = [];
+  for (var key in obj) {
+    if (hasOwn.call(obj, key)) keys.push(key);
+  }
+  return keys;
+};
+
+},{"util/":15}],14:[function(_dereq_,module,exports){
+module.exports = function isBuffer(arg) {
+  return arg && typeof arg === 'object'
+    && typeof arg.copy === 'function'
+    && typeof arg.fill === 'function'
+    && typeof arg.readUInt8 === 'function';
+}
+},{}],15:[function(_dereq_,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -1472,8 +1373,6 @@ assert.ifError = function(err) { if (err) {throw err;}};
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-var shims = require('_shims');
 
 var formatRegExp = /%[sdj%]/g;
 exports.format = function(f) {
@@ -1513,6 +1412,62 @@ exports.format = function(f) {
   }
   return str;
 };
+
+
+// Mark that a method should not be used.
+// Returns a modified function which warns once by default.
+// If --no-deprecation is set, then it is a no-op.
+exports.deprecate = function(fn, msg) {
+  // Allow for deprecating things in the process of starting up.
+  if (isUndefined(global.process)) {
+    return function() {
+      return exports.deprecate(fn, msg).apply(this, arguments);
+    };
+  }
+
+  if (process.noDeprecation === true) {
+    return fn;
+  }
+
+  var warned = false;
+  function deprecated() {
+    if (!warned) {
+      if (process.throwDeprecation) {
+        throw new Error(msg);
+      } else if (process.traceDeprecation) {
+        console.trace(msg);
+      } else {
+        console.error(msg);
+      }
+      warned = true;
+    }
+    return fn.apply(this, arguments);
+  }
+
+  return deprecated;
+};
+
+
+var debugs = {};
+var debugEnviron;
+exports.debuglog = function(set) {
+  if (isUndefined(debugEnviron))
+    debugEnviron = process.env.NODE_DEBUG || '';
+  set = set.toUpperCase();
+  if (!debugs[set]) {
+    if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
+      var pid = process.pid;
+      debugs[set] = function() {
+        var msg = exports.format.apply(exports, arguments);
+        console.error('%s %d: %s', set, pid, msg);
+      };
+    } else {
+      debugs[set] = function() {};
+    }
+  }
+  return debugs[set];
+};
+
 
 /**
  * Echos the value of a value. Trys to print the value out
@@ -1600,7 +1555,7 @@ function stylizeNoColor(str, styleType) {
 function arrayToHash(array) {
   var hash = {};
 
-  shims.forEach(array, function(val, idx) {
+  array.forEach(function(val, idx) {
     hash[val] = true;
   });
 
@@ -1618,7 +1573,7 @@ function formatValue(ctx, value, recurseTimes) {
       value.inspect !== exports.inspect &&
       // Also filter out any prototype objects using the circular check.
       !(value.constructor && value.constructor.prototype === value)) {
-    var ret = value.inspect(recurseTimes);
+    var ret = value.inspect(recurseTimes, ctx);
     if (!isString(ret)) {
       ret = formatValue(ctx, ret, recurseTimes);
     }
@@ -1632,11 +1587,18 @@ function formatValue(ctx, value, recurseTimes) {
   }
 
   // Look up the keys of the object.
-  var keys = shims.keys(value);
+  var keys = Object.keys(value);
   var visibleKeys = arrayToHash(keys);
 
   if (ctx.showHidden) {
-    keys = shims.getOwnPropertyNames(value);
+    keys = Object.getOwnPropertyNames(value);
+  }
+
+  // IE doesn't make error fields non-enumerable
+  // http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
+  if (isError(value)
+      && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
+    return formatError(value);
   }
 
   // Some type of object without properties can be shortcutted.
@@ -1748,8 +1710,7 @@ function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
       output.push('');
     }
   }
-
-  shims.forEach(keys, function(key) {
+  keys.forEach(function(key) {
     if (!key.match(/^\d+$/)) {
       output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
           key, true));
@@ -1761,7 +1722,7 @@ function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
 
 function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
   var name, str, desc;
-  desc = shims.getOwnPropertyDescriptor(value, key) || { value: value[key] };
+  desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
   if (desc.get) {
     if (desc.set) {
       str = ctx.stylize('[Getter/Setter]', 'special');
@@ -1773,12 +1734,11 @@ function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
       str = ctx.stylize('[Setter]', 'special');
     }
   }
-
   if (!hasOwnProperty(visibleKeys, key)) {
     name = '[' + key + ']';
   }
   if (!str) {
-    if (shims.indexOf(ctx.seen, desc.value) < 0) {
+    if (ctx.seen.indexOf(desc.value) < 0) {
       if (isNull(recurseTimes)) {
         str = formatValue(ctx, desc.value, null);
       } else {
@@ -1821,7 +1781,7 @@ function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
 
 function reduceToSingleString(output, base, braces) {
   var numLinesEst = 0;
-  var length = shims.reduce(output, function(prev, cur) {
+  var length = output.reduce(function(prev, cur) {
     numLinesEst++;
     if (cur.indexOf('\n') >= 0) numLinesEst++;
     return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
@@ -1843,7 +1803,7 @@ function reduceToSingleString(output, base, braces) {
 // NOTE: These type checking functions intentionally don't use `instanceof`
 // because it is fragile and can be easily faked with `Object.create()`.
 function isArray(ar) {
-  return shims.isArray(ar);
+  return Array.isArray(ar);
 }
 exports.isArray = isArray;
 
@@ -1888,7 +1848,7 @@ function isRegExp(re) {
 exports.isRegExp = isRegExp;
 
 function isObject(arg) {
-  return typeof arg === 'object' && arg;
+  return typeof arg === 'object' && arg !== null;
 }
 exports.isObject = isObject;
 
@@ -1898,7 +1858,8 @@ function isDate(d) {
 exports.isDate = isDate;
 
 function isError(e) {
-  return isObject(e) && objectToString(e) === '[object Error]';
+  return isObject(e) &&
+      (objectToString(e) === '[object Error]' || e instanceof Error);
 }
 exports.isError = isError;
 
@@ -1917,14 +1878,7 @@ function isPrimitive(arg) {
 }
 exports.isPrimitive = isPrimitive;
 
-function isBuffer(arg) {
-  return arg && typeof arg === 'object'
-    && typeof arg.copy === 'function'
-    && typeof arg.fill === 'function'
-    && typeof arg.binarySlice === 'function'
-  ;
-}
-exports.isBuffer = isBuffer;
+exports.isBuffer = _dereq_('./support/isBuffer');
 
 function objectToString(o) {
   return Object.prototype.toString.call(o);
@@ -1968,23 +1922,13 @@ exports.log = function() {
  *     prototype.
  * @param {function} superCtor Constructor function to inherit prototype from.
  */
-exports.inherits = function(ctor, superCtor) {
-  ctor.super_ = superCtor;
-  ctor.prototype = shims.create(superCtor.prototype, {
-    constructor: {
-      value: ctor,
-      enumerable: false,
-      writable: true,
-      configurable: true
-    }
-  });
-};
+exports.inherits = _dereq_('inherits');
 
 exports._extend = function(origin, add) {
   // Don't do anything if add isn't an object
   if (!add || !isObject(add)) return origin;
 
-  var keys = shims.keys(add);
+  var keys = Object.keys(add);
   var i = keys.length;
   while (i--) {
     origin[keys[i]] = add[keys[i]];
@@ -1996,7 +1940,227 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-},{"_shims":13}]},{},[7])
+},{"./support/isBuffer":14,"inherits":16}],16:[function(_dereq_,module,exports){
+if (typeof Object.create === 'function') {
+  // implementation from standard node.js 'util' module
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    ctor.prototype = Object.create(superCtor.prototype, {
+      constructor: {
+        value: ctor,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+  };
+} else {
+  // old school shim for old browsers
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    var TempCtor = function () {}
+    TempCtor.prototype = superCtor.prototype
+    ctor.prototype = new TempCtor()
+    ctor.prototype.constructor = ctor
+  }
+}
+
+},{}],17:[function(_dereq_,module,exports){
+"use strict";
+
+// Based on RC4 algorithm, as described in
+// http://en.wikipedia.org/wiki/RC4
+
+function createRC4(N) {
+  function identityPermutation() {
+    var s = new Array(N);
+    for (var i = 0; i < N; i++) {
+      s[i] = i;
+    }
+    return s;
+  }
+
+  // :: string | array integer -> array integer
+  function seed(key) {
+    if (key === undefined) {
+      key = new Array(N);
+      for (var k = 0; k < N; k++) {
+        key[k] = Math.floor(Math.random() * N);
+      }
+    } else if (typeof key === "string") {
+      // to string
+      key = "" + key;
+      key = key.split("").map(function (c) { return c.charCodeAt(0) % N; });
+    } else if (Array.isArray(key)) {
+      if (!key.every(function (v) {
+        return typeof v === "number" && v === (v | 0);
+      })) {
+        throw new TypeError("invalid seed key specified: not array of integers");
+      }
+    } else {
+      throw new TypeError("invalid seed key specified");
+    }
+
+    var keylen = key.length;
+
+    // resed state
+    var s = identityPermutation();
+
+    var j = 0;
+    for (var i = 0; i < N; i++) {
+      j = (j + s[i] + key[i % keylen]) % N;
+      var tmp = s[i];
+      s[i] = s[j];
+      s[j] = tmp;
+    }
+
+    return s;
+  }
+
+  function RC4(key) {
+    this.s = seed(key);
+    this.i = 0;
+    this.j = 0;
+  }
+
+  RC4.prototype.randomNative = function () {
+    this.i = (this.i + 1) % N;
+    this.j = (this.j + this.s[this.i]) % N;
+
+    var tmp = this.s[this.i];
+    this.s[this.i] = this.s[this.j];
+    this.s[this.j] = tmp;
+
+    var k = this.s[(this.s[this.i] + this.s[this.j]) % N];
+
+    return k;
+  };
+
+  RC4.prototype.randomUInt32 = function () {
+    var a = this.randomByte();
+    var b = this.randomByte();
+    var c = this.randomByte();
+    var d = this.randomByte();
+
+    return ((a * 256 + b) * 256 + c) * 256 + d;
+  };
+
+  RC4.prototype.randomFloat = function () {
+    return this.randomUInt32() / 0x100000000;
+  };
+
+  RC4.prototype.random = function() {
+    var a, b;
+    if (arguments.length === 1) {
+      a = 0;
+      b = arguments[0];
+    } else if (arguments.length === 2) {
+      a = arguments[0];
+      b = arguments[1];
+    } else {
+      throw new TypeError("random takes one or two integer arguments");
+    }
+
+    if (a !== (a | 0) || b !== (b | 0)) {
+      throw new TypeError("random takes one or two integer arguments");
+    }
+
+    return a + this.randomUInt32() % (b - a + 1);
+  };
+
+  RC4.prototype.currentState = function () {
+    return {
+      i: this.i,
+      j: this.j,
+      s: this.s.slice(), // copy
+    };
+  };
+
+  RC4.prototype.setState = function(state) {
+    var s = state.s;
+    var i = state.i;
+    var j = state.j;
+
+    if (!(i === (i | 0) && 0 <= i && i < N)) {
+      throw new Error("state.i should be integer [0, " + (N-1) + "]");
+    }
+
+    if (!(j === (j | 0) && 0 <= j && j < N)) {
+      throw new Error("state.j should be integer [0, " + (N-1) + "]");
+    }
+
+    // check length
+    if (!Array.isArray(s) || s.length !== N) {
+      throw new Error("state should be array of length " + N);
+    }
+
+    // check that all params are there
+    for (var k = 0; k < N; k++) {
+      if (s.indexOf(k) === -1) {
+        throw new Error("state should be permutation of 0.." + (N-1) + ": " + k + " is missing");
+      }
+    }
+
+    this.i = i;
+    this.j = j;
+    this.s = s.slice(); // assign copy
+  };
+
+  return RC4;
+}
+
+var RC4 = createRC4(256);
+RC4.prototype.randomByte = RC4.prototype.randomNative;
+
+var RC4small = createRC4(16);
+RC4small.prototype.randomByte = function () {
+  var a = this.randomNative();
+  var b = this.randomNative();
+
+  return a * 16 + b;
+};
+
+var ordA = "a".charCodeAt(0);
+var ord0 = "0".charCodeAt(0);
+
+function toHex(n) {
+  return n < 10 ? String.fromCharCode(ord0 + n) : String.fromCharCode(ordA + n - 10);
+}
+
+function fromHex(c) {
+  return parseInt(c, 16);
+}
+
+RC4small.prototype.currentStateString = function () {
+  var state = this.currentState();
+
+  var i = toHex(state.i);
+  var j = toHex(state.j);
+
+  var res =  i + j + state.s.map(toHex).join("");
+  return res;
+};
+
+RC4small.prototype.setStateString = function (stateString) {
+  if (!stateString.match(/^[0-9a-f]{18}$/)) {
+    throw new TypeError("RC4small stateString should be 18 hex character string");
+  }
+
+  var i = fromHex(stateString[0]);
+  var j = fromHex(stateString[1]);
+  var s = stateString.split("").slice(2).map(fromHex);
+
+  this.setState({
+    i: i,
+    j: j,
+    s: s,
+  });
+};
+
+RC4.RC4small = RC4small;
+
+module.exports = RC4;
+
+},{}]},{},[7])
 (7)
 });
-;
