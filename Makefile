@@ -24,8 +24,9 @@ mocha :
 
 istanbul : 
 	$(ISTANBUL) cover $(MOCHA) test
+	$(ISTANBUL) check-coverage --statements -2 --branches -3 --functions 100 coverage/coverage.json
 
-dist : test karma literate
+dist : test istanbul karma literate
 	git clean -fdx -e node_modules
 	$(BROWSERIFY) --no-detect-globals -s jsc -o dist/jsverify.standalone.js ./lib/jsverify.js
 
