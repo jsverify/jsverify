@@ -6,6 +6,8 @@ ISTANBUL=node_modules/.bin/istanbul
 KARMA=node_modules/.bin/karma
 BROWSERIFY=node_modules/.bin/browserify
 
+DIST=dist/jsverify.standalone.js
+
 all : jshint
 
 test : jshint mocha istanbul
@@ -19,6 +21,9 @@ tests-bundle.js : test/*
 karma : tests-bundle.js
 	$(KARMA) start
 
+jasmine : $(DIST)
+	$(KARMA) start karma.jasmine.conf.js
+
 mocha : 
 	$(MOCHA) --reporter spec test
 
@@ -26,9 +31,11 @@ istanbul :
 	$(ISTANBUL) cover $(MOCHA) test
 	$(ISTANBUL) check-coverage --statements -2 --branches -3 --functions 100 coverage/coverage.json
 
-dist : test karma literate
+dist : test karma jasmine literate $(DIST)
 	git clean -fdx -e node_modules
-	$(BROWSERIFY) --no-detect-globals -s jsc -o dist/jsverify.standalone.js ./lib/jsverify.js
+
+$(DIST) : lib/*
+	$(BROWSERIFY) --no-detect-globals -s jsc -o $(DIST) ./lib/jsverify.js
 
 literate : 
 	grunt literate
