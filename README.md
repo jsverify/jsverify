@@ -28,9 +28,9 @@ jsc.assert(bool_fn_applied_thrice);
 
 ## Documentation
 
-### Usaage with [mocha](http://visionmedia.github.io/mocha/)
+### Usage with [mocha](http://visionmedia.github.io/mocha/)
 
-Using *jsverify* with mocha is easy, just define properties and user `jsverify.assert`.
+Using jsverify with mocha is easy, just define the properties and use `jsverify.assert`.
 
 You can also provide `--jsverifyRngState state` command line argument, to run tests with particular random generator state.
 
@@ -48,9 +48,9 @@ $ mocha examples/nat.js --grep 'are less than' --jsverifyRngState 074e9b5f037a8c
 
 Errorneous case is found with first try.
 
-### Use with [jasmine](http://pivotal.github.io/jasmine/) 1.3.x
+### Usage with [jasmine](http://pivotal.github.io/jasmine/)
 
-Check [jasmineHelpers.js](speclib/jasmineHelpers.js) file.
+Check [jasmineHelpers.js](helpers/jasmineHelpers.js) and [jasmineHelpers2.js](helpers/jasmineHelpers2.js) for jasmine 1.3 and 2.0 respectively.
 
 ## API
 
@@ -201,6 +201,7 @@ They will be regenerated before each release.
 
 ## Release History
 
+- 0.3.1 Documentation typo fixes
 - 0.3.0 Major changes
     - random generate state handling
     - `--jsverifyRngState` parameter value used when run on node
@@ -235,6 +236,7 @@ They will be regenerated before each release.
 - [Erlang - QuviQ](http://www.quviq.com/index.html)
 - [Erlang - triq](https://github.com/krestenkrab/triq)
 - [Scala - ScalaCheck](https://github.com/rickynils/scalacheck)
+
 The MIT License (MIT)
 
 Copyright (c) 2013, 2014 Oleg Grenrus

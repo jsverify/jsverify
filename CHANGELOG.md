@@ -1,5 +1,6 @@
 ## Release History
 
+- 0.3.1 Documentation typo fixes
 - 0.3.0 Major changes
     - random generate state handling
     - `--jsverifyRngState` parameter value used when run on node
