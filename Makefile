@@ -5,6 +5,7 @@ MOCHA=node_modules/.bin/_mocha
 ISTANBUL=node_modules/.bin/istanbul
 KARMA=node_modules/.bin/karma
 BROWSERIFY=node_modules/.bin/browserify
+LJS=node_modules/.bin/ljs
 
 DIST=dist/jsverify.standalone.js
 
@@ -38,4 +39,4 @@ $(DIST) : lib/*
 	$(BROWSERIFY) --no-detect-globals -s jsc -o $(DIST) ./lib/jsverify.js
 
 literate : 
-	grunt literate
+	$(LJS) -c false -o README.md lib/jsverify.js

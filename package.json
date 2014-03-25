@@ -30,8 +30,6 @@
   },
   "devDependencies": {
     "esprima": "~1.0.4",
-    "grunt": "~0.4.1",
-    "grunt-literate": "~0.1.1",
     "underscore": "~1.6.0",
     "lodash": "~2.4.1",
     "q": "~1.0.0",
@@ -45,7 +43,8 @@
     "karma": "~0.12.1",
     "karma-cli": "0.0.4",
     "jshint": "~2.4.4",
-    "istanbul": "~0.2.6"
+    "istanbul": "~0.2.6",
+    "ljs": "~0.2.0"
   },
   "keywords": [
     "testing",
