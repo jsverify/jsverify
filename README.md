@@ -18,7 +18,7 @@ var jsc = require("jsverify");
 
 // forall (f : bool -> bool) (b : bool), f (f (f b)) = f(b).
 var bool_fn_applied_thrice =
-  jsc.forall(jsc.fun(jsc.bool()), jsc.bool(), function (f, b) {
+  jsc.forall(jsc.fn(jsc.bool()), jsc.bool(), function (f, b) {
     return f(f(f(b))) === f(b);
   });
 
@@ -135,9 +135,11 @@ JavaScript value: boolean, number, string, array of values or object with `value
 
 If not specified `a` and `b` are equal to `value()`.
 
-#### fun (gen : generator a) : generator (b -> a)
+#### fn (gen : generator a) : generator (b -> a)
 
 Unary functions.
+
+_fun_ alias for _fn_
 
 ### Generator combinators
 
@@ -201,6 +203,7 @@ They will be regenerated before each release.
 
 ## Release History
 
+- 0.3.2 `fun` &rarr; `fn`
 - 0.3.1 Documentation typo fixes
 - 0.3.0 Major changes
     - random generate state handling

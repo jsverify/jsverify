@@ -202,24 +202,25 @@ module.exports = FMap;
 "use strict";
 
 var shrink = _dereq_("./shrink.js");
-var show = _dereq_("./show.js");
 var primitive = _dereq_("./primitive.js");
 var FMap = _dereq_("./finitemap.js");
 
 /**
-  #### fun (gen : generator a) : generator (b -> a)
+  #### fn (gen : generator a) : generator (b -> a)
 
   Unary functions.
+
+  _fun_ alias for _fn_
 */
 
-function fun(gen) {
+function fn(gen) {
   gen = gen || primitive.value();
 
   return {
     arbitrary: function (size) {
       var m = new FMap();
 
-      return function (arg) {
+      var f = function (arg) {
         if (!m.contains(arg)) {
           var value = gen.arbitrary(size);
           m.insert(arg, value);
@@ -227,18 +228,26 @@ function fun(gen) {
 
         return m.get(arg);
       };
+
+      f.internalMap = m;
+      return f;
     },
 
     shrink: shrink.noop,
-    show: show.def,
+    show: function (f) {
+      return "[" + f.internalMap.data.map(function (item) {
+        return "" + item[0] + ": " + gen.show(item[1]);
+      }).join(", ") + "]";
+    }
   };
 }
 
 module.exports = {
-  fun: fun,
+  fn: fn,
+  fun: fn,
 };
 
-},{"./finitemap.js":4,"./primitive.js":8,"./show.js":10,"./shrink.js":11}],6:[function(_dereq_,module,exports){
+},{"./finitemap.js":4,"./primitive.js":8,"./shrink.js":11}],6:[function(_dereq_,module,exports){
 /* jshint node:true */
 "use strict";
 
@@ -320,7 +329,7 @@ module.exports = {
 
   // forall (f : bool -> bool) (b : bool), f (f (f b)) = f(b).
   var bool_fn_applied_thrice =
-    jsc.forall(jsc.fun(jsc.bool()), jsc.bool(), function (f, b) {
+    jsc.forall(jsc.fn(jsc.bool()), jsc.bool(), function (f, b) {
       return f(f(f(b))) === f(b);
     });
 
@@ -391,7 +400,7 @@ var shrink = _dereq_("./shrink.js");
 var random = _dereq_("./random.js");
 var primitive = _dereq_("./primitive.js");
 var composite = _dereq_("./composite.js");
-var fun = _dereq_("./fun.js");
+var fn = _dereq_("./fn.js");
 var combinator = _dereq_("./combinator.js");
 var show = _dereq_("./show.js");
 var FMap = _dereq_("./finitemap.js");
@@ -578,7 +587,7 @@ function checkThrow(property, opts) {
 
 /// include ./primitive.js
 /// include ./composite.js
-/// include ./fun.js
+/// include ./fn.js
 /// include ./combinator.js
 
 /**
@@ -609,7 +618,8 @@ var jsc = {
   oneof: primitive.oneof,
   pair: composite.pair,
   array: composite.array,
-  fun: fun.fun,
+  fn: fn.fn,
+  fun: fn.fn,
   suchthat: combinator.suchthat,
   nonshrink: combinator.nonshrink,
 
@@ -629,7 +639,7 @@ module.exports = jsc;
 /// plain ../related-work.md
 /// plain ../LICENSE
 
-},{"./combinator.js":2,"./composite.js":3,"./finitemap.js":4,"./fun.js":5,"./functor.js":6,"./primitive.js":8,"./random.js":9,"./show.js":10,"./shrink.js":11,"./utils.js":12,"assert":13}],8:[function(_dereq_,module,exports){
+},{"./combinator.js":2,"./composite.js":3,"./finitemap.js":4,"./fn.js":5,"./functor.js":6,"./primitive.js":8,"./random.js":9,"./show.js":10,"./shrink.js":11,"./utils.js":12,"assert":13}],8:[function(_dereq_,module,exports){
 /* jshint node:true */
 "use strict";
 var assert = _dereq_("assert");
