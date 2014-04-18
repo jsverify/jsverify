@@ -26,7 +26,7 @@
     });
 
     it("forall (f : bool -> bool) (b : bool), f (f (f b)) = f b", function () {
-      var prop = jsc.forall(jsc.fun(jsc.bool()), jsc.bool(), function (f, b) {
+      var prop = jsc.forall(jsc.fn(jsc.bool()), jsc.bool(), function (f, b) {
         return f(f(f(b))) === f(b);
       });
 

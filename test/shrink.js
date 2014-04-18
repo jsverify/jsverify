@@ -112,7 +112,7 @@ describe("shrink", function () {
 
   describe("function", function () {
     it("cannot be shrinked", function () {
-      var property = jsc.forall(jsc.fun(), function (f) {
+      var property = jsc.forall(jsc.fn(), function (f) {
         return f(0) !== f(0);
       });
 

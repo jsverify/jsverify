@@ -18,19 +18,19 @@ function collectionsTest(lib) {
   describe(lib + " collections", function () {
     describe("map", function () {
       it("map_length: length (map f l) = length l", function () {
-        jsc.assert(jsc.forall(jsc.fun(), jsc.array(), function (f, l) {
+        jsc.assert(jsc.forall(jsc.fn(), jsc.array(), function (f, l) {
           return _.map(l, f).length === l.length;
         }));
       });
 
       it("map_app: map f (l ++ l') = map f l ++ map f l'", function () {
-        jsc.assert(jsc.forall(jsc.fun(), jsc.array(), jsc.array(), function (f, l1, l2) {
+        jsc.assert(jsc.forall(jsc.fn(), jsc.array(), jsc.array(), function (f, l1, l2) {
           return _.isEqual(_.map(append(l1, l2), f), append(_.map(l1, f), _.map(l2, f)));
         }));
       });
 
       it("map_rev: map f (rev l) = rev (map f l)", function () {
-        jsc.assert(jsc.forall(jsc.fun(), jsc.array(), function (f, l) {
+        jsc.assert(jsc.forall(jsc.fn(), jsc.array(), function (f, l) {
           return _.isEqual(_.map(reverse(l), f), reverse(_.map(l, f)));
         }));
       });
@@ -43,7 +43,7 @@ function collectionsTest(lib) {
 
       it("map_map: map g (map f l) = map (g ∘ f) l", function () {
         // g ∘ f == _.compose(g, f)
-        jsc.assert(jsc.forall(jsc.fun(), jsc.fun(), jsc.array(), function (f, g, l) {
+        jsc.assert(jsc.forall(jsc.fn(), jsc.fn(), jsc.array(), function (f, g, l) {
           return _.isEqual(_.map(_.map(l, f), g), _.map(l, _.compose(g, f)));
         }));
       });
@@ -51,7 +51,7 @@ function collectionsTest(lib) {
 
     describe("filter", function () {
       it("filter_in", function () {
-        jsc.assert(jsc.forall(jsc.fun(), jsc.array(), function (f, l) {
+        jsc.assert(jsc.forall(jsc.fn(), jsc.array(), function (f, l) {
           var filtered = _.filter(l, f);
 
           // In x (filter f l) <-> In x l /\ f x = true
@@ -64,7 +64,7 @@ function collectionsTest(lib) {
 
     describe("reject", function () {
       it("is filter with negated predicate", function () {
-        jsc.assert(jsc.forall(jsc.fun(), jsc.array(), function (f, l) {
+        jsc.assert(jsc.forall(jsc.fn(), jsc.array(), function (f, l) {
           return _.isEqual(_.filter(l, f), _.reject(l, function (x) {
             return !f(x);
           }));
@@ -72,7 +72,7 @@ function collectionsTest(lib) {
       });
 
       it("produces disjoint set of filter", function () {
-        jsc.assert(jsc.forall(jsc.fun(), jsc.array(), function (f, l) {
+        jsc.assert(jsc.forall(jsc.fn(), jsc.array(), function (f, l) {
           var filtered = _.filter(l, f);
           var rejected = _.reject(l, f);
 

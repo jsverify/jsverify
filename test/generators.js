@@ -84,17 +84,17 @@ describe("primitive generators", function () {
 
   describe("fun", function () {
     it("generates functions", function () {
-      jsc.assert(jsc.forall(jsc.fun(), function (f) {
+      jsc.assert(jsc.forall(jsc.fn(), function (f) {
         return typeof f === "function";
       }));
     });
 
     it("generates well-behaved functions", function () {
-      jsc.assert(jsc.forall(jsc.fun(), jsc.value(), function (f, x) {
+      jsc.assert(jsc.forall(jsc.fn(), jsc.value(), function (f, x) {
         return f(x) === f(x);
       }));
 
-      jsc.assert(jsc.forall(jsc.fun(), function (f) {
+      jsc.assert(jsc.forall(jsc.fn(), function (f) {
         for (var i = 0; i < 10; i++) {
           if (f(i) !== f(i)) {
             return false;
