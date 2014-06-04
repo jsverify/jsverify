@@ -239,6 +239,7 @@ They will be regenerated before each release.
 - [Erlang - QuviQ](http://www.quviq.com/index.html)
 - [Erlang - triq](https://github.com/krestenkrab/triq)
 - [Scala - ScalaCheck](https://github.com/rickynils/scalacheck)
+- [Clojure - test.check](https://github.com/clojure/test.check)
 
 The MIT License (MIT)
 
