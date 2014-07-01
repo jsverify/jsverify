@@ -313,10 +313,10 @@ module.exports = {
 
   > Property based checking.
 
-  [![Build Status](https://secure.travis-ci.org/phadej/jsverify.png?branch=master)](http://travis-ci.org/phadej/jsverify)
-  [![NPM version](https://badge.fury.io/js/jsverify.png)](http://badge.fury.io/js/jsverify)
-  [![Dependency Status](https://gemnasium.com/phadej/jsverify.png)](https://gemnasium.com/phadej/jsverify)
-  [![Code Climate](https://codeclimate.com/github/phadej/jsverify.png)](https://codeclimate.com/github/phadej/jsverify)
+  [![Build Status](https://secure.travis-ci.org/phadej/jsverify.svg?branch=master)](http://travis-ci.org/phadej/jsverify)
+  [![NPM version](https://badge.fury.io/js/jsverify.svg)](http://badge.fury.io/js/jsverify)
+  [![Dependency Status](https://gemnasium.com/phadej/jsverify.svg)](https://gemnasium.com/phadej/jsverify)
+  [![Code Climate](https://img.shields.io/codeclimate/github/phadej/jsverify.svg)](https://codeclimate.com/github/phadej/jsverify)
 
   ## Getting Started
 

@@ -203,6 +203,7 @@ They will be regenerated before each release.
 
 ## Release History
 
+- 0.3.3 Dependencies update
 - 0.3.2 `fun` &rarr; `fn`
 - 0.3.1 Documentation typo fixes
 - 0.3.0 Major changes
