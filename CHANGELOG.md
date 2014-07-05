@@ -1,5 +1,6 @@
 ## Release History
 
+- 0.3.4 Dependencies update
 - 0.3.3 Dependencies update
 - 0.3.2 `fun` &rarr; `fn`
 - 0.3.1 Documentation typo fixes
