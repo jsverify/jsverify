@@ -12,5 +12,6 @@
   "unused": "vars",
   "boss": true,
   "eqnull": true,
-  "trailing": true
+  "trailing": true,
+  "node": true
 }

@@ -1,3 +1,4 @@
+/* global describe:true, it:true */
 "use strict";
 
 var jsc = require("../lib/jsverify.js");

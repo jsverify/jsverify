@@ -14,7 +14,7 @@ all : jshint
 test : jshint mocha istanbul
 
 jshint : 
-	$(JSHINT) lib test
+	$(JSHINT) lib test examples
 
 tests-bundle.js : test/*
 	$(BROWSERIFY) -r underscore -r lodash -r q -r when -o tests-bundle.js test/*.js
