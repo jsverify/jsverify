@@ -18,7 +18,7 @@ var jsc = require("../../lib/jsverify.js");
 var jscOptions = { quiet: false };
 
 /**
-  and we will also need *subset relation*, `⊂`
+  and we will also need a *subset relation*, `⊂`
 */
 function isSubset(a, b) {
   var alen = a.length;
@@ -32,8 +32,8 @@ function isSubset(a, b) {
 
 /**
   Let's test `isSubset` right away.
-  In TDD we should write this first,
-  but in single [ljs](https://github.com/phadej/ljs)-powered literate script that is unfortunately impossible.
+  In TDD we should write the tests first,
+  but in a single [ljs](https://github.com/phadej/ljs)-powered literate script that is unfortunately impossible.
 */
 
 /** We could start with testing *reflexivity*: `∀ l, l ⊂ l`. */
@@ -61,7 +61,7 @@ jsc.check(jsc.forall(arrayNat, function (ls) {
   ## Model
 
   We define a greedy solver to the problem. It doesn't give an optimal solution,
-  but it is easier to verify it is correct.
+  but it is easier to verify that the solver is correct.
 */
 function greedy(ls) {
   var acc = [];
@@ -83,8 +83,8 @@ console.log("Greedy example:", greedy([[1, 2, 3], [3], [4], [3, 4, 5], [4, 5], [
 /**
   ## Verifying model
 
-  We will use properties described in the blog post [Jessica Kerr](http://blog.jessitron.com/2013/04/property-based-testing-what-is-it.html).
-  The whole idea of this example is originated from that post.
+  We will use properties described in [the blog post by Jessica Kerr](http://blog.jessitron.com/2013/04/property-based-testing-what-is-it.html).
+  Actually, the idea of this example is originated from that post.
 
   ### 1. Every element in the input is also in the output
 
@@ -100,7 +100,7 @@ jsc.check(jsc.forall(array2Nat, function (ls) {
 /**
   ### 2. Every output set was in the input
 
-  Motivational counter example satisfying (1) would be function returning `_.range(_.min(input), _.max(input))`.
+  Counter example: `_.range(_.min(input), _.max(input))` will satisfy (1) but not (2).
 */
 function completeProp(input, output) {
   return isSubset(output, input);
@@ -113,7 +113,7 @@ jsc.check(jsc.forall(array2Nat, function (ls) {
 /**
   ### 3. The quantity of output sets is less than or equal to the input
 
-  We aim for minimality
+  We aim for minimality.
 */
 function smallerProp(input, output) {
   return input.length >= output.length;
@@ -126,13 +126,13 @@ jsc.check(jsc.forall(array2Nat, function (ls) {
 /**
   ### 4. The same set never appears more than once in the output
 
-  Counter example could be: `[[1], [1], [1]] → [[1], [1]]`, would satisfy (1)—(3)!
+  Counter example could be the function operating: `[[1], [1], [1]] → [[1], [1]]`. That would satisfy (1)—(3)!
 */
 function toString(x) {
   return "" + x;
 }
 function uniqueProp(input, output) {
-  // Here we need to cheat a bit, as lodash' doesn't have `uniq` with comparator!
+  // Here we need to cheat a bit, as lodash' doesn't have `uniq` taking a comparator!
   return _.uniq(output, false, toString).length === output.length;
 }
 jsc.check(jsc.forall(array2Nat, function (ls) {
@@ -169,13 +169,14 @@ jsc.check(jsc.forall(array2Nat, function (ls) {
   The failing case makes sense. `greedy` is so trivial, it doesn't satisfy the fifth property.
   Thus we have to improve our solver! 
 
-  However we will not alter `greedy` itself, but make more optimal solver. We will see later why so.
+  However we will not alter `greedy` itself, but make a more optimal solver.
 */
 
 /**
   ## Better solver
 
-  This better solver is still trivial. Let's first sort our input so larger sets are in the beginning!
+  This *better* solver is still trivial.
+  We sort the input so larger sets are in the beginning, thus the fift property will be satisfied.
 */
 function better(ls) {
   var sorted = _.sortBy(ls, function (subls) {
@@ -185,9 +186,10 @@ function better(ls) {
   return ret;
 }
 /**
-  Why there is `_.uniq` in `_.ssortBy` iterator function?
+  Why there is `_.uniq` in `_.sortBy`'s iterator function?
 
-  Because fifth property still found a counter-example: `[0, 0], [0, 1]]`!
+  Because during writing this example, the fifth property still found a counter-example: `[0, 0], [0, 1]]`!
+  If we omit `_.uniq`, the input wouldn't be altered, but `[0, 0]` is a subset of `[0, 1]`.
 */
 
 /**
@@ -206,7 +208,8 @@ jsc.check(jsc.forall(array2Nat, function (ls) { return redundancyProp(ls, better
 
   > For every other possible combination of input elements such that (1) is true, the number of sets included is never fewer than the number of sets output by my function.
 
-  We can't really test it exhaustively, but we do random sampling anyway! We will use fact that for some permutation of input list, even greedy algorithm will return optimal solution.
+  We can't really test it exhaustively, yet we do random testing!
+  We will use the fact that for some permutation of the input list, even the greedy algorithm will return an optimal solution.
   So we rephrase the property into
 
   > For every permutation of input set, the numer of sets included in greedy algorithm solution is never fewer than the number of sets output by my function.
@@ -240,6 +243,6 @@ jsc.check(jsc.forall(array2Nat, jsc.nat(), function (ls, split) { return optimal
 
   This sounds quite suspicios, but indeed `[[3, 4, 1], [0, 2]]` is more optimal solution than all three sets, as returned by `better`!
 
-  So there is still room to improve. One can define `evenbetter` solver!
+  So there is still room to improve. One can define a `evenbetter` solver!
   Yet, the problem is proven to be **NP-complete**, so don't try to much.
 */
