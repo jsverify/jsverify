@@ -4,7 +4,8 @@
 
 [![Build Status](https://secure.travis-ci.org/phadej/jsverify.svg?branch=master)](http://travis-ci.org/phadej/jsverify)
 [![NPM version](https://badge.fury.io/js/jsverify.svg)](http://badge.fury.io/js/jsverify)
-[![Dependency Status](https://gemnasium.com/phadej/jsverify.svg)](https://gemnasium.com/phadej/jsverify)
+[![Dependency Status](https://david-dm.org/phadej/jsverify.svg)](https://david-dm.org/phadej/jsverify)
+[![devDependency Status](https://david-dm.org/phadej/jsverify/dev-status.svg)](https://david-dm.org/phadej/jsverify#info=devDependencies)
 [![Code Climate](https://img.shields.io/codeclimate/github/phadej/jsverify.svg)](https://codeclimate.com/github/phadej/jsverify)
 
 ## Getting Started
@@ -25,6 +26,7 @@ var bool_fn_applied_thrice =
 jsc.assert(bool_fn_applied_thrice);
 // OK, passed 100 tests
 ```
+
 
 ## Documentation
 
@@ -79,11 +81,14 @@ Some type definitions to keep developers sane:
 - Functor f => property_rec := f (result | property)
 - generator a := { arbitrary : a, shrink : a -> [a] }
 
+
 ### Properties
+
 
 #### forall (gens : generator a ...) (prop : a -> property_rec) : property
 
 Property constructor
+
 
 #### check (prop : property) (opts : checkoptions) : promise result + result
 
@@ -95,45 +100,59 @@ Options:
 - `opts.quiet` - do not `console.log`
 - `opts.rngState` - state string for the rng
 
+
 #### assert (prop : property) (opts : checkoptions) : void
 
 Same as `check`, but throw exception if property doesn't hold.
 
+
 ### Primitive generators
+
 
 #### integer (maxsize : nat) : generator integer
 
 Integers, ℤ
 
+
 #### nat (maxsize : nat) : generator nat
 
 Natural numbers, ℕ (0, 1, 2...)
+
 
 #### number (maxsize : number) : generator number
 
 JavaScript numbers, "doubles", ℝ. `NaN` and `Infinity` are not included.
 
+
 #### bool () : generator bool
 
 Booleans, `true` or `false`.
+
 
 #### oneof (args : array any) : generator any
 
 Random element of `args` array.
 
+
 #### string () : generator string
 
 Strings
+
 
 #### value : generator value
 
 JavaScript value: boolean, number, string, array of values or object with `value` values.
 
+
+
 #### array (gen : generator a) : generator (array a)
+
 
 #### pair (a : generator A) (b : generator B) : generator (A * B)
 
 If not specified `a` and `b` are equal to `value()`.
+
+
 
 #### fn (gen : generator a) : generator (b -> a)
 
@@ -141,15 +160,21 @@ Unary functions.
 
 _fun_ alias for _fn_
 
+
+
 ### Generator combinators
+
 
 #### suchthat (gen : generator a) (p : a -> bool) : generator {a | p a == true}
 
 Generator of values that satisfy `p` predicate. It's adviced that `p`'s accept rate is high.
 
+
 #### nonshrink (gen : generator a) : generator a
 
 Non shrinkable version of generator `gen`.
+
+
 
 ### jsc._ - miscellaneous utilities
 
@@ -158,9 +183,12 @@ Non shrinkable version of generator `gen`.
 Throw an error with `message` if `exp` is falsy.
 Resembles [node.js assert](http://nodejs.org/api/assert.html).
 
+
 #### isEqual (a b : value) : bool
 
 Equality test for `value` objects. See `value` generator.
+
+
 
 #### random (min max : int) : int
 
@@ -170,9 +198,12 @@ Returns random int from `[min, max]` range inclusively.
 getRandomInt(2, 3) // either 2 or 3
 ```
 
+
 #### random.number (min max : number) : number
 
 Returns random number from `[min, max)` range.
+
+
 
 #### FMap (eq : a -> a -> bool) : FMap a
 
@@ -183,6 +214,7 @@ Short summary of member functions:
 - FMap.insert (key : a) (value : any) : void
 - FMap.get (key : a) : any
 - FMap.contains (key : a) : obool
+
 
 
 ## Contributing
@@ -203,6 +235,7 @@ They will be regenerated before each release.
 
 ## Release History
 
+- 0.3.5 Fix forgotten rngState in console output
 - 0.3.4 Dependencies update
 - 0.3.3 Dependencies update
 - 0.3.2 `fun` &rarr; `fn`

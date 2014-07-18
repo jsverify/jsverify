@@ -1,5 +1,4 @@
-!function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.jsc=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
-/* jshint node: true */
+!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.jsc=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 "use strict";
 
 var random = _dereq_("./random.js");
@@ -35,7 +34,6 @@ module.exports = {
 };
 
 },{"./random.js":9}],2:[function(_dereq_,module,exports){
-/* jshint node:true */
 "use strict";
 
 var shrink = _dereq_("./shrink.js");
@@ -93,7 +91,6 @@ module.exports = {
 };
 
 },{"./shrink.js":11}],3:[function(_dereq_,module,exports){
-/* jshint node:true */
 "use strict";
 
 var arbitrary = _dereq_("./arbitrary.js");
@@ -145,7 +142,6 @@ module.exports = {
 };
 
 },{"./arbitrary.js":1,"./primitive.js":8,"./show.js":10,"./shrink.js":11}],4:[function(_dereq_,module,exports){
-/* jshint node:true */
 "use strict";
 
 var utils = _dereq_("./utils.js");
@@ -198,7 +194,6 @@ FMap.prototype.get = function FMap_get(key) {
 module.exports = FMap;
 
 },{"./utils.js":12}],5:[function(_dereq_,module,exports){
-/* jshint node:true */
 "use strict";
 
 var shrink = _dereq_("./shrink.js");
@@ -248,7 +243,6 @@ module.exports = {
 };
 
 },{"./finitemap.js":4,"./primitive.js":8,"./shrink.js":11}],6:[function(_dereq_,module,exports){
-/* jshint node:true */
 "use strict";
 
 /**
@@ -315,7 +309,8 @@ module.exports = {
 
   [![Build Status](https://secure.travis-ci.org/phadej/jsverify.svg?branch=master)](http://travis-ci.org/phadej/jsverify)
   [![NPM version](https://badge.fury.io/js/jsverify.svg)](http://badge.fury.io/js/jsverify)
-  [![Dependency Status](https://gemnasium.com/phadej/jsverify.svg)](https://gemnasium.com/phadej/jsverify)
+  [![Dependency Status](https://david-dm.org/phadej/jsverify.svg)](https://david-dm.org/phadej/jsverify)
+  [![devDependency Status](https://david-dm.org/phadej/jsverify/dev-status.svg)](https://david-dm.org/phadej/jsverify#info=devDependencies)
   [![Code Climate](https://img.shields.io/codeclimate/github/phadej/jsverify.svg)](https://codeclimate.com/github/phadej/jsverify)
 
   ## Getting Started
@@ -337,7 +332,6 @@ module.exports = {
   // OK, passed 100 tests
   ```
 */
-/* jshint node:true */
   "use strict";
 
 /**
@@ -485,9 +479,9 @@ function forall() {
   };
 }
 
-function formatFailedCase(r) {
+function formatFailedCase(r, state) {
   var msg =  "Failed after " + r.tests + " tests and " + r.shrinks + " shrinks. ";
-  msg += "rngState: " + r.rngState + "; ";
+  msg += "rngState: " + (r.rngState || state) + "; ";
   msg += "Counterexample: " + r.counterexamplestr + "; ";
   if (r.exc) {
     msg += "Exception: " + (r.exc instanceof Error ? r.exc.message : r.exc);
@@ -549,7 +543,7 @@ function check(property, opts) {
         rPrime.tests = i;
         /* global console */
         if (!opts.quiet) {
-          console.error(formatFailedCase(rPrime), rPrime.counterexample);
+          console.error(formatFailedCase(rPrime, state), rPrime.counterexample);
         }
         return rPrime;
       }
@@ -640,8 +634,8 @@ module.exports = jsc;
 /// plain ../LICENSE
 
 },{"./combinator.js":2,"./composite.js":3,"./finitemap.js":4,"./fn.js":5,"./functor.js":6,"./primitive.js":8,"./random.js":9,"./show.js":10,"./shrink.js":11,"./utils.js":12,"assert":13}],8:[function(_dereq_,module,exports){
-/* jshint node:true */
 "use strict";
+
 var assert = _dereq_("assert");
 var random = _dereq_("./random.js");
 var arbitrary = _dereq_("./arbitrary.js");
@@ -826,7 +820,6 @@ module.exports = {
 };
 
 },{"./arbitrary.js":1,"./random.js":9,"./show.js":10,"./shrink.js":11,"assert":13}],9:[function(_dereq_,module,exports){
-/* jshint node: true */
 "use strict";
 
 var generator = new (_dereq_("rc4").RC4small)();
@@ -862,7 +855,6 @@ randomInteger.setStateString = generator.setStateString.bind(generator);
 module.exports = randomInteger;
 
 },{"rc4":17}],10:[function(_dereq_,module,exports){
-/* jshint node: true */
 "use strict";
 
 function showDef(obj) {
@@ -889,7 +881,6 @@ module.exports = {
 
 },{}],11:[function(_dereq_,module,exports){
 "use strict";
-/* jshint node:true */
 
 var assert = _dereq_("assert");
 
@@ -936,7 +927,6 @@ module.exports = {
 };
 
 },{"assert":13}],12:[function(_dereq_,module,exports){
-/* jshint node:true */
 "use strict";
 
 var isArray = Array.isArray;
