@@ -33,7 +33,7 @@
     "underscore": "~1.6.0",
     "lodash": "~2.4.1",
     "q": "~2.0.2",
-    "when": "~3.3.1",
+    "when": "~3.4.0",
     "browserify": "~4.2.0",
     "karma-chrome-launcher": "~0.1.2",
     "karma-firefox-launcher": "~0.1.3",
@@ -43,8 +43,8 @@
     "karma": "~0.12.1",
     "karma-cli": "0.0.4",
     "jshint": "~2.5.1",
-    "istanbul": "~0.2.6",
-    "ljs": "~0.2.0"
+    "istanbul": "~0.3.0",
+    "ljs": "~0.2.3"
   },
   "keywords": [
     "testing",
