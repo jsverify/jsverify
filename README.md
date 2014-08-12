@@ -264,6 +264,7 @@ They will be regenerated before each release.
 - [claire](https://npmjs.org/package/claire)
 - [gent](https://npmjs.org/package/gent)
 - [fatcheck](https://npmjs.org/package/fatcheck)
+- [macchiato.js](https://github.com/VoQn/macchiato)
 - [quickcheck](https://npmjs.org/package/quickcheck)
 - [qc.js](https://bitbucket.org/darrint/qc.js/)
 
