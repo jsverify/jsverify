@@ -153,6 +153,11 @@ JavaScript value: boolean, number, string, array of values or object with `value
 If not specified `a` and `b` are equal to `value()`.
 
 
+#### map (gen : generator A) : generator (map A)
+
+Generates a javascript object with properties of type `A`.
+
+
 
 #### fn (gen : generator a) : generator (b -> a)
 
@@ -235,6 +240,7 @@ They will be regenerated before each release.
 
 ## Release History
 
+- 0.3.6 map generator
 - 0.3.5 Fix forgotten rngState in console output
 - 0.3.4 Dependencies update
 - 0.3.3 Dependencies update
@@ -264,7 +270,6 @@ They will be regenerated before each release.
 - [claire](https://npmjs.org/package/claire)
 - [gent](https://npmjs.org/package/gent)
 - [fatcheck](https://npmjs.org/package/fatcheck)
-- [macchiato.js](https://github.com/VoQn/macchiato)
 - [quickcheck](https://npmjs.org/package/quickcheck)
 - [qc.js](https://bitbucket.org/darrint/qc.js/)
 

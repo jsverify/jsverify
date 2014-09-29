@@ -1,7 +1,7 @@
-!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.jsc=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.jsc=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 "use strict";
 
-var random = _dereq_("./random.js");
+var random = require("./random.js");
 
 function arbitraryArray(arbitrary, size) {
   var arrsize = random(0, size);
@@ -33,10 +33,10 @@ module.exports = {
   object: arbitraryObject,
 };
 
-},{"./random.js":9}],2:[function(_dereq_,module,exports){
+},{"./random.js":9}],2:[function(require,module,exports){
 "use strict";
 
-var shrink = _dereq_("./shrink.js");
+var shrink = require("./shrink.js");
 
 /**
   ### Generator combinators
@@ -90,13 +90,13 @@ module.exports = {
   nonshrink: nonshrink,
 };
 
-},{"./shrink.js":11}],3:[function(_dereq_,module,exports){
+},{"./shrink.js":11}],3:[function(require,module,exports){
 "use strict";
 
-var arbitrary = _dereq_("./arbitrary.js");
-var shrink = _dereq_("./shrink.js");
-var show = _dereq_("./show.js");
-var primitive = _dereq_("./primitive.js");
+var arbitrary = require("./arbitrary.js");
+var shrink = require("./shrink.js");
+var show = require("./show.js");
+var primitive = require("./primitive.js");
 
 /**
   #### array (gen : generator a) : generator (array a)
@@ -136,15 +136,60 @@ function pair(a, b) {
   };
 }
 
+/**
+  #### map (gen : generator A) : generator (map A)
+
+  Generates a javascript object with properties of type `A`.
+*/
+function fromArray(arrayOfPairs) {
+  var res = {};
+  arrayOfPairs.forEach(function (p) {
+    res[p[0]] = p[1];
+  });
+  return res;
+}
+
+function toArray(m) {
+  var res = [];
+  Object.keys(m).forEach(function (k) {
+    res.push([k, m[k]]);
+  });
+  return res;
+}
+
+function map(generator) {
+  generator = generator || primitive.value();
+  var pairGenerator = pair(primitive.string(), generator);
+  var arrayGenerator = array(pairGenerator);
+
+  return {
+    arbitrary: function (size) {
+      var arrayOfPairs =  arrayGenerator.arbitrary(size);
+      return fromArray(arrayOfPairs);
+    },
+    shrink: function (m) {
+      var arrayOfPairs = toArray(m);
+      var shrinked = arrayGenerator.shrink(arrayOfPairs);
+      return shrinked.map(fromArray);
+    },
+    show: function (m) {
+      return "{" + Object.keys(m).map(function (k) {
+        return k + ": " + generator.show(m[k]);
+      }).join(", ") + "}";
+    }
+  };
+}
+
 module.exports = {
   pair: pair,
   array: array,
+  map: map,
 };
 
-},{"./arbitrary.js":1,"./primitive.js":8,"./show.js":10,"./shrink.js":11}],4:[function(_dereq_,module,exports){
+},{"./arbitrary.js":1,"./primitive.js":8,"./show.js":10,"./shrink.js":11}],4:[function(require,module,exports){
 "use strict";
 
-var utils = _dereq_("./utils.js");
+var utils = require("./utils.js");
 
 /**
   #### FMap (eq : a -> a -> bool) : FMap a
@@ -193,12 +238,12 @@ FMap.prototype.get = function FMap_get(key) {
 
 module.exports = FMap;
 
-},{"./utils.js":12}],5:[function(_dereq_,module,exports){
+},{"./utils.js":12}],5:[function(require,module,exports){
 "use strict";
 
-var shrink = _dereq_("./shrink.js");
-var primitive = _dereq_("./primitive.js");
-var FMap = _dereq_("./finitemap.js");
+var shrink = require("./shrink.js");
+var primitive = require("./primitive.js");
+var FMap = require("./finitemap.js");
 
 /**
   #### fn (gen : generator a) : generator (b -> a)
@@ -242,7 +287,7 @@ module.exports = {
   fun: fn,
 };
 
-},{"./finitemap.js":4,"./primitive.js":8,"./shrink.js":11}],6:[function(_dereq_,module,exports){
+},{"./finitemap.js":4,"./primitive.js":8,"./shrink.js":11}],6:[function(require,module,exports){
 "use strict";
 
 /**
@@ -301,7 +346,7 @@ module.exports = {
   bind: bind,
 };
 
-},{}],7:[function(_dereq_,module,exports){
+},{}],7:[function(require,module,exports){
 /**
   # JSVerify
 
@@ -389,17 +434,17 @@ module.exports = {
   - generator a := { arbitrary : a, shrink : a -> [a] }
 */
 
-var assert = _dereq_("assert");
-var shrink = _dereq_("./shrink.js");
-var random = _dereq_("./random.js");
-var primitive = _dereq_("./primitive.js");
-var composite = _dereq_("./composite.js");
-var fn = _dereq_("./fn.js");
-var combinator = _dereq_("./combinator.js");
-var show = _dereq_("./show.js");
-var FMap = _dereq_("./finitemap.js");
-var utils = _dereq_("./utils.js");
-var functor = _dereq_("./functor.js");
+var assert = require("assert");
+var shrink = require("./shrink.js");
+var random = require("./random.js");
+var primitive = require("./primitive.js");
+var composite = require("./composite.js");
+var fn = require("./fn.js");
+var combinator = require("./combinator.js");
+var show = require("./show.js");
+var FMap = require("./finitemap.js");
+var utils = require("./utils.js");
+var functor = require("./functor.js");
 
 /**
   ### Properties
@@ -612,6 +657,7 @@ var jsc = {
   oneof: primitive.oneof,
   pair: composite.pair,
   array: composite.array,
+  map: composite.map,
   fn: fn.fn,
   fun: fn.fn,
   suchthat: combinator.suchthat,
@@ -633,14 +679,14 @@ module.exports = jsc;
 /// plain ../related-work.md
 /// plain ../LICENSE
 
-},{"./combinator.js":2,"./composite.js":3,"./finitemap.js":4,"./fn.js":5,"./functor.js":6,"./primitive.js":8,"./random.js":9,"./show.js":10,"./shrink.js":11,"./utils.js":12,"assert":13}],8:[function(_dereq_,module,exports){
+},{"./combinator.js":2,"./composite.js":3,"./finitemap.js":4,"./fn.js":5,"./functor.js":6,"./primitive.js":8,"./random.js":9,"./show.js":10,"./shrink.js":11,"./utils.js":12,"assert":13}],8:[function(require,module,exports){
 "use strict";
 
-var assert = _dereq_("assert");
-var random = _dereq_("./random.js");
-var arbitrary = _dereq_("./arbitrary.js");
-var shrink = _dereq_("./shrink.js");
-var show = _dereq_("./show.js");
+var assert = require("assert");
+var random = require("./random.js");
+var arbitrary = require("./arbitrary.js");
+var shrink = require("./shrink.js");
+var show = require("./show.js");
 
 /**
   ### Primitive generators
@@ -764,7 +810,9 @@ function oneof(args) {
 function string() {
   return {
     arbitrary: arbitrary.string,
-    shrink: shrink.noop, // TODO:
+    shrink: function (str) {
+      return str === "" ? [] : [""]; // TODO
+    },
     show: show.def,
   };
 }
@@ -819,10 +867,10 @@ module.exports = {
   bool: bool,
 };
 
-},{"./arbitrary.js":1,"./random.js":9,"./show.js":10,"./shrink.js":11,"assert":13}],9:[function(_dereq_,module,exports){
+},{"./arbitrary.js":1,"./random.js":9,"./show.js":10,"./shrink.js":11,"assert":13}],9:[function(require,module,exports){
 "use strict";
 
-var generator = new (_dereq_("rc4").RC4small)();
+var generator = new (require("rc4").RC4small)();
 
 /**
   #### random (min max : int) : int
@@ -854,7 +902,7 @@ randomInteger.setStateString = generator.setStateString.bind(generator);
 
 module.exports = randomInteger;
 
-},{"rc4":17}],10:[function(_dereq_,module,exports){
+},{"rc4":17}],10:[function(require,module,exports){
 "use strict";
 
 function showDef(obj) {
@@ -879,10 +927,10 @@ module.exports = {
   array: showArray,
 };
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],11:[function(require,module,exports){
 "use strict";
 
-var assert = _dereq_("assert");
+var assert = require("assert");
 
 function shrinkNoop() {
   return [];
@@ -926,7 +974,7 @@ module.exports = {
   array: shrinkArray,
 };
 
-},{"assert":13}],12:[function(_dereq_,module,exports){
+},{"assert":13}],12:[function(require,module,exports){
 "use strict";
 
 var isArray = Array.isArray;
@@ -983,7 +1031,7 @@ module.exports = {
   pluck: pluck,
 };
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],13:[function(require,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
@@ -1011,7 +1059,7 @@ module.exports = {
 // when used in node, this will actually load the util module we depend on
 // versus loading the builtin util module as happens otherwise
 // this is a bug in node module loading as far as I am concerned
-var util = _dereq_('util/');
+var util = require('util/');
 
 var pSlice = Array.prototype.slice;
 var hasOwn = Object.prototype.hasOwnProperty;
@@ -1345,14 +1393,39 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":15}],14:[function(_dereq_,module,exports){
+},{"util/":16}],14:[function(require,module,exports){
+if (typeof Object.create === 'function') {
+  // implementation from standard node.js 'util' module
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    ctor.prototype = Object.create(superCtor.prototype, {
+      constructor: {
+        value: ctor,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+  };
+} else {
+  // old school shim for old browsers
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    var TempCtor = function () {}
+    TempCtor.prototype = superCtor.prototype
+    ctor.prototype = new TempCtor()
+    ctor.prototype.constructor = ctor
+  }
+}
+
+},{}],15:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],15:[function(_dereq_,module,exports){
+},{}],16:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -1878,7 +1951,7 @@ function isPrimitive(arg) {
 }
 exports.isPrimitive = isPrimitive;
 
-exports.isBuffer = _dereq_('./support/isBuffer');
+exports.isBuffer = require('./support/isBuffer');
 
 function objectToString(o) {
   return Object.prototype.toString.call(o);
@@ -1922,7 +1995,7 @@ exports.log = function() {
  *     prototype.
  * @param {function} superCtor Constructor function to inherit prototype from.
  */
-exports.inherits = _dereq_('inherits');
+exports.inherits = require('inherits');
 
 exports._extend = function(origin, add) {
   // Don't do anything if add isn't an object
@@ -1940,32 +2013,7 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-},{"./support/isBuffer":14,"inherits":16}],16:[function(_dereq_,module,exports){
-if (typeof Object.create === 'function') {
-  // implementation from standard node.js 'util' module
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    ctor.prototype = Object.create(superCtor.prototype, {
-      constructor: {
-        value: ctor,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-  };
-} else {
-  // old school shim for old browsers
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    var TempCtor = function () {}
-    TempCtor.prototype = superCtor.prototype
-    ctor.prototype = new TempCtor()
-    ctor.prototype.constructor = ctor
-  }
-}
-
-},{}],17:[function(_dereq_,module,exports){
+},{"./support/isBuffer":15,"inherits":14}],17:[function(require,module,exports){
 "use strict";
 
 // Based on RC4 algorithm, as described in
@@ -2161,6 +2209,5 @@ RC4.RC4small = RC4small;
 
 module.exports = RC4;
 
-},{}]},{},[7])
-(7)
+},{}]},{},[7])(7)
 });

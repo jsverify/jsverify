@@ -1,5 +1,6 @@
 ## Release History
 
+- 0.3.6 map generator
 - 0.3.5 Fix forgotten rngState in console output
 - 0.3.4 Dependencies update
 - 0.3.3 Dependencies update
