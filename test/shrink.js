@@ -4,6 +4,7 @@
 
 var jsc = require("../lib/jsverify.js");
 var assert = require("assert");
+var _ = require("underscore");
 
 function checkShrink(mincase, property, tries) {
   tries = tries || 20;
@@ -92,6 +93,14 @@ describe("shrink", function () {
         assert(r !== true);
         assert(r.shrinks === 0);
       }
+    });
+  });
+
+  describe("map", function () {
+    it("shrinks to smaller maps", function () {
+      checkShrink([{"": 1}], jsc.forall(jsc.map(jsc.nat()), function (m) {
+        return _.size(m) === 0 || _.some(m, function (value) { return value === 0; });
+      }));
     });
   });
 
