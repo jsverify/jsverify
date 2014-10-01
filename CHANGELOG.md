@@ -1,5 +1,6 @@
 ## Release History
 
+- 0.4.0-alpha2 Fix typo in readme
 - 0.4.0-alpha1 typify
    - DSL for `forall`
        ```js

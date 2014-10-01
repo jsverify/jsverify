@@ -112,6 +112,7 @@ There is a small DSL to help with `forall`. For example the two definitions belo
 ```js
 var bool_fn_applied_thrice = jsc.forall("bool -> bool", "bool", check);
 var bool_fn_applied_thrice = jsc.forall(jsc.fn(jsc.bool()), jsc.bool(), check);
+```
 
 The DSL is based on a subset of language recognized by [typify-parser](https://github.com/phadej/typify-parser):
 - *identifiers* are fetched from the predefined environment.
@@ -255,6 +256,7 @@ They will be regenerated before each release.
 
 ## Release History
 
+- 0.4.0-alpha2 Fix typo in readme
 - 0.4.0-alpha1 typify
    - DSL for `forall`
        ```js

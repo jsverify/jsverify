@@ -33,10 +33,11 @@ module.exports = {
   object: arbitraryObject,
 };
 
-},{"./random.js":9}],2:[function(require,module,exports){
+},{"./random.js":10}],2:[function(require,module,exports){
 "use strict";
 
 var shrink = require("./shrink.js");
+var generator = require("./generator.js");
 
 /**
   ### Generator combinators
@@ -47,7 +48,9 @@ var shrink = require("./shrink.js");
 
   Generator of values that satisfy `p` predicate. It's adviced that `p`'s accept rate is high.
 */
-function suchthat(generator, predicate) {
+function suchthat(gen, predicate) {
+  gen = generator.force(gen);
+
   return {
     arbitrary: function (size) {
       for (var i = 0; ; i++) {
@@ -57,7 +60,7 @@ function suchthat(generator, predicate) {
           size += 1;
         }
 
-        var x = generator.arbitrary(size);
+        var x = gen.arbitrary(size);
         if (predicate(x)) {
           return x;
         }
@@ -65,10 +68,10 @@ function suchthat(generator, predicate) {
     },
 
     shrink: function (x) {
-      return generator.shrink(x).filter(predicate);
+      return gen.shrink(x).filter(predicate);
     },
 
-    show: generator.show,
+    show: gen.show,
   };
 }
 
@@ -77,11 +80,13 @@ function suchthat(generator, predicate) {
 
   Non shrinkable version of generator `gen`.
 */
-function nonshrink(generator) {
+function nonshrink(gen) {
+  gen = generator.force(gen);
+
   return {
-    arbitrary: generator.arbitrary,
+    arbitrary: gen.arbitrary,
     shrink: shrink.noop,
-    show: generator.show,
+    show: gen.show,
   };
 }
 
@@ -90,27 +95,28 @@ module.exports = {
   nonshrink: nonshrink,
 };
 
-},{"./shrink.js":11}],3:[function(require,module,exports){
+},{"./generator.js":7,"./shrink.js":12}],3:[function(require,module,exports){
 "use strict";
 
 var arbitrary = require("./arbitrary.js");
 var shrink = require("./shrink.js");
 var show = require("./show.js");
 var primitive = require("./primitive.js");
+var generator = require("./generator.js");
 
 /**
   #### array (gen : generator a) : generator (array a)
 */
-function array(generator) {
-  generator = generator || primitive.value();
+function array(gen) {
+  gen = generator.force(gen || primitive.value);
 
   return {
     arbitrary: function (size) {
-      return arbitrary.array(generator.arbitrary, size);
+      return arbitrary.array(gen.arbitrary, size);
     },
 
-    shrink: shrink.array.bind(null, generator.shrink),
-    show: show.array.bind(null, generator.show),
+    shrink: shrink.array.bind(null, gen.shrink),
+    show: show.array.bind(null, gen.show),
   };
 }
 
@@ -120,8 +126,8 @@ function array(generator) {
   If not specified `a` and `b` are equal to `value()`.
 */
 function pair(a, b) {
-  a = a || primitive.value();
-  b = b || primitive.value();
+  a = generator.force(a || primitive.value);
+  b = generator.force(b || primitive.value);
 
   return {
     arbitrary: function (size) {
@@ -157,9 +163,9 @@ function toArray(m) {
   return res;
 }
 
-function map(generator) {
-  generator = generator || primitive.value();
-  var pairGenerator = pair(primitive.string(), generator);
+function map(gen) {
+  gen = generator.force(gen || primitive.value());
+  var pairGenerator = pair(primitive.string(), gen);
   var arrayGenerator = array(pairGenerator);
 
   return {
@@ -174,7 +180,7 @@ function map(generator) {
     },
     show: function (m) {
       return "{" + Object.keys(m).map(function (k) {
-        return k + ": " + generator.show(m[k]);
+        return k + ": " + gen.show(m[k]);
       }).join(", ") + "}";
     }
   };
@@ -186,7 +192,7 @@ module.exports = {
   map: map,
 };
 
-},{"./arbitrary.js":1,"./primitive.js":8,"./show.js":10,"./shrink.js":11}],4:[function(require,module,exports){
+},{"./arbitrary.js":1,"./generator.js":7,"./primitive.js":9,"./show.js":11,"./shrink.js":12}],4:[function(require,module,exports){
 "use strict";
 
 var utils = require("./utils.js");
@@ -238,12 +244,13 @@ FMap.prototype.get = function FMap_get(key) {
 
 module.exports = FMap;
 
-},{"./utils.js":12}],5:[function(require,module,exports){
+},{"./utils.js":14}],5:[function(require,module,exports){
 "use strict";
 
 var shrink = require("./shrink.js");
 var primitive = require("./primitive.js");
 var FMap = require("./finitemap.js");
+var generator = require("./generator.js");
 
 /**
   #### fn (gen : generator a) : generator (b -> a)
@@ -254,7 +261,7 @@ var FMap = require("./finitemap.js");
 */
 
 function fn(gen) {
-  gen = gen || primitive.value();
+  gen = generator.force(gen || primitive.value);
 
   return {
     arbitrary: function (size) {
@@ -287,7 +294,7 @@ module.exports = {
   fun: fn,
 };
 
-},{"./finitemap.js":4,"./primitive.js":8,"./shrink.js":11}],6:[function(require,module,exports){
+},{"./finitemap.js":4,"./generator.js":7,"./primitive.js":9,"./shrink.js":12}],6:[function(require,module,exports){
 "use strict";
 
 /**
@@ -347,6 +354,17 @@ module.exports = {
 };
 
 },{}],7:[function(require,module,exports){
+"use strict";
+
+function force(gen) {
+  return (typeof gen === "function") ? gen() : gen;
+}
+
+module.exports = {
+  force: force,
+};
+
+},{}],8:[function(require,module,exports){
 /**
   # JSVerify
 
@@ -369,7 +387,7 @@ module.exports = {
 
   // forall (f : bool -> bool) (b : bool), f (f (f b)) = f(b).
   var bool_fn_applied_thrice =
-    jsc.forall(jsc.fn(jsc.bool()), jsc.bool(), function (f, b) {
+    jsc.forall("bool -> bool", "bool", function (f, b) {
       return f(f(f(b))) === f(b);
     });
 
@@ -414,9 +432,9 @@ module.exports = {
 
   To show that propositions hold, we need to construct proofs.
   There are two extremes: proof by example (unit tests) and formal (machine-checked) proof.
-  Property-based testing is something in between.
+  Property-based testing is somewhere in between.
   We formulate propositions, invariants or other properties we believe to hold, but
-  only test it to hold for numerous (random generated) values.
+  only test it to hold for numerous (randomly generated) values.
 
   Types and function signatures are written in [Coq](http://coq.inria.fr/)/[Haskell](http://www.haskell.org/haskellwiki/Haskell) influented style:
   C# -style `List<T> filter(List<T> v, Func<T, bool> predicate)` is represented by
@@ -445,6 +463,8 @@ var show = require("./show.js");
 var FMap = require("./finitemap.js");
 var utils = require("./utils.js");
 var functor = require("./functor.js");
+var typify = require("./typify.js");
+var generator = require("./generator.js");
 
 /**
   ### Properties
@@ -477,14 +497,37 @@ function shrinkResult(gens, x, test, size, shrinks, exc, transform) {
   });
 }
 
+var environment = {
+    nat: primitive.nat,
+    integer: primitive.integer,
+    number : primitive.number,
+    bool: primitive.bool,
+    string: primitive.string,
+    value: primitive.value,
+    oneof: primitive.oneof,
+    pair: composite.pair,
+    array: composite.array,
+    map: composite.map,
+    fn: fn.fn,
+    fun: fn.fn,
+    nonshrink: combinator.nonshrink,
+};
+
 /**
   #### forall (gens : generator a ...) (prop : a -> property_rec) : property
 
   Property constructor
 */
 function forall() {
-  var gens = Array.prototype.slice.call(arguments, 0, -1);
-  var property = arguments[arguments.length - 1];
+  var args = Array.prototype.slice.call(arguments);
+  var gens = args.slice(0, -1);
+  var property = args[args.length - 1];
+
+  // Map typify-dsl to hard generators
+  gens = gens.map(function (g) {
+    g = typeof g === "string" ? typify.parseTypify(environment, g) : g;
+    return generator.force(g);
+  });
 
   assert(typeof property === "function", "property should be a function");
 
@@ -624,6 +667,7 @@ function checkThrow(property, opts) {
   });
 }
 
+/// include ./typify.js
 /// include ./primitive.js
 /// include ./composite.js
 /// include ./fn.js
@@ -679,7 +723,7 @@ module.exports = jsc;
 /// plain ../related-work.md
 /// plain ../LICENSE
 
-},{"./combinator.js":2,"./composite.js":3,"./finitemap.js":4,"./fn.js":5,"./functor.js":6,"./primitive.js":8,"./random.js":9,"./show.js":10,"./shrink.js":11,"./utils.js":12,"assert":13}],8:[function(require,module,exports){
+},{"./combinator.js":2,"./composite.js":3,"./finitemap.js":4,"./fn.js":5,"./functor.js":6,"./generator.js":7,"./primitive.js":9,"./random.js":10,"./show.js":11,"./shrink.js":12,"./typify.js":13,"./utils.js":14,"assert":15}],9:[function(require,module,exports){
 "use strict";
 
 var assert = require("assert");
@@ -867,7 +911,7 @@ module.exports = {
   bool: bool,
 };
 
-},{"./arbitrary.js":1,"./random.js":9,"./show.js":10,"./shrink.js":11,"assert":13}],9:[function(require,module,exports){
+},{"./arbitrary.js":1,"./random.js":10,"./show.js":11,"./shrink.js":12,"assert":15}],10:[function(require,module,exports){
 "use strict";
 
 var generator = new (require("rc4").RC4small)();
@@ -902,7 +946,7 @@ randomInteger.setStateString = generator.setStateString.bind(generator);
 
 module.exports = randomInteger;
 
-},{"rc4":17}],10:[function(require,module,exports){
+},{"rc4":19}],11:[function(require,module,exports){
 "use strict";
 
 function showDef(obj) {
@@ -927,7 +971,7 @@ module.exports = {
   array: showArray,
 };
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 "use strict";
 
 var assert = require("assert");
@@ -974,7 +1018,84 @@ module.exports = {
   array: shrinkArray,
 };
 
-},{"assert":13}],12:[function(require,module,exports){
+},{"assert":15}],13:[function(require,module,exports){
+"use strict";
+
+/**
+  ### DSL for input parameters
+
+  There is a small DSL to help with `forall`. For example the two definitions below are equivalent:
+  ```js
+  var bool_fn_applied_thrice = jsc.forall("bool -> bool", "bool", check);
+  var bool_fn_applied_thrice = jsc.forall(jsc.fn(jsc.bool()), jsc.bool(), check);
+  ```
+
+  The DSL is based on a subset of language recognized by [typify-parser](https://github.com/phadej/typify-parser):
+  - *identifiers* are fetched from the predefined environment.
+  - *applications* are applied as one could expect: `"array bool"` is evaluated to `jsc.array(jsc.bool)`.
+  - *functions* are supported: `"bool -> bool"` is evaluated to `jsc.fn(jsc.bool())`.
+  - *square brackets* are treated as a shorthand for the array type: `"[nat]"` is evaulated to `jsc.array(jsc.nat)`.
+*/
+
+var fn = require("./fn.js");
+var composite = require("./composite.js");
+var typifyParser = require("typify-parser");
+
+// Forward declarations
+var compileType, compileTypeArray;
+
+function compileIdent(env, type) {
+  var g = env[type.value];
+  if (!g) {
+    throw new Error("Unknown generator: " + type.value);
+  }
+  return g;
+}
+
+function compileApplication(env, type) {
+  var callee = compileType(env, type.callee);
+  var args = compileTypeArray(env, type.args);
+
+  return callee.apply(undefined, args);
+}
+
+function compileFunction(env, type) {
+  // we don't care about argument type
+  var result = compileType(env, type.result);
+  return fn.fn(result);
+}
+
+function compileBrackets(env, type) {
+  var arg = compileType(env, type.arg);
+  return composite.array(arg);
+}
+
+function compileType(env, type) {
+  switch (type.type) {
+    case "ident": return compileIdent(env, type);
+    case "application": return compileApplication(env, type);
+    case "function": return compileFunction(env, type);
+    case "brackets": return compileBrackets(env, type);
+    default: throw new Error("Unsupported typify ast type: " + type.type);
+  }
+}
+
+compileTypeArray = function compileTypeArray(env, types) {
+  return types.map(function (type) {
+    return compileType(env, type);
+  });
+};
+
+function parseTypify(env, str) {
+  var type = typifyParser(str);
+  return compileType(env, type);
+}
+
+module.exports = {
+  parseTypify: parseTypify,
+};
+
+},{"./composite.js":3,"./fn.js":5,"typify-parser":20}],14:[function(require,module,exports){
 "use strict";
 
 var isArray = Array.isArray;
@@ -1031,7 +1152,7 @@ module.exports = {
   pluck: pluck,
 };
 
-},{}],13:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
@@ -1393,7 +1514,7 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":16}],14:[function(require,module,exports){
+},{"util/":18}],16:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -1418,14 +1539,14 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],15:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],16:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -2013,7 +2134,7 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-},{"./support/isBuffer":15,"inherits":14}],17:[function(require,module,exports){
+},{"./support/isBuffer":17,"inherits":16}],19:[function(require,module,exports){
 "use strict";
 
 // Based on RC4 algorithm, as described in
@@ -2209,5 +2330,391 @@ RC4.RC4small = RC4small;
 
 module.exports = RC4;
 
-},{}]},{},[7])(7)
+},{}],20:[function(require,module,exports){
+/**
+  # typify type parser
+
+  > Type signature parser for typify
+
+  [![Build Status](https://secure.travis-ci.org/phadej/typify-parser.svg?branch=master)](http://travis-ci.org/phadej/typify-parser)
+  [![NPM version](https://badge.fury.io/js/typify-parser.svg)](http://badge.fury.io/js/typify-parser)
+  [![Dependency Status](https://david-dm.org/phadej/typify-parser.svg)](https://david-dm.org/phadej/typify-parser)
+  [![devDependency Status](https://david-dm.org/phadej/typify-parser/dev-status.svg)](https://david-dm.org/phadej/typify-parser#info=devDependencies)
+  [![Code Climate](https://img.shields.io/codeclimate/github/phadej/typify-parser.svg)](https://codeclimate.com/github/phadej/typify-parser)
+
+  Turns `(foo, bar 42) -> quux` into
+  ```js
+  {
+    "type": "function",
+    "arg": {
+      "type": "product",
+      "args": [
+        {
+          "type": "ident",
+          "value": "foo"
+        },
+        {
+          "type": "application",
+          "callee": {
+            "type": "ident",
+            "value": "bar"
+          },
+          "args": [
+            {
+              "type": "number",
+              "value": 42
+            }
+          ]
+        }
+      ]
+    },
+    "result": {
+      "type": "ident",
+      "value": "quux"
+    }
+  }
+  ```
+*/
+"use strict";
+
+function unescapeString(str) {
+  return str.replace(/\\(?:'|"|\\|n|x[0-9a-fA-F]{2})/g, function (match) {
+    switch (match[1]) {
+      case "'": return "'";
+      case "\"": return "\"";
+      case "\\": return "\\";
+      case "n": return "\n";
+      case "x": return String.fromCharCode(parseInt(match.substr(2), 16));
+    }
+  });
+}
+
+function lex(input) {
+  // Unicode
+  // top: 22a4
+  // bottom: 22a5
+  // and: 2227
+  // or: 2228
+  // times: \u00d7
+  // to: 2192
+  // ellipsis: 2026
+  // blackboard 1: d835 dfd9
+  var m = input.match(/^([ \t\r\n]+|[\u22a4\u22a5\u2227\u2228\u00d7\u2192\u2026]|\ud835\udfd9|_\|_|\*|\(\)|"(?:[^"\\]|\\[\\'"n]|\\x[0-9a-fA-F]{2})*"|'(?:[^'\\]|\\[\\'"n]|\\x[0-9a-fA-F]{2})*'|[0-9a-zA-Z_\$@]+|,|->|:|;|&|\||\.\.\.|\(|\)|\[|\]|\{|\}|\?)*$/);
+  if (m === null) {
+    throw new SyntaxError("Cannot lex type signature");
+  }
+  m = input.match(/([ \t\r\n]+|[\u22a4\u22a5\u2227\u2228\u00d7\u2192\u2026]|\ud835\udfd9|_\|_|\*|\(\)|"(?:[^"\\]|\\[\\'"n]|\\x[0-9a-fA-F]{2})*"|'(?:[^'\\]|\\[\\'"n]|\\x[0-9a-fA-F]{2})*'|[0-9a-zA-Z_\$@]+|,|->|:|;|&|\||\.\.\.|\(|\)|\[|\]|\{|\}|\?)/g);
+
+  return m
+  .map(function (token) {
+    switch (token) {
+      case "_|_": return { type: "false" };
+      case "\u22a5": return { type: "false" };
+      case "*": return { type: "true" };
+      case "\u22a4": return { type: "true" };
+      case "()": return { type: "unit" };
+      case "\ud835\udfd9": return { type: "unit" };
+      case "true": return { type: "bool", value: true };
+      case "false": return { type: "bool", value: false };
+      case "&": return { type: "&" };
+      case "\u2227": return { type: "&" };
+      case "|": return { type: "|" };
+      case "\u2228": return { type: "|" };
+      case ",": return { type: "," };
+      case "\u00d7": return { type: "," };
+      case ";": return { type: ";" };
+      case ":": return { type: ":" };
+      case "(": return { type: "(" };
+      case ")": return { type: ")" };
+      case "[": return { type: "[" };
+      case "]": return { type: "]" };
+      case "{": return { type: "{" };
+      case "}": return { type: "}" };
+      case "?": return { type: "?" };
+      case "->": return { type: "->" };
+      case "\u2192": return { type: "->" };
+      case "...": return { type: "..." };
+      case "\u2026": return { type: "..." };
+    }
+
+    // Whitespace
+    if (token.match(/^[ \r\r\n]+$/)) {
+      return null;
+    }
+
+    if (token.match(/^[0-9]+/)) {
+      return { type: "number", value: parseInt(token, 10) };
+    }
+
+    if (token[0] === "'" || token[0] === "\"") {
+      token = token.slice(1, -1);
+      return { type: "string", value: unescapeString(token) };
+    }
+
+    return { type: "ident", value: token };
+  })
+  .filter(function (token) {
+    return token !== null;
+  });
+}
+
+function makePunctParser(type) {
+  return function (state) {
+    if (state.pos >= state.len) {
+      throw new SyntaxError("Expecting identifier, end-of-input found");
+    }
+
+    var token = state.tokens[state.pos];
+    if (token.type !== type) {
+      throw new SyntaxError("Expecting '" + type + "', found: " + token.type);
+    }
+    state.pos += 1;
+
+    return type;
+  };
+}
+
+var colonParser = makePunctParser(":");
+var openCurlyParser = makePunctParser("{");
+var closeCurlyParser = makePunctParser("}");
+var semicolonParser = makePunctParser(";");
+var openParenParser = makePunctParser("(");
+var closeParenParser = makePunctParser(")");
+var openBracketParser = makePunctParser("[");
+var closeBracketParser = makePunctParser("]");
+
+function nameParser(state) {
+  if (state.pos >= state.len) {
+    throw new SyntaxError("Expecting identifier, end-of-input found");
+  }
+
+  var token = state.tokens[state.pos];
+  if (token.type !== "ident") {
+    throw new SyntaxError("Expecting 'ident', found: " + token.type);
+  }
+  state.pos += 1;
+
+  return token.value;
+}
+
+function recordParser(state) {
+  openCurlyParser(state);
+
+  var token = state.tokens[state.pos];
+  if (token && token.type === "}") {
+    closeCurlyParser(state);
+    return { type: "record", fields: {} };
+  }
+
+  var fields = {};
+
+  while (true) {
+    // read
+    var name = nameParser(state);
+    colonParser(state);
+    var value = typeParser(state);
+
+    // assign to fields
+    fields[name] = value;
+
+    // ending token
+    token = state.tokens[state.pos];
+
+    // break if }
+    if (token && token.type === "}") {
+      closeCurlyParser(state);
+      break;
+    } else if (token && token.type === ";") {
+      semicolonParser(state);
+    } else {
+      throw new SyntaxError("Expecting '}' or ';', found: " + token.type);
+    }
+  }
+
+  return { type: "record", fields: fields };
+}
+
+function postfix(parser, postfixToken, constructor) {
+  return function (state) {
+    var arg = parser(state);
+
+    var token = state.tokens[state.pos];
+    if (token && token.type === postfixToken) {
+      state.pos += 1;
+      return {
+        type: constructor,
+        arg: arg,
+      };
+    } else {
+      return arg;
+    }
+  };
+}
+
+var optionalParser = postfix(terminalParser, "?", "optional");
+
+function applicationParser(state) {
+  var rator = optionalParser(state);
+  var rands = [];
+
+  while (true) {
+    var pos = state.pos;
+    // XXX: we shouldn't use exceptions for this
+    try {
+      var arg = optionalParser(state);
+      rands.push(arg);
+    } catch (err) {
+      state.pos = pos;
+      break;
+    }
+  }
+
+  if (rands.length === 0) {
+    return rator;
+  } else {
+    return {
+      type: "application",
+      callee: rator,
+      args: rands,
+    };
+  }
+}
+
+function separatedBy(parser, separator, constructor) {
+  return function (state) {
+    var list = [parser(state)];
+    while (true) {
+      // separator
+      var token = state.tokens[state.pos];
+      if (token && token.type === separator) {
+        state.pos += 1;
+      } else {
+        break;
+      }
+
+      // right argument
+      list.push(parser(state));
+    }
+
+    if (list.length === 1) {
+      return list[0];
+    } else {
+      return {
+        type: constructor,
+        args: list,
+      };
+    }
+  };
+}
+
+var conjunctionParser = separatedBy(applicationParser, "&", "conjunction");
+var disjunctionParser = separatedBy(conjunctionParser, "|", "disjunction");
+
+// TODO: combine with optional
+var variadicParser = postfix(disjunctionParser, "...", "variadic");
+
+function namedParser(state) {
+  var token1 = state.tokens[state.pos];
+  var token2 = state.tokens[state.pos + 1];
+  if (token1 && token2 && token1.type === "ident" && token2.type === ":") {
+    state.pos += 2;
+    var arg = namedParser(state);
+    return {
+      type: "named",
+      name: token1.value,
+      arg: arg,
+    };
+  } else {
+    return variadicParser(state);
+  }
+}
+
+var productParser = separatedBy(namedParser, ",", "product");
+
+function functionParser(state) {
+  var v = productParser(state);
+
+  var token = state.tokens[state.pos];
+  if (token && token.type === "->") {
+    state.pos += 1;
+    var result = functionParser(state);
+    return {
+      type: "function",
+      arg: v,
+      result: result,
+    };
+  } else {
+    return v;
+  }
+}
+
+function typeParser(state) {
+  return functionParser(state);
+}
+
+function parenthesesParser(state) {
+  openParenParser(state);
+  var type = typeParser(state);
+  closeParenParser(state);
+  return type;
+}
+
+function bracketParser(state) {
+  openBracketParser(state);
+  var type = typeParser(state);
+  closeBracketParser(state);
+  return {
+    type: "brackets",
+    arg: type,
+  };
+}
+
+function terminalParser(state) {
+  if (state.pos >= state.len) {
+    throw new SyntaxError("Expecting terminal, end-of-input found");
+  }
+
+  var token = state.tokens[state.pos];
+  switch (token.type) {
+    case "false":
+    case "true":
+    case "unit":
+    case "string":
+    case "number":
+    case "bool":
+    case "ident":
+      state.pos += 1;
+      return token;
+    case "{":
+      return recordParser(state);
+    case "(":
+      return parenthesesParser(state);
+    case "[":
+      return bracketParser(state);
+    default:
+      throw new SyntaxError("Expecting terminal, " + token.type + " found");
+  }
+}
+
+function parse(input) {
+  // console.log(input);
+  var tokens = lex(input);
+  // console.log(tokens);
+  var state = {
+    pos: 0,
+    len: tokens.length,
+    tokens: tokens,
+  };
+
+  var res = typeParser(state);
+  // console.log(state);
+  if (state.pos !== state.len) {
+    throw new SyntaxError("expecting end-of-input, " + tokens[state.pos].type + " found");
+  }
+  return res;
+}
+
+module.exports = parse;
+
+},{}]},{},[8])(8)
 });
