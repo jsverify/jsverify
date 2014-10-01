@@ -34,6 +34,15 @@ describe("typify", function () {
     });
   });
 
+  describe("square brackets are treated as an array", function () {
+    it("sort is idempotent", function () {
+      jsc.assert(jsc.forall("[integer]", function (arr) {
+        var sorted= _.sortBy(arr);
+        return _.isEqual(_.sortBy(sorted), sorted);
+      }));
+    });
+  });
+
   describe("erroneous cases", function () {
     it("throws exception when invalid generator specified", function () {
       assert.throws(function () {
