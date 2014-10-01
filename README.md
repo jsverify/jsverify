@@ -19,7 +19,7 @@ var jsc = require("jsverify");
 
 // forall (f : bool -> bool) (b : bool), f (f (f b)) = f(b).
 var bool_fn_applied_thrice =
-  jsc.forall(jsc.fn(jsc.bool()), jsc.bool(), function (f, b) {
+  jsc.forall("bool -> bool", "bool", function (f, b) {
     return f(f(f(b))) === f(b);
   });
 
@@ -62,9 +62,9 @@ Check [jasmineHelpers.js](helpers/jasmineHelpers.js) and [jasmineHelpers2.js](he
 
 To show that propositions hold, we need to construct proofs.
 There are two extremes: proof by example (unit tests) and formal (machine-checked) proof.
-Property-based testing is something in between.
+Property-based testing is somewhere in between.
 We formulate propositions, invariants or other properties we believe to hold, but
-only test it to hold for numerous (random generated) values.
+only test it to hold for numerous (randomly generated) values.
 
 Types and function signatures are written in [Coq](http://coq.inria.fr/)/[Haskell](http://www.haskell.org/haskellwiki/Haskell) influented style:
 C# -style `List<T> filter(List<T> v, Func<T, bool> predicate)` is represented by
@@ -104,6 +104,21 @@ Options:
 #### assert (prop : property) (opts : checkoptions) : void
 
 Same as `check`, but throw exception if property doesn't hold.
+
+
+### DSL for input parameters
+
+There is a small DSL to help with `forall`. For example the two definitions below are equivalent:
+```js
+var bool_fn_applied_thrice = jsc.forall("bool -> bool", "bool", check);
+var bool_fn_applied_thrice = jsc.forall(jsc.fn(jsc.bool()), jsc.bool(), check);
+
+The DSL is based on a subset of language recognized by [typify-parser](https://github.com/phadej/typify-parser):
+- *identifiers* are fetched from the predefined environment.
+- *applications* are applied as one could expect: `"array bool"` is evaluated to `jsc.array(jsc.bool)`.
+- *functions* are supported: `"bool -> bool"` is evaluated to `jsc.fn(jsc.bool())`.
+- *square brackets* are treated as a shorthand for the array type: `"[nat]"` is evaulated to `jsc.array(jsc.nat)`.
+
 
 
 ### Primitive generators
@@ -240,6 +255,15 @@ They will be regenerated before each release.
 
 ## Release History
 
+- 0.4.0-alpha1 typify
+   - DSL for `forall`
+       ```js
+       var bool_fn_applied_thrice = jsc.forall("bool -> bool", "bool", check);
+       ```
+   - generator arguments, which are functions are evaluated. One can now write:
+       ```js
+       jsc.forall(jsc.nat, check) // previously had to be jsc.nat()
+       ```
 - 0.3.6 map generator
 - 0.3.5 Fix forgotten rngState in console output
 - 0.3.4 Dependencies update
