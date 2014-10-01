@@ -24,6 +24,16 @@ describe("typify", function () {
     });
   });
 
+  describe("function", function () {
+    it("bool fn applied thrice", function () {
+      var bool_fn_applied_thrice =
+        jsc.forall("bool -> bool", "bool", function (f, b) {
+          return f(f(f(b))) === f(b);
+        });
+      jsc.assert(bool_fn_applied_thrice);
+    });
+  });
+
   describe("erroneous cases", function () {
     it("throws exception when invalid generator specified", function () {
       assert.throws(function () {
