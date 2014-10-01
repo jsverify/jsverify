@@ -262,10 +262,12 @@ They will be regenerated before each release.
        ```js
        var bool_fn_applied_thrice = jsc.forall("bool -> bool", "bool", check);
        ```
+
    - generator arguments, which are functions are evaluated. One can now write:
        ```js
        jsc.forall(jsc.nat, check) // previously had to be jsc.nat()
        ```
+
 - 0.3.6 map generator
 - 0.3.5 Fix forgotten rngState in console output
 - 0.3.4 Dependencies update
