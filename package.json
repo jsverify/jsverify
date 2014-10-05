@@ -29,7 +29,7 @@
     "test": "make test"
   },
   "devDependencies": {
-    "browserify": "~5.12.1",
+    "browserify": "~6.0.2",
     "esprima": "~1.2.2",
     "istanbul": "~0.3.0",
     "jscs": "^1.6.2",
@@ -43,9 +43,10 @@
     "ljs": "~0.2.3",
     "lodash": "~2.4.1",
     "mocha": "~1.21.4",
+    "npm-freeze": "^0.1.2",
     "q": "~2.0.2",
     "underscore": "~1.7.0",
-    "when": "~3.4.0"
+    "when": "~3.5.0"
   },
   "keywords": [
     "testing",
@@ -57,6 +58,7 @@
     "jscheck"
   ],
   "dependencies": {
+    "david": "^5.0.0",
     "rc4": "~0.1.2",
     "typify-parser": "0.0.1"
   }

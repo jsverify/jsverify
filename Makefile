@@ -1,4 +1,4 @@
-.PHONY : all test jshint jscs karma mocha istanbul dist literate
+.PHONY : all test jshint jscs karma mocha istanbul npm-freeze david dist literate
 
 JSHINT=node_modules/.bin/jshint
 JSCS=node_modules/.bin/jscs
@@ -7,12 +7,14 @@ ISTANBUL=node_modules/.bin/istanbul
 KARMA=node_modules/.bin/karma
 BROWSERIFY=node_modules/.bin/browserify
 LJS=node_modules/.bin/ljs
+DAVID=node_modules/.bin/david
+NPMFREEZE=node_modules/.bin/npm-freeze
 
 DIST=dist/jsverify.standalone.js
 
 all : test
 
-test : jshint jscs mocha istanbul
+test : jshint jscs mocha istanbul david npm-freeze
 
 jshint : 
 	$(JSHINT) lib test examples
@@ -38,6 +40,12 @@ istanbul :
 
 dist : test karma jasmine literate $(DIST)
 	git clean -fdx -e node_modules
+
+david :
+	$(DAVID)
+
+npm-freeze :
+	$(NPMFREEZE) check || true
 
 $(DIST) : lib/*
 	$(BROWSERIFY) --no-detect-globals -s jsc -o $(DIST) ./lib/jsverify.js
