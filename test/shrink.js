@@ -150,7 +150,7 @@ describe("shrink", function () {
         return n === 0 || m === 0 || m !== m;
       });
 
-      checkShrink([1,1], property2);
+      checkShrink([1, 1], property2);
     });
   });
 });
