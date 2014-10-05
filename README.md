@@ -256,6 +256,7 @@ They will be regenerated before each release.
 
 ## Release History
 
+- 0.4.0-alpha3 David, npm-freeze and jscs
 - 0.4.0-alpha2 Fix typo in readme
 - 0.4.0-alpha1 typify
    - DSL for `forall`

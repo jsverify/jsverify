@@ -213,7 +213,7 @@ function FMap(eq) {
   this.data = [];
 }
 
-FMap.prototype.contains = function FMap_contains(key) {
+FMap.prototype.contains = function FMapContains(key) {
   for (var i = 0; i < this.data.length; i++) {
     if (this.eq(this.data[i][0], key)) {
       return true;
@@ -223,7 +223,7 @@ FMap.prototype.contains = function FMap_contains(key) {
   return false;
 };
 
-FMap.prototype.insert = function FMap_insert(key, value) {
+FMap.prototype.insert = function FMapInsert(key, value) {
   for (var i = 0; i < this.data.length; i++) {
     if (this.eq(this.data[i][0], key)) {
       this.data[i] = [key, value];
@@ -234,7 +234,7 @@ FMap.prototype.insert = function FMap_insert(key, value) {
   this.data.push([key, value]);
 };
 
-FMap.prototype.get = function FMap_get(key) {
+FMap.prototype.get = function FMapGet(key) {
   for (var i = 0; i < this.data.length; i++) {
     if (this.eq(this.data[i][0], key)) {
       return this.data[i][1];
@@ -498,19 +498,19 @@ function shrinkResult(gens, x, test, size, shrinks, exc, transform) {
 }
 
 var environment = {
-    nat: primitive.nat,
-    integer: primitive.integer,
-    number : primitive.number,
-    bool: primitive.bool,
-    string: primitive.string,
-    value: primitive.value,
-    oneof: primitive.oneof,
-    pair: composite.pair,
-    array: composite.array,
-    map: composite.map,
-    fn: fn.fn,
-    fun: fn.fn,
-    nonshrink: combinator.nonshrink,
+  nat: primitive.nat,
+  integer: primitive.integer,
+  number : primitive.number,
+  bool: primitive.bool,
+  string: primitive.string,
+  value: primitive.value,
+  oneof: primitive.oneof,
+  pair: composite.pair,
+  array: composite.array,
+  map: composite.map,
+  fn: fn.fn,
+  fun: fn.fn,
+  nonshrink: combinator.nonshrink,
 };
 
 /**
@@ -535,21 +535,21 @@ function forall() {
     assert(x !== undefined, "generator result should be always not undefined -- temporary self check");
     shrinks = shrinks || 0;
 
-    return functor.bind(property, x, function(r, exc) {
+    return functor.bind(property, x, function (r, exc) {
       if (r === true) { return true; }
       if (typeof r === "function") {
-        var r_rec = r(size);
+        var rRec = r(size);
 
-        return functor.map(r_rec, function (r_recPrime) {
-          if (r_recPrime === true) {
+        return functor.map(rRec, function (rRecPrime) {
+          if (rRecPrime === true) {
             return true;
           } else {
             return shrinkResult(gens, x, test, size, shrinks, exc, function (r) {
               return {
-                counterexample: r.counterexample.concat(r_recPrime.counterexample),
-                counterexamplestr: r.counterexamplestr ,//+ "; " + r_rec.counterexamplestr,
+                counterexample: r.counterexample.concat(rRecPrime.counterexample),
+                counterexamplestr: r.counterexamplestr ,//+ "; " + rRec.counterexamplestr,
                 shrinks: r.shrinks,
-                exc: r.exc || r_recPrime.exc,
+                exc: r.exc || rRecPrime.exc,
               };
             });
           }
@@ -756,7 +756,7 @@ function integer(maxsize) {
         return [];
       } else {
         // TODO: redo
-        return [0, -i+1, i-1];
+        return [0, -i + 1, i - 1];
       }
     },
 
@@ -836,7 +836,7 @@ function oneof(args) {
 
   return {
     arbitrary: function (size) {
-      var i = random(0, args.length-1);
+      var i = random(0, args.length - 1);
       return args[i];
     },
 
@@ -1042,7 +1042,8 @@ var composite = require("./composite.js");
 var typifyParser = require("typify-parser");
 
 // Forward declarations
-var compileType, compileTypeArray;
+var compileType;
+var compileTypeArray;
 
 function compileIdent(env, type) {
   var g = env[type.value];
@@ -1102,7 +1103,6 @@ var isArray = Array.isArray;
 function isObject(o) {
   return new Object(o) === o;
 }
-
 
 /**
   #### isEqual (a b : value) : bool
