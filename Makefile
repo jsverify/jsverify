@@ -1,6 +1,7 @@
-.PHONY : all test jshint karma mocha istanbul dist literate
+.PHONY : all test jshint jscs karma mocha istanbul dist literate
 
 JSHINT=node_modules/.bin/jshint
+JSCS=node_modules/.bin/jscs
 MOCHA=node_modules/.bin/_mocha
 ISTANBUL=node_modules/.bin/istanbul
 KARMA=node_modules/.bin/karma
@@ -9,12 +10,15 @@ LJS=node_modules/.bin/ljs
 
 DIST=dist/jsverify.standalone.js
 
-all : jshint
+all : test
 
-test : jshint mocha istanbul
+test : jshint jscs mocha istanbul
 
 jshint : 
 	$(JSHINT) lib test examples
+
+jscs : 
+	$(JSCS) lib test examples
 
 tests-bundle.js : test/*
 	$(BROWSERIFY) -r underscore -r lodash -r q -r when -o tests-bundle.js test/*.js

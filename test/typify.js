@@ -18,7 +18,7 @@ describe("typify", function () {
   describe("compositional", function () {
     it("sort is idempotent", function () {
       jsc.assert(jsc.forall("array integer", function (arr) {
-        var sorted= _.sortBy(arr);
+        var sorted = _.sortBy(arr);
         return _.isEqual(_.sortBy(sorted), sorted);
       }));
     });
@@ -26,18 +26,18 @@ describe("typify", function () {
 
   describe("function", function () {
     it("bool fn applied thrice", function () {
-      var bool_fn_applied_thrice =
+      var boolFunctionAppliedThrice =
         jsc.forall("bool -> bool", "bool", function (f, b) {
           return f(f(f(b))) === f(b);
         });
-      jsc.assert(bool_fn_applied_thrice);
+      jsc.assert(boolFunctionAppliedThrice);
     });
   });
 
   describe("square brackets are treated as an array", function () {
     it("sort is idempotent", function () {
       jsc.assert(jsc.forall("[integer]", function (arr) {
-        var sorted= _.sortBy(arr);
+        var sorted = _.sortBy(arr);
         return _.isEqual(_.sortBy(sorted), sorted);
       }));
     });

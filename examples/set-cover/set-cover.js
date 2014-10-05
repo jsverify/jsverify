@@ -167,7 +167,7 @@ jsc.check(jsc.forall(array2Nat, function (ls) {
 
 /**
   The failing case makes sense. `greedy` is so trivial, it doesn't satisfy the fifth property.
-  Thus we have to improve our solver! 
+  Thus we have to improve our solver!
 
   However we will not alter `greedy` itself, but make a more optimal solver.
 */
