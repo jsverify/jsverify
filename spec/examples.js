@@ -71,14 +71,14 @@
       expect(true_and_left_fixed_prop).toHold();
     });
 
-    it("oneof", function () {
-      var prop1 = jsc.forall(jsc.oneof(["foo", "bar", "quux"]), function (el) {
+    it("elements", function () {
+      var prop1 = jsc.forall(jsc.elements(["foo", "bar", "quux"]), function (el) {
         return ["foo", "bar"].indexOf(el) !== -1;
       });
 
       expect(prop1).not.toHold();
 
-      var prop2 = jsc.forall(jsc.oneof(["foo", "bar", "quux"]), function (el) {
+      var prop2 = jsc.forall(jsc.elements(["foo", "bar", "quux"]), function (el) {
         return ["foo", "bar", "quux"].indexOf(el) !== -1;
       });
 
@@ -105,7 +105,7 @@
       });
 
       var prop = jsc.forall(nonemptyarray, function (l) {
-        return jsc.forall(jsc.oneof(l), function (x) {
+        return jsc.forall(jsc.elements(l), function (x) {
           return l.indexOf(x) !== -1;
         });
       });
