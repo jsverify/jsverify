@@ -2,7 +2,7 @@
   "version": "0.4.0-alpha3",
   "dependencies": {
     "browserify": {
-      "version": "6.0.2",
+      "version": "6.0.3",
       "dependencies": {
         "JSONStream": {
           "version": "0.8.4",
@@ -185,7 +185,7 @@
           "version": "4.0.6",
           "dependencies": {
             "graceful-fs": {
-              "version": "3.0.2",
+              "version": "3.0.3",
               "dependencies": {}
             },
             "minimatch": {
@@ -1302,7 +1302,7 @@
           "version": "4.0.6",
           "dependencies": {
             "graceful-fs": {
-              "version": "3.0.2",
+              "version": "3.0.3",
               "dependencies": {}
             },
             "inherits": {
@@ -1812,7 +1812,7 @@
                       "dependencies": {}
                     },
                     "options": {
-                      "version": "0.0.5",
+                      "version": "0.0.6",
                       "dependencies": {}
                     },
                     "tinycolor": {
@@ -1885,7 +1885,7 @@
           "version": "4.0.6",
           "dependencies": {
             "graceful-fs": {
-              "version": "3.0.2",
+              "version": "3.0.3",
               "dependencies": {}
             },
             "inherits": {

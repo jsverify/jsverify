@@ -1,5 +1,9 @@
 ## Release History
 
+- 0.4.0-alpha4 more typify
+    - `suchchat` supports typify dsl
+    - `oneof` &rarr; `elements` to be in line with QuickCheck
+    - Added versions of examples using typify dsl
 - 0.4.0-alpha3 David, npm-freeze and jscs
 - 0.4.0-alpha2 Fix typo in readme
 - 0.4.0-alpha1 typify

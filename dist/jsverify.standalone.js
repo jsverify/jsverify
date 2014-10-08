@@ -33,10 +33,12 @@ module.exports = {
   object: arbitraryObject,
 };
 
-},{"./random.js":10}],2:[function(require,module,exports){
+},{"./random.js":11}],2:[function(require,module,exports){
 "use strict";
 
 var shrink = require("./shrink.js");
+var environment = require("./environment.js");
+var typify = require("./typify.js");
 var generator = require("./generator.js");
 
 /**
@@ -49,6 +51,7 @@ var generator = require("./generator.js");
   Generator of values that satisfy `p` predicate. It's adviced that `p`'s accept rate is high.
 */
 function suchthat(gen, predicate) {
+  gen = typeof gen === "string" ? typify.parseTypify(environment, gen) : gen;
   gen = generator.force(gen);
 
   return {
@@ -95,7 +98,7 @@ module.exports = {
   nonshrink: nonshrink,
 };
 
-},{"./generator.js":7,"./shrink.js":12}],3:[function(require,module,exports){
+},{"./environment.js":4,"./generator.js":8,"./shrink.js":13,"./typify.js":14}],3:[function(require,module,exports){
 "use strict";
 
 var arbitrary = require("./arbitrary.js");
@@ -192,7 +195,32 @@ module.exports = {
   map: map,
 };
 
-},{"./arbitrary.js":1,"./generator.js":7,"./primitive.js":9,"./show.js":11,"./shrink.js":12}],4:[function(require,module,exports){
+},{"./arbitrary.js":1,"./generator.js":8,"./primitive.js":10,"./show.js":12,"./shrink.js":13}],4:[function(require,module,exports){
+"use strict";
+
+var combinator = require("./combinator.js");
+var composite = require("./composite.js");
+var fn = require("./fn.js");
+var primitive = require("./primitive.js");
+
+var environment = {
+  nat: primitive.nat,
+  integer: primitive.integer,
+  number : primitive.number,
+  bool: primitive.bool,
+  string: primitive.string,
+  value: primitive.value,
+  pair: composite.pair,
+  array: composite.array,
+  map: composite.map,
+  fn: fn.fn,
+  fun: fn.fn,
+  nonshrink: combinator.nonshrink,
+};
+
+module.exports = environment;
+
+},{"./combinator.js":2,"./composite.js":3,"./fn.js":6,"./primitive.js":10}],5:[function(require,module,exports){
 "use strict";
 
 var utils = require("./utils.js");
@@ -244,7 +272,7 @@ FMap.prototype.get = function FMapGet(key) {
 
 module.exports = FMap;
 
-},{"./utils.js":14}],5:[function(require,module,exports){
+},{"./utils.js":15}],6:[function(require,module,exports){
 "use strict";
 
 var shrink = require("./shrink.js");
@@ -294,7 +322,7 @@ module.exports = {
   fun: fn,
 };
 
-},{"./finitemap.js":4,"./generator.js":7,"./primitive.js":9,"./shrink.js":12}],6:[function(require,module,exports){
+},{"./finitemap.js":5,"./generator.js":8,"./primitive.js":10,"./shrink.js":13}],7:[function(require,module,exports){
 "use strict";
 
 /**
@@ -353,7 +381,7 @@ module.exports = {
   bind: bind,
 };
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 "use strict";
 
 function force(gen) {
@@ -364,7 +392,7 @@ module.exports = {
   force: force,
 };
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 /**
   # JSVerify
 
@@ -453,18 +481,20 @@ module.exports = {
 */
 
 var assert = require("assert");
-var shrink = require("./shrink.js");
-var random = require("./random.js");
-var primitive = require("./primitive.js");
-var composite = require("./composite.js");
-var fn = require("./fn.js");
+
 var combinator = require("./combinator.js");
-var show = require("./show.js");
+var composite = require("./composite.js");
+var environment = require("./environment.js");
 var FMap = require("./finitemap.js");
-var utils = require("./utils.js");
+var fn = require("./fn.js");
 var functor = require("./functor.js");
-var typify = require("./typify.js");
 var generator = require("./generator.js");
+var primitive = require("./primitive.js");
+var random = require("./random.js");
+var show = require("./show.js");
+var shrink = require("./shrink.js");
+var typify = require("./typify.js");
+var utils = require("./utils.js");
 
 /**
   ### Properties
@@ -496,22 +526,6 @@ function shrinkResult(gens, x, test, size, shrinks, exc, transform) {
     }
   });
 }
-
-var environment = {
-  nat: primitive.nat,
-  integer: primitive.integer,
-  number : primitive.number,
-  bool: primitive.bool,
-  string: primitive.string,
-  value: primitive.value,
-  oneof: primitive.oneof,
-  pair: composite.pair,
-  array: composite.array,
-  map: composite.map,
-  fn: fn.fn,
-  fun: fn.fn,
-  nonshrink: combinator.nonshrink,
-};
 
 /**
   #### forall (gens : generator a ...) (prop : a -> property_rec) : property
@@ -698,6 +712,7 @@ var jsc = {
   bool: primitive.bool,
   string: primitive.string,
   value: primitive.value,
+  elements: primitive.elements,
   oneof: primitive.oneof,
   pair: composite.pair,
   array: composite.array,
@@ -723,7 +738,7 @@ module.exports = jsc;
 /// plain ../related-work.md
 /// plain ../LICENSE
 
-},{"./combinator.js":2,"./composite.js":3,"./finitemap.js":4,"./fn.js":5,"./functor.js":6,"./generator.js":7,"./primitive.js":9,"./random.js":10,"./show.js":11,"./shrink.js":12,"./typify.js":13,"./utils.js":14,"assert":15}],9:[function(require,module,exports){
+},{"./combinator.js":2,"./composite.js":3,"./environment.js":4,"./finitemap.js":5,"./fn.js":6,"./functor.js":7,"./generator.js":8,"./primitive.js":10,"./random.js":11,"./show.js":12,"./shrink.js":13,"./typify.js":14,"./utils.js":15,"assert":16}],10:[function(require,module,exports){
 "use strict";
 
 var assert = require("assert");
@@ -827,12 +842,15 @@ function bool() {
 }
 
 /**
-  #### oneof (args : array any) : generator any
+  #### elements (args : array any) : generator any
+
+  `oneof` is deprecated alias for `elements.
+  In next major version `oneof` will take array of generators as in [Haskell's QuickCheck](https://hackage.haskell.org/package/QuickCheck-2.7.6/docs/Test-QuickCheck-Gen.html#v:oneof).
 
   Random element of `args` array.
 */
-function oneof(args) {
-  assert(args.length !== 0, "oneof: at least one parameter expected");
+function elements(args) {
+  assert(args.length !== 0, "elements: at least one parameter expected");
 
   return {
     arbitrary: function (size) {
@@ -907,11 +925,11 @@ module.exports = {
   number: number,
   value: value,
   string: string,
-  oneof: oneof,
+  elements: elements,
   bool: bool,
 };
 
-},{"./arbitrary.js":1,"./random.js":10,"./show.js":11,"./shrink.js":12,"assert":15}],10:[function(require,module,exports){
+},{"./arbitrary.js":1,"./random.js":11,"./show.js":12,"./shrink.js":13,"assert":16}],11:[function(require,module,exports){
 "use strict";
 
 var generator = new (require("rc4").RC4small)();
@@ -946,7 +964,7 @@ randomInteger.setStateString = generator.setStateString.bind(generator);
 
 module.exports = randomInteger;
 
-},{"rc4":19}],11:[function(require,module,exports){
+},{"rc4":20}],12:[function(require,module,exports){
 "use strict";
 
 function showDef(obj) {
@@ -971,7 +989,7 @@ module.exports = {
   array: showArray,
 };
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 "use strict";
 
 var assert = require("assert");
@@ -1018,7 +1036,7 @@ module.exports = {
   array: shrinkArray,
 };
 
-},{"assert":15}],13:[function(require,module,exports){
+},{"assert":16}],14:[function(require,module,exports){
 "use strict";
 
 /**
@@ -1096,7 +1114,7 @@ module.exports = {
   parseTypify: parseTypify,
 };
 
-},{"./composite.js":3,"./fn.js":5,"typify-parser":20}],14:[function(require,module,exports){
+},{"./composite.js":3,"./fn.js":6,"typify-parser":21}],15:[function(require,module,exports){
 "use strict";
 
 var isArray = Array.isArray;
@@ -1152,7 +1170,7 @@ module.exports = {
   pluck: pluck,
 };
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
@@ -1514,7 +1532,7 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":18}],16:[function(require,module,exports){
+},{"util/":19}],17:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -1539,14 +1557,14 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -2134,7 +2152,7 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-},{"./support/isBuffer":17,"inherits":16}],19:[function(require,module,exports){
+},{"./support/isBuffer":18,"inherits":17}],20:[function(require,module,exports){
 "use strict";
 
 // Based on RC4 algorithm, as described in
@@ -2330,7 +2348,7 @@ RC4.RC4small = RC4small;
 
 module.exports = RC4;
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 /**
   # typify type parser
 
@@ -2716,5 +2734,5 @@ function parse(input) {
 
 module.exports = parse;
 
-},{}]},{},[8])(8)
+},{}]},{},[9])(9)
 });

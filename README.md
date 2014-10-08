@@ -145,7 +145,10 @@ JavaScript numbers, "doubles", ℝ. `NaN` and `Infinity` are not included.
 Booleans, `true` or `false`.
 
 
-#### oneof (args : array any) : generator any
+#### elements (args : array any) : generator any
+
+`oneof` is deprecated alias for `elements.
+In next major version `oneof` will take array of generators as in [Haskell's QuickCheck](https://hackage.haskell.org/package/QuickCheck-2.7.6/docs/Test-QuickCheck-Gen.html#v:oneof).
 
 Random element of `args` array.
 
@@ -256,6 +259,10 @@ They will be regenerated before each release.
 
 ## Release History
 
+- 0.4.0-alpha4 more typify
+    - `suchchat` supports typify dsl
+    - `oneof` &rarr; `elements` to be in line with QuickCheck
+    - Added versions of examples using typify dsl
 - 0.4.0-alpha3 David, npm-freeze and jscs
 - 0.4.0-alpha2 Fix typo in readme
 - 0.4.0-alpha1 typify
