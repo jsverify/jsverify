@@ -1,7 +1,7 @@
 {
   "name": "jsverify",
   "description": "Property-based testing for JavaScript.",
-  "version": "0.4.0-alpha4",
+  "version": "0.4.0-alpha5",
   "homepage": "https://github.com/phadej/jsverify",
   "author": {
     "name": "Oleg Grenrus",
@@ -46,6 +46,7 @@
     "npm-freeze": "^0.1.3",
     "q": "~2.0.2",
     "underscore": "~1.7.0",
+    "david": "^5.0.0",
     "when": "~3.5.0"
   },
   "keywords": [
@@ -58,7 +59,6 @@
     "jscheck"
   ],
   "dependencies": {
-    "david": "^5.0.0",
     "rc4": "~0.1.2",
     "typify-parser": "0.0.1"
   }

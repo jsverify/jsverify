@@ -259,6 +259,7 @@ They will be regenerated before each release.
 
 ## Release History
 
+- 0.4.0-alpha5 move david to be devDependency
 - 0.4.0-alpha4 more typify
     - `suchchat` supports typify dsl
     - `oneof` &rarr; `elements` to be in line with QuickCheck
