@@ -106,14 +106,14 @@ describe("primitive generators", function () {
     });
   });
 
-  describe("oneof", function () {
+  describe("elements", function () {
     it("picks one from argument array", function () {
       var nonemptyarray = jsc.suchthat(jsc.array(), function (l) {
         return l.length !== 0;
       });
 
       jsc.assert(jsc.forall(nonemptyarray, function (arr) {
-        return jsc.forall(jsc.oneof(arr), function (e) {
+        return jsc.forall(jsc.elements(arr), function (e) {
           return _.contains(arr, e);
         });
       }));
