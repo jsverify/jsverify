@@ -43,6 +43,15 @@ describe("typify", function () {
     });
   });
 
+  describe("suchthat", function () {
+    it("is supported too", function () {
+      var gen = jsc.suchthat("nat", function (n) { return n > 1; });
+      jsc.assert(jsc.forall(gen, function (n) {
+        return n * n > n;
+      }));
+    });
+  });
+
   describe("erroneous cases", function () {
     it("throws exception when invalid generator specified", function () {
       assert.throws(function () {
