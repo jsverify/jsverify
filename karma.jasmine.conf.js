@@ -1,22 +1,22 @@
-module.exports = function(config) {
+module.exports = function (config) {
   config.set({
-    basePath: '',
-    frameworks: ['jasmine'],
+    basePath: "",
+    frameworks: ["jasmine"],
     files: [
-	  'helpers/jasmineHelpers2.js',
-	  'dist/jsverify.standalone.js',
-      'spec/*.js'
+      "helpers/jasmineHelpers2.js",
+      "dist/jsverify.standalone.js",
+      "spec/*.js"
     ],
     exclude: [
     ],
     preprocessors: {
     },
-    reporters: ['progress'],
+    reporters: ["progress"],
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: false,
-    browsers: ['Chrome', 'Firefox'],
+    browsers: ["Chrome", "Firefox"],
     singleRun: true
   });
 };

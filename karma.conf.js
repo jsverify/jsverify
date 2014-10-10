@@ -1,20 +1,20 @@
-module.exports = function(config) {
+module.exports = function (config) {
   config.set({
-    basePath: '',
-    frameworks: ['mocha'],
+    basePath: "",
+    frameworks: ["mocha"],
     files: [
-      'tests-bundle.js'
+      "tests-bundle.js"
     ],
     exclude: [
     ],
     preprocessors: {
     },
-    reporters: ['progress'],
+    reporters: ["progress"],
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: false,
-    browsers: ['Chrome', 'Firefox'],
+    browsers: ["Chrome", "Firefox"],
     singleRun: true
   });
 };

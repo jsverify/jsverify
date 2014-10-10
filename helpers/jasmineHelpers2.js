@@ -1,3 +1,4 @@
+/* global jasmine:true, beforeEach:true, jsc:true */
 beforeEach(function () {
   jasmine.addMatchers({
     // Expects that property is synchronous
@@ -23,7 +24,7 @@ beforeEach(function () {
             message: message,
           };
         }
-      }
+      };
     },
   });
 });

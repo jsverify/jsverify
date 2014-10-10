@@ -1,14 +1,16 @@
 .PHONY : all test jshint jscs karma mocha istanbul npm-freeze david dist literate
 
-JSHINT=node_modules/.bin/jshint
-JSCS=node_modules/.bin/jscs
-MOCHA=node_modules/.bin/_mocha
-ISTANBUL=node_modules/.bin/istanbul
-KARMA=node_modules/.bin/karma
-BROWSERIFY=node_modules/.bin/browserify
-LJS=node_modules/.bin/ljs
-DAVID=node_modules/.bin/david
-NPMFREEZE=node_modules/.bin/npm-freeze
+BINDIR=node_modules/.bin
+
+JSHINT=$(BINDIR)/jshint
+JSCS=$(BINDIR)/jscs
+MOCHA=$(BINDIR)/_mocha
+ISTANBUL=$(BINDIR)/istanbul
+KARMA=$(BINDIR)/karma
+BROWSERIFY=$(BINDIR)/browserify
+LJS=$(BINDIR)/ljs
+DAVID=$(BINDIR)/david
+NPMFREEZE=$(BINDIR)/npm-freeze
 
 DIST=dist/jsverify.standalone.js
 
@@ -16,11 +18,13 @@ all : test
 
 test : jshint jscs mocha istanbul david npm-freeze
 
+SRC=lib test examples helpers karma.conf.js karma.jasmine.conf.js
+
 jshint : 
-	$(JSHINT) lib test examples
+	$(JSHINT) $(SRC)
 
 jscs : 
-	$(JSCS) lib test examples
+	$(JSCS) $(SRC)
 
 tests-bundle.js : test/*
 	$(BROWSERIFY) -r underscore -r lodash -r q -r when -o tests-bundle.js test/*.js
