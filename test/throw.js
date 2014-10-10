@@ -23,14 +23,14 @@ function checkShrink(mincase, message, property) {
 
 describe("properties that throws", function () {
   it("fail", function () {
-    checkShrink([0], "foo", jsc.forall(jsc.nat(), function (n) {
+    checkShrink([0], "foo", jsc.forall(jsc.nat(), function (/* n */) {
       throw new Error("foo");
     }));
   });
 
   it("fail if inner property", function () {
-    checkShrink([0, 0], "foo", jsc.forall(jsc.nat(), function (n) {
-      return jsc.forall(jsc.nat(), function (m) {
+    checkShrink([0, 0], "foo", jsc.forall(jsc.nat(), function (/* n */) {
+      return jsc.forall(jsc.nat(), function (/* m */) {
         throw new Error("foo");
       });
     }));
@@ -39,7 +39,7 @@ describe("properties that throws", function () {
   it("throwed string is in assert exception", function () {
     var err;
     try {
-      jsc.assert(jsc.forall(jsc.nat(), function (n) {
+      jsc.assert(jsc.forall(jsc.nat(), function (/* n */) {
         throw "foo";
       }));
     } catch (e) {
@@ -53,7 +53,7 @@ describe("properties that throws", function () {
   it("throwed exception message is in assert exception", function () {
     var err;
     try {
-      jsc.assert(jsc.forall(jsc.nat(), function (n) {
+      jsc.assert(jsc.forall(jsc.nat(), function (/* n */) {
         throw new Error("foo");
       }));
     } catch (e) {

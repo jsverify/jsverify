@@ -43,7 +43,7 @@ function promiseSpec(library, delay) {
     });
 
     it("fail", function (done) {
-      var p = jsc.check(jsc.forall(jsc.nat(), function (n) {
+      var p = jsc.check(jsc.forall(jsc.nat(), function (/* n */) {
         return delay(promise).then(function () {
           throw new Error("fail always");
         });

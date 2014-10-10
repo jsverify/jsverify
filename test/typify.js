@@ -55,13 +55,13 @@ describe("typify", function () {
   describe("erroneous cases", function () {
     it("throws exception when invalid generator specified", function () {
       assert.throws(function () {
-        jsc.forall("wedonthavethis", function (i) { return true; });
+        jsc.forall("wedonthavethis", function (/* i */) { return true; });
       });
     });
 
     it("throws exception when unsupported typify type specified", function () {
       assert.throws(function () {
-        jsc.forall("*", function (i) { return true; });
+        jsc.forall("*", function (/* i */) { return true; });
       });
     });
   });

@@ -9,6 +9,7 @@
 /**
   ## Prelude
 */
+"use strict";
 var _ = require("lodash");
 var jsc = require("../../lib/jsverify.js");
 

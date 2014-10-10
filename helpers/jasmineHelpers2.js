@@ -1,5 +1,6 @@
 /* global jasmine:true, beforeEach:true, jsc:true */
 beforeEach(function () {
+  "use strict";
   jasmine.addMatchers({
     // Expects that property is synchronous
     toHold: function () {

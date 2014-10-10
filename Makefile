@@ -1,8 +1,9 @@
-.PHONY : all test jshint jscs karma mocha istanbul npm-freeze david dist literate
+.PHONY : all test jshint eslint jscs karma mocha istanbul npm-freeze david dist literate
 
 BINDIR=node_modules/.bin
 
 JSHINT=$(BINDIR)/jshint
+ESLINT=$(BINDIR)/eslint
 JSCS=$(BINDIR)/jscs
 MOCHA=$(BINDIR)/_mocha
 ISTANBUL=$(BINDIR)/istanbul
@@ -16,12 +17,15 @@ DIST=dist/jsverify.standalone.js
 
 all : test
 
-test : jshint jscs mocha istanbul david npm-freeze
+test : jshint eslint jscs mocha istanbul david npm-freeze
 
 SRC=lib test examples helpers karma.conf.js karma.jasmine.conf.js
 
 jshint : 
 	$(JSHINT) $(SRC)
+
+eslint : 
+	$(ESLINT) $(SRC)
 
 jscs : 
 	$(JSCS) $(SRC)

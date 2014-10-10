@@ -1,5 +1,6 @@
 /* global beforeEach:true, jsc:true */
 beforeEach(function () {
+  "use strict";
   this.addMatchers({
     // Expects that property is synchronous
     toHold: function () {
