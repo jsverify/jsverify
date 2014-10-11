@@ -50,10 +50,39 @@ describe("primitive generators", function () {
     });
   });
 
+  describe("char", function () {
+    it("generates string of length 1", function () {
+      jsc.assert(jsc.forall("char", function (x) {
+        return typeof x === "string" && x.length === 1;
+      }));
+    });
+  });
+
   describe("string", function () {
     it("generates string", function () {
       jsc.assert(jsc.forall(jsc.string(), function (x) {
         return typeof x === "string";
+      }));
+    });
+  });
+
+  describe("asciistring", function () {
+    it("generates string", function () {
+      jsc.assert(jsc.forall("asciistring", function (x) {
+        return typeof x === "string";
+      }));
+    });
+
+    it("generates with only ascii characters", function () {
+      jsc.assert(jsc.forall("asciistring", function (x) {
+        return x
+          .split("")
+          .map(function (c) {
+            return c.charCodeAt(0);
+          })
+          .every(function (code) {
+            return code >= 32 && code < 128;
+          });
       }));
     });
   });
