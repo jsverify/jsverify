@@ -1,5 +1,10 @@
 ## Release History
 
+- 0.4.0-alpha6 more primitives
+    - int8, int16, int32, uint8, uint16, uint32
+    - char, asciichar and asciistring
+    - value &rarr; json
+    - use eslint
 - 0.4.0-alpha5 move david to be devDependency
 - 0.4.0-alpha4 more typify
     - `suchchat` supports typify dsl

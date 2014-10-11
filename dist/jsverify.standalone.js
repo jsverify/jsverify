@@ -208,8 +208,17 @@ var environment = {
   integer: primitive.integer,
   number : primitive.number,
   bool: primitive.bool,
+  char: primitive.char,
   string: primitive.string,
   value: primitive.value,
+  asciichar: primitive.asciichar,
+  asciistring: primitive.asciistring,
+  uint8: primitive.uint8,
+  uint16: primitive.uint16,
+  uint32: primitive.uint32,
+  int8: primitive.int8,
+  int16: primitive.int16,
+  int32: primitive.int32,
   pair: composite.pair,
   array: composite.array,
   map: composite.map,
@@ -332,7 +341,9 @@ module.exports = {
   Returns `true` if p is an object with `.then` function property.
 */
 function isPromise(p) {
+  /* eslint-disable no-new-object */
   return new Object(p) === p && typeof p.then === "function";
+  /* eslint-enable non-new-object */
 }
 
 /**
@@ -368,7 +379,10 @@ function bind(f, xs, h) {
   if (isPromise(r)) {
     return r.then(
       h,
-      function (e) { return h(false, exc); }
+      function (e) {
+        // exc is always unset here
+        return h(false, e);
+      }
     );
   } else {
     return h(r, exc);
@@ -414,12 +428,12 @@ module.exports = {
   var jsc = require("jsverify");
 
   // forall (f : bool -> bool) (b : bool), f (f (f b)) = f(b).
-  var bool_fn_applied_thrice =
+  var boolFnAppliedThrice =
     jsc.forall("bool -> bool", "bool", function (f, b) {
       return f(f(f(b))) === f(b);
     });
 
-  jsc.assert(bool_fn_applied_thrice);
+  jsc.assert(boolFnAppliedThrice);
   // OK, passed 100 tests
   ```
 */
@@ -706,14 +720,6 @@ var jsc = {
   assert: checkThrow,
 
   // generators
-  nat: primitive.nat,
-  integer: primitive.integer,
-  number : primitive.number,
-  bool: primitive.bool,
-  string: primitive.string,
-  value: primitive.value,
-  elements: primitive.elements,
-  oneof: primitive.oneof,
   pair: composite.pair,
   array: composite.array,
   map: composite.map,
@@ -730,6 +736,11 @@ var jsc = {
     FMap: FMap,
   },
 };
+
+/* primitives */
+for (var k in primitive) {
+  jsc[k] = primitive[k];
+}
 
 module.exports = jsc;
 
@@ -823,13 +834,27 @@ function number(maxsize) {
 }
 
 /**
+  #### uint8, uint16, uint32 : generator nat
+*/
+var uint8 = nat(0x100);
+var uint16 = nat(0x10000);
+var uint32 = nat(0x100000000);
+
+/**
+  #### int8, int16, int32 : generator integer
+*/
+var int8 = integer(0x80);
+var int16 = integer(0x8000);
+var int32 = integer(0x80000000);
+
+/**
   #### bool () : generator bool
 
   Booleans, `true` or `false`.
 */
 function bool() {
   return {
-    arbitrary: function (size) {
+    arbitrary: function (/* size */) {
       var i = random(0, 1);
       return i === 0 ? false : true;
     },
@@ -853,7 +878,7 @@ function elements(args) {
   assert(args.length !== 0, "elements: at least one parameter expected");
 
   return {
-    arbitrary: function (size) {
+    arbitrary: function (/* size */) {
       var i = random(0, args.length - 1);
       return args[i];
     },
@@ -863,6 +888,32 @@ function elements(args) {
     show: show.def,
   };
 }
+
+/**
+  #### char : generator char
+
+  Single character
+*/
+var char = {
+  arbitrary: function (/* size */) {
+    return String.fromCharCode(random(0, 0x1ff));
+  },
+  shrink: shrink.noop,
+  show: show.def,
+};
+
+/**
+  #### asciichar : generator char
+
+  Single ascii character (0x20-0x7e inclusive, no DEL)
+*/
+var asciichar = {
+  arbitrary: function (/* size */) {
+    return String.fromCharCode(random(0x20, 0x7f));
+  },
+  shrink: shrink.noop,
+  show: show.def,
+};
 
 /**
   #### string () : generator string
@@ -880,51 +931,77 @@ function string() {
 }
 
 /**
-  #### value : generator value
-
-  JavaScript value: boolean, number, string, array of values or object with `value` values.
+  #### asciistring : generator string
 */
-function value() {
-  function arbitraryValue(size) {
-    var type = random(0, 5);
-    if (size === 0) {
-      switch (type) {
-        case 0: return 0;
-        case 1: return random.number(0, 1);
-        case 2: return random(0, 1) === 0;
-        case 3: return "";
-        case 4: return [];
-        case 5: return {};
-      }
-    }
+var asciistring = {
+  arbitrary: function (size) {
+    return arbitrary.array(asciichar.arbitrary, size).join("");
+  },
+  shrink: function (str) {
+    return str === "" ? [] : [""]; // TODO
+  },
+  show: show.def,
+};
 
-    size = size - 1;
+/**
+  #### json : generator json
 
+  JavaScript Objects: boolean, number, string, array of `json` values or object with `json` values.
+*/
+function arbitraryJson(size) {
+  var type = random(0, 5);
+  if (size === 0) {
     switch (type) {
-      case 0: return random(-size, size);
-      case 1: return random.number(-size, size);
+      case 0: return 0;
+      case 1: return random.number(0, 1);
       case 2: return random(0, 1) === 0;
-      case 3: return arbitrary.string(size);
-      case 4: return arbitrary.array(arbitraryValue, size);
-      case 5: return arbitrary.object(arbitraryValue, size);
+      case 3: return "";
+      case 4: return [];
+      case 5: return {};
     }
   }
 
-  return {
-    arbitrary: arbitraryValue,
-    shrink: shrink.noop,
-    show: function (v) {
-      return JSON.stringify(v);
-    }
-  };
+  size = size - 1;
+
+  switch (type) {
+    case 0: return random(-size, size);
+    case 1: return random.number(-size, size);
+    case 2: return random(0, 1) === 0;
+    case 3: return arbitrary.string(size);
+    case 4: return arbitrary.array(arbitraryJson, size);
+    case 5: return arbitrary.object(arbitraryJson, size);
+  }
+}
+
+var json = {
+  arbitrary: arbitraryJson,
+  shrink: shrink.noop,
+  show: function (v) {
+    return JSON.stringify(v);
+  },
+};
+
+// Backward compatibility
+function value() {
+  return json;
 }
 
 module.exports = {
   integer: integer,
   nat: nat,
+  int8: int8,
+  int16: int16,
+  int32: int32,
+  uint8: uint8,
+  uint16: uint16,
+  uint32: uint32,
   number: number,
+  json: json,
   value: value,
+  char: char,
   string: string,
+  asciichar: asciichar,
+  asciistring: asciistring,
   elements: elements,
   bool: bool,
 };
@@ -1005,11 +1082,13 @@ function shrinkTuple(shrinks, tup) {
 
   for (var i = 0; i < tup.length; i++) {
     /* jshint -W083 */
+    /* eslint-disable no-loop-func */
     shrinked[i] = shrinks[i](tup[i]).map(function (x) {
       var c = tup.slice(); // clone array
       c[i] = x;
       return c;
     });
+    /* eslint-enable no-loop-func */
     /* jshint +W083 */
   }
 
@@ -1089,7 +1168,7 @@ function compileBrackets(env, type) {
   return composite.array(arg);
 }
 
-function compileType(env, type) {
+compileType = function compileType(env, type) {
   switch (type.type) {
     case "ident": return compileIdent(env, type);
     case "application": return compileApplication(env, type);
@@ -1097,7 +1176,7 @@ function compileType(env, type) {
     case "brackets": return compileBrackets(env, type);
     default: throw new Error("Unsupported typify ast type: " + type.type);
   }
-}
+};
 
 compileTypeArray = function compileTypeArray(env, types) {
   return types.map(function (type) {
@@ -1119,7 +1198,9 @@ module.exports = {
 
 var isArray = Array.isArray;
 function isObject(o) {
+  /* eslint-disable no-new-object */
   return new Object(o) === o;
+  /* eslint-enable no-new-object */
 }
 
 /**

@@ -18,12 +18,12 @@ Install the module with: `npm install jsverify`
 var jsc = require("jsverify");
 
 // forall (f : bool -> bool) (b : bool), f (f (f b)) = f(b).
-var bool_fn_applied_thrice =
+var boolFnAppliedThrice =
   jsc.forall("bool -> bool", "bool", function (f, b) {
     return f(f(f(b))) === f(b);
   });
 
-jsc.assert(bool_fn_applied_thrice);
+jsc.assert(boolFnAppliedThrice);
 // OK, passed 100 tests
 ```
 
@@ -140,6 +140,12 @@ Natural numbers, ℕ (0, 1, 2...)
 JavaScript numbers, "doubles", ℝ. `NaN` and `Infinity` are not included.
 
 
+#### uint8, uint16, uint32 : generator nat
+
+
+#### int8, int16, int32 : generator integer
+
+
 #### bool () : generator bool
 
 Booleans, `true` or `false`.
@@ -153,14 +159,27 @@ In next major version `oneof` will take array of generators as in [Haskell's Qui
 Random element of `args` array.
 
 
+#### char : generator char
+
+Single character
+
+
+#### asciichar : generator char
+
+Single ascii character (0x20-0x7e inclusive, no DEL)
+
+
 #### string () : generator string
 
 Strings
 
 
-#### value : generator value
+#### asciistring : generator string
 
-JavaScript value: boolean, number, string, array of values or object with `value` values.
+
+#### json : generator json
+
+JavaScript Objects: boolean, number, string, array of `json` values or object with `json` values.
 
 
 
@@ -259,6 +278,11 @@ They will be regenerated before each release.
 
 ## Release History
 
+- 0.4.0-alpha6 more primitives
+    - int8, int16, int32, uint8, uint16, uint32
+    - char, asciichar and asciistring
+    - value &rarr; json
+    - use eslint
 - 0.4.0-alpha5 move david to be devDependency
 - 0.4.0-alpha4 more typify
     - `suchchat` supports typify dsl
