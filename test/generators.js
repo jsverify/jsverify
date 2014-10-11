@@ -42,6 +42,20 @@ describe("primitive generators", function () {
     });
   });
 
+  describe("uint8", function () {
+    it("generates numbers", function () {
+      jsc.assert(jsc.forall("uint8", function (x) {
+        return typeof x === "number";
+      }));
+    });
+
+    it("generates integral numbers between 0 and 255", function () {
+      jsc.assert(jsc.forall("uint8", function (x) {
+        return (x & 0xff) === x;
+      }));
+    });
+  });
+
   describe("bool", function () {
     it("generates either true or false", function () {
       jsc.assert(jsc.forall(jsc.bool(), function (b) {
