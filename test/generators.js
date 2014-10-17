@@ -184,4 +184,21 @@ describe("primitive generators", function () {
       }));
     });
   });
+
+  describe("record", function () {
+    var spec = {
+      a: jsc.string,
+      b: jsc.nat,
+      c: jsc.fn
+    };
+
+    it("generates objects according to the spec", function () {
+      jsc.assert(jsc.forall(jsc.record(spec), function (obj) {
+        return _.isObject(obj) &&
+               _.isString(obj.a) &&
+               _.isNumber(obj.b) &&
+               _.isFunction(obj.c);
+      }));
+    });
+  });
 });
