@@ -198,6 +198,11 @@ If not specified `a` and `b` are equal to `value()`.
 Generates a javascript object with properties of type `A`.
 
 
+#### record (spec : {a: generator...}) : generator (record {a: generator...})
+
+Generates a javascript object with given record spec.
+
+
 
 #### fn (gen : generator a) : generator (b -> a)
 
