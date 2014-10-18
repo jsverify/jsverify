@@ -29,7 +29,7 @@
     "test": "make test"
   },
   "devDependencies": {
-    "browserify": "~6.0.2",
+    "browserify": "~6.1.0",
     "david": "^5.0.0",
     "eslint": "^0.8.2",
     "esprima": "~1.2.2",

@@ -1,8 +1,8 @@
 {
-  "version": "0.4.0-alpha5",
+  "version": "0.4.0-alpha7",
   "dependencies": {
     "browserify": {
-      "version": "6.0.3",
+      "version": "6.1.0",
       "dependencies": {
         "JSONStream": {
           "version": "0.8.4",
@@ -171,7 +171,7 @@
           }
         },
         "domain-browser": {
-          "version": "1.1.2",
+          "version": "1.1.3",
           "dependencies": {}
         },
         "duplexer2": {
@@ -186,7 +186,7 @@
           "version": "4.0.6",
           "dependencies": {
             "graceful-fs": {
-              "version": "3.0.3",
+              "version": "3.0.4",
               "dependencies": {}
             },
             "minimatch": {
@@ -431,7 +431,7 @@
           "dependencies": {}
         },
         "querystring-es3": {
-          "version": "0.2.0",
+          "version": "0.2.1",
           "dependencies": {}
         },
         "readable-stream": {
@@ -629,7 +629,7 @@
           "dependencies": {}
         },
         "npm": {
-          "version": "2.1.3",
+          "version": "2.1.4",
           "dependencies": {
             "abbrev": {
               "version": "1.0.5",
@@ -758,7 +758,7 @@
               "dependencies": {}
             },
             "inflight": {
-              "version": "1.0.3",
+              "version": "1.0.4",
               "dependencies": {}
             },
             "inherits": {
@@ -1103,7 +1103,7 @@
           }
         },
         "semver": {
-          "version": "4.0.3",
+          "version": "4.1.0",
           "dependencies": {}
         }
       }
@@ -1147,7 +1147,7 @@
           }
         },
         "debug": {
-          "version": "2.0.0",
+          "version": "2.1.0",
           "dependencies": {
             "ms": {
               "version": "0.6.2",
@@ -1245,7 +1245,7 @@
           }
         },
         "strip-json-comments": {
-          "version": "1.0.1",
+          "version": "1.0.2",
           "dependencies": {}
         },
         "text-table": {
@@ -1253,7 +1253,7 @@
           "dependencies": {}
         },
         "user-home": {
-          "version": "1.0.0",
+          "version": "1.1.0",
           "dependencies": {}
         },
         "xml-escape": {
@@ -1429,7 +1429,7 @@
       }
     },
     "jscs": {
-      "version": "1.6.2",
+      "version": "1.7.3",
       "dependencies": {
         "colors": {
           "version": "0.6.2",
@@ -1437,6 +1437,10 @@
         },
         "commander": {
           "version": "2.3.0",
+          "dependencies": {}
+        },
+        "esprima-harmony-jscs": {
+          "version": "1.1.0-dev-harmony",
           "dependencies": {}
         },
         "exit": {
@@ -1447,7 +1451,7 @@
           "version": "4.0.6",
           "dependencies": {
             "graceful-fs": {
-              "version": "3.0.3",
+              "version": "3.0.4",
               "dependencies": {}
             },
             "inherits": {
@@ -1479,7 +1483,7 @@
           }
         },
         "strip-json-comments": {
-          "version": "1.0.1",
+          "version": "1.0.2",
           "dependencies": {}
         },
         "supports-color": {
@@ -1487,7 +1491,7 @@
           "dependencies": {}
         },
         "vow": {
-          "version": "0.4.5",
+          "version": "0.4.6",
           "dependencies": {}
         },
         "vow-fs": {
@@ -1643,7 +1647,7 @@
           "dependencies": {}
         },
         "strip-json-comments": {
-          "version": "1.0.1",
+          "version": "1.0.2",
           "dependencies": {}
         },
         "underscore": {
@@ -1656,7 +1660,7 @@
       "version": "0.12.24",
       "dependencies": {
         "chokidar": {
-          "version": "0.9.0",
+          "version": "0.10.0",
           "dependencies": {
             "fsevents": {
               "version": "0.3.0",
@@ -1667,9 +1671,31 @@
                 }
               }
             },
-            "recursive-readdir": {
-              "version": "0.0.2",
-              "dependencies": {}
+            "readdirp": {
+              "version": "1.1.0",
+              "dependencies": {
+                "readable-stream": {
+                  "version": "1.0.32",
+                  "dependencies": {
+                    "core-util-is": {
+                      "version": "1.0.1",
+                      "dependencies": {}
+                    },
+                    "inherits": {
+                      "version": "2.0.1",
+                      "dependencies": {}
+                    },
+                    "isarray": {
+                      "version": "0.0.1",
+                      "dependencies": {}
+                    },
+                    "string_decoder": {
+                      "version": "0.10.31",
+                      "dependencies": {}
+                    }
+                  }
+                }
+              }
             }
           }
         },
@@ -2020,7 +2046,7 @@
       "dependencies": {}
     },
     "ljs": {
-      "version": "0.2.4",
+      "version": "0.2.5",
       "dependencies": {
         "commander": {
           "version": "2.3.0",
@@ -2030,7 +2056,7 @@
           "version": "4.0.6",
           "dependencies": {
             "graceful-fs": {
-              "version": "3.0.3",
+              "version": "3.0.4",
               "dependencies": {}
             },
             "inherits": {
@@ -2060,10 +2086,6 @@
               }
             }
           }
-        },
-        "underscore": {
-          "version": "1.6.0",
-          "dependencies": {}
         }
       }
     },
@@ -2072,10 +2094,10 @@
       "dependencies": {}
     },
     "mocha": {
-      "version": "1.21.4",
+      "version": "1.21.5",
       "dependencies": {
         "commander": {
-          "version": "2.0.0",
+          "version": "2.3.0",
           "dependencies": {}
         },
         "debug": {
@@ -2088,7 +2110,11 @@
           }
         },
         "diff": {
-          "version": "1.0.7",
+          "version": "1.0.8",
+          "dependencies": {}
+        },
+        "escape-string-regexp": {
+          "version": "1.0.2",
           "dependencies": {}
         },
         "glob": {
@@ -2135,8 +2161,13 @@
           }
         },
         "mkdirp": {
-          "version": "0.3.5",
-          "dependencies": {}
+          "version": "0.5.0",
+          "dependencies": {
+            "minimist": {
+              "version": "0.0.8",
+              "dependencies": {}
+            }
+          }
         }
       }
     },
@@ -2179,14 +2210,14 @@
           }
         },
         "commander": {
-          "version": "2.3.0",
+          "version": "2.4.0",
           "dependencies": {}
         },
         "semver-diff": {
           "version": "2.0.0",
           "dependencies": {
             "semver": {
-              "version": "4.0.3",
+              "version": "4.1.0",
               "dependencies": {}
             }
           }
