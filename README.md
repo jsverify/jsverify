@@ -184,6 +184,10 @@ Strings
 JavaScript Objects: boolean, number, string, array of `json` values or object with `json` values.
 
 
+#### record (spec : {a: generator...}) : generator (record {a: generator...})
+
+Generates a javascript object with given record spec.
+
 
 #### array (gen : generator a) : generator (array a)
 

@@ -154,6 +154,21 @@ describe("shrink", function () {
     });
   });
 
+  describe("record", function () {
+    it("cannot be shrinked", function () {
+      var property = jsc.forall(jsc.record({a: jsc.fn()}), function (x) {
+        return x !== x;
+      });
+
+      // try many times to get more examples
+      for (var i = 0; i < 10; i++) {
+        var r = jsc.check(property, { quiet: true });
+        assert(r !== true);
+        assert(r.shrinks === 0);
+      }
+    });
+  });
+
   describe("recursive definitions", function () {
     // TODO: jsverify doesn't find minimal 1, 1 case in recursive setting
     // this "monadic" bind is hard
