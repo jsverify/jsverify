@@ -189,10 +189,40 @@ function map(gen) {
   };
 }
 
+/**
+  #### record (spec : {a: generator...}) : generator (record {a: generator...})
+
+  Generates a javascript object with given record spec.
+*/
+function record(spec) {
+  var forcedSpec = {};
+  // TODO: use mapValues
+  Object.keys(spec).forEach(function (k) {
+    forcedSpec[k] = generator.force(spec[k]);
+  });
+  return {
+    arbitrary: function (size) {
+      var res = {};
+      Object.keys(spec).forEach(function (k) {
+        res[k] = forcedSpec[k].arbitrary(size);
+      });
+      return res;
+    },
+    // TODO: implement shrink for record (~ equivalent to tuple shrink)
+    shrink: shrink.noop,
+    show: function (m) {
+      return "{" + Object.keys(m).map(function (k) {
+        return k + ": " + forcedSpec[k].show(m[k]);
+      }).join(", ") + "}";
+    }
+  };
+}
+
 module.exports = {
   pair: pair,
   array: array,
   map: map,
+  record: record,
 };
 
 },{"./arbitrary.js":1,"./generator.js":8,"./primitive.js":10,"./show.js":12,"./shrink.js":13}],4:[function(require,module,exports){
@@ -626,7 +656,7 @@ function findRngState(argv) {
 */
 function check(property, opts) {
   opts = opts || {};
-  opts.size = opts.size || 5;
+  opts.size = opts.size || 10;
   opts.tests = opts.tests || 100;
   opts.quiet = opts.quiet || false;
 
@@ -723,6 +753,7 @@ var jsc = {
   pair: composite.pair,
   array: composite.array,
   map: composite.map,
+  record: composite.record,
   fn: fn.fn,
   fun: fn.fn,
   suchthat: combinator.suchthat,
@@ -757,6 +788,8 @@ var random = require("./random.js");
 var arbitrary = require("./arbitrary.js");
 var shrink = require("./shrink.js");
 var show = require("./show.js");
+var generator = require("./generator.js");
+var utils = require("./utils.js");
 
 /**
   ### Primitive generators
@@ -768,12 +801,9 @@ var show = require("./show.js");
   Integers, ℤ
 */
 function integer(maxsize) {
-  maxsize = maxsize || 1000;
-
   return {
     arbitrary: function (size) {
-      size = Math.min(maxsize, size);
-
+      size = maxsize || size;
       return random(-size, size);
     },
     shrink: function (i) {
@@ -796,11 +826,9 @@ function integer(maxsize) {
   Natural numbers, ℕ (0, 1, 2...)
 */
 function nat(maxsize) {
-  maxsize = maxsize || 1000;
-
   return {
     arbitrary: function (size) {
-      size = Math.min(maxsize, size);
+      size = maxsize || size;
       return random(0, size);
     },
     shrink: function (i) {
@@ -820,12 +848,9 @@ function nat(maxsize) {
   JavaScript numbers, "doubles", ℝ. `NaN` and `Infinity` are not included.
 */
 function number(maxsize) {
-  maxsize = maxsize || 1000;
-
   return {
     arbitrary: function (size) {
-      size = Math.min(maxsize, size);
-
+      size = maxsize || size;
       return random.number(-size, size);
     },
     shrink: shrink.noop,
@@ -836,9 +861,9 @@ function number(maxsize) {
 /**
   #### uint8, uint16, uint32 : generator nat
 */
-var uint8 = nat(0x100);
-var uint16 = nat(0x10000);
-var uint32 = nat(0x100000000);
+var uint8 = nat(0xff);
+var uint16 = nat(0xffff);
+var uint32 = nat(0xffffffff);
 
 /**
   #### int8, int16, int32 : generator integer
@@ -869,9 +894,6 @@ function bool() {
 /**
   #### elements (args : array any) : generator any
 
-  `oneof` is deprecated alias for `elements.
-  In next major version `oneof` will take array of generators as in [Haskell's QuickCheck](https://hackage.haskell.org/package/QuickCheck-2.7.6/docs/Test-QuickCheck-Gen.html#v:oneof).
-
   Random element of `args` array.
 */
 function elements(args) {
@@ -883,6 +905,41 @@ function elements(args) {
       return args[i];
     },
 
+    // TODO: make shrink
+    shrink: shrink.noop,
+    show: show.def,
+  };
+}
+
+/**
+  #### oneof (gs : array (generator any)...) : generator any
+
+  Randomly uses one of the given generators.
+*/
+// TODO: move to composite
+function oneof() {
+  assert(arguments.length !== 0, "oneof: at least one parameter expected");
+
+  // TODO: write this in more functional way
+  var arbs = [];
+  var append = function (a) {
+    arbs.push(generator.force(a).arbitrary);
+  };
+  for (var i = 0; i < arguments.length; i++) {
+    var arg = arguments[i];
+    if (utils.isArray(arg)) {
+      arg.forEach(append);
+    } else {
+      append(arg);
+    }
+  }
+
+  return {
+    arbitrary: function (size) {
+      var idx = random(0, arbs.length - 1);
+      var arb = arbs[idx];
+      return arb(size);
+    },
     // TODO: make shrink
     shrink: shrink.noop,
     show: show.def,
@@ -1003,10 +1060,11 @@ module.exports = {
   asciichar: asciichar,
   asciistring: asciistring,
   elements: elements,
+  oneof: oneof,
   bool: bool,
 };
 
-},{"./arbitrary.js":1,"./random.js":11,"./show.js":12,"./shrink.js":13,"assert":16}],11:[function(require,module,exports){
+},{"./arbitrary.js":1,"./generator.js":8,"./random.js":11,"./show.js":12,"./shrink.js":13,"./utils.js":15,"assert":16}],11:[function(require,module,exports){
 "use strict";
 
 var generator = new (require("rc4").RC4small)();

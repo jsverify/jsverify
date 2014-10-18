@@ -1,5 +1,10 @@
 ## Release History
 
+- 0.4.0-alpha7 oneof &amp; record
+    - *oneof* and *record* generator combinators ([@fson](https://github.com/fson))
+    - Fixed uint\* generators
+    - Default test size increased to 10
+    - Numeric generators with size specified are independent of test size ([#20](https://github.com/phadej/jsverify/issues/20))
 - 0.4.0-alpha6 more primitives
     - int8, int16, int32, uint8, uint16, uint32
     - char, asciichar and asciistring

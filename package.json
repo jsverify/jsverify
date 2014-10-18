@@ -1,7 +1,7 @@
 {
   "name": "jsverify",
   "description": "Property-based testing for JavaScript.",
-  "version": "0.4.0-alpha6",
+  "version": "0.4.0-alpha7",
   "homepage": "https://github.com/phadej/jsverify",
   "author": {
     "name": "Oleg Grenrus",
