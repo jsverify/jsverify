@@ -164,23 +164,17 @@ describe("primitive generators", function () {
   });
 
   describe("oneof", function () {
+    it("uses one generator from the given parameters", function () {
+      var gen = jsc.oneof(jsc.number, jsc.string);
+      jsc.assert(jsc.forall(gen, function (x) {
+        return _.isNumber(x) || _.isString(x);
+      }));
+    });
+
     it("uses one generator from the given array", function () {
-      var numberGen = jsc.number();
-      var funGen = jsc.fn();
-      var genGen = jsc.elements([numberGen, funGen]);
-      var nonEmptyArray = jsc.suchthat(jsc.array(genGen), function (arr) {
-        return arr.length !== 0;
-      });
-      jsc.assert(jsc.forall(nonEmptyArray, function (arr) {
-        return jsc.forall(jsc.oneof(arr), function (x) {
-          if (_.isNumber(x)) {
-            return arr.some(function (gen) { return gen === numberGen; });
-          } else if (_.isFunction(x)) {
-            return arr.some(function (gen) { return gen === funGen; });
-          } else {
-            return false;
-          }
-        });
+      var gen = jsc.oneof([jsc.number, jsc.string]);
+      jsc.assert(jsc.forall(gen, function (x) {
+        return _.isNumber(x) || _.isString(x);
       }));
     });
   });
