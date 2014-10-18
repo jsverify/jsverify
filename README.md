@@ -153,10 +153,12 @@ Booleans, `true` or `false`.
 
 #### elements (args : array any) : generator any
 
-`oneof` is deprecated alias for `elements.
-In next major version `oneof` will take array of generators as in [Haskell's QuickCheck](https://hackage.haskell.org/package/QuickCheck-2.7.6/docs/Test-QuickCheck-Gen.html#v:oneof).
-
 Random element of `args` array.
+
+
+#### oneof (args : array (generator any)) : generator any
+
+Randomly uses one of the given generators.
 
 
 #### char : generator char
