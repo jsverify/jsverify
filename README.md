@@ -156,7 +156,7 @@ Booleans, `true` or `false`.
 Random element of `args` array.
 
 
-#### oneof (args : array (generator any)) : generator any
+#### oneof (gs : array (generator any)...) : generator any
 
 Randomly uses one of the given generators.
 
