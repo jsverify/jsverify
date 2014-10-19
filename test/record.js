@@ -22,6 +22,16 @@ describe("record", function () {
     }));
   });
 
+  it("generates objects according to the dsl spec", function () {
+    jsc.assert(jsc.forall("{ a: string; b: nat; c: (* -> bool) }", function (obj) {
+      return _.isObject(obj) &&
+             _.isString(obj.a) &&
+             _.isNumber(obj.b) &&
+             _.isFunction(obj.c) &&
+             _.isBoolean(obj.c(42));
+    }));
+  });
+
   // TODO: can be shrinked
   it("cannot be shrinked", function () {
     var property = jsc.forall(jsc.record({a: jsc.fn()}), function (x) {
