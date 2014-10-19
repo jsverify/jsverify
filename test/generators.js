@@ -163,22 +163,6 @@ describe("primitive generators", function () {
     });
   });
 
-  describe("oneof", function () {
-    it("uses one generator from the given parameters", function () {
-      var gen = jsc.oneof(jsc.number, jsc.string);
-      jsc.assert(jsc.forall(gen, function (x) {
-        return _.isNumber(x) || _.isString(x);
-      }));
-    });
-
-    it("uses one generator from the given array", function () {
-      var gen = jsc.oneof([jsc.number, jsc.string]);
-      jsc.assert(jsc.forall(gen, function (x) {
-        return _.isNumber(x) || _.isString(x);
-      }));
-    });
-  });
-
   describe("record", function () {
     var spec = {
       a: jsc.string,
