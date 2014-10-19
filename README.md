@@ -1,5 +1,7 @@
 # JSVerify
 
+<img src="https://raw.githubusercontent.com/phadej/jsverify/master/jsverify-300.png" align="right" height="100" />
+
 > Property based checking.
 
 [![Build Status](https://secure.travis-ci.org/phadej/jsverify.svg?branch=master)](http://travis-ci.org/phadej/jsverify)
@@ -156,11 +158,6 @@ Booleans, `true` or `false`.
 Random element of `args` array.
 
 
-#### oneof (gs : array (generator any)...) : generator any
-
-Randomly uses one of the given generators.
-
-
 #### char : generator char
 
 Single character
@@ -196,6 +193,11 @@ If not specified `a` and `b` are equal to `value()`.
 #### map (gen : generator A) : generator (map A)
 
 Generates a javascript object with properties of type `A`.
+
+
+#### oneof (gs : array (generator any)...) : generator any
+
+Randomly uses one of the given generators.
 
 
 #### record (spec : {a: generator...}) : generator (record {a: generator...})
