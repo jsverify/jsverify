@@ -19,4 +19,16 @@ describe("oneof", function () {
       return _.isNumber(x) || _.isString(x);
     }));
   });
+
+  it("works with dsl", function () {
+    jsc.assert(jsc.forall("number | string", function (x) {
+      return _.isNumber(x) || _.isString(x);
+    }));
+  });
+
+  it("negative test", function () {
+    jsc.assert(jsc.forall("number | string", function (x) {
+      return !_.isBoolean(x);
+    }));
+  });
 });
