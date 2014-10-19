@@ -43,6 +43,16 @@ describe("typify", function () {
     });
   });
 
+  describe("jsc.compile", function () {
+    it("compiles dsl to arbitraries", function () {
+      var gen = jsc.compile("[integer]");
+      jsc.assert(jsc.forall(gen, function (arr) {
+        var sorted = _.sortBy(arr);
+        return _.isEqual(_.sortBy(sorted), sorted);
+      }));
+    });
+  });
+
   describe("suchthat", function () {
     it("is supported too", function () {
       var gen = jsc.suchthat("nat", function (n) { return n > 1; });
