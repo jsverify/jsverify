@@ -3,7 +3,6 @@
 "use strict";
 
 var jsc = require("../lib/jsverify.js");
-var assert = require("assert");
 var _ = require("underscore");
 
 describe("record", function () {
@@ -30,19 +29,5 @@ describe("record", function () {
              _.isFunction(obj.c) &&
              _.isBoolean(obj.c(42));
     }));
-  });
-
-  // TODO: can be shrinked
-  it("cannot be shrinked", function () {
-    var property = jsc.forall(jsc.record({a: jsc.fn()}), function (x) {
-      return x !== x;
-    });
-
-    // try many times to get more examples
-    for (var i = 0; i < 10; i++) {
-      var r = jsc.check(property, { quiet: true });
-      assert(r !== true);
-      assert(r.shrinks === 0);
-    }
   });
 });

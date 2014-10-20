@@ -124,6 +124,14 @@ describe("shrink", function () {
     });
   });
 
+  describe("record", function () {
+    it("shrinks as tuple", function () {
+      checkShrink([{a: 0, b: []}], jsc.forall("{ a: nat; b: [bool] }", function (record) {
+        return record.a === record.a + 1;
+      }));
+    });
+  });
+
   describe("value", function () {
     it("cannot be shrinked, for now", function () {
       var property = jsc.forall(jsc.value(), function (x) {
