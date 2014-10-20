@@ -1,5 +1,8 @@
 ## Release History
 
+- 0.4.0-alpha8 oneof &amp; record -dsl support
+    - also `jsc.compile`
+    - record is shrinkable!
 - 0.4.0-alpha7 oneof &amp; record
     - *oneof* and *record* generator combinators ([@fson](https://github.com/fson))
     - Fixed uint\* generators

@@ -101,11 +101,14 @@ module.exports = {
 },{"./environment.js":4,"./generator.js":8,"./shrink.js":13,"./typify.js":14}],3:[function(require,module,exports){
 "use strict";
 
+var assert = require("assert");
 var arbitrary = require("./arbitrary.js");
 var shrink = require("./shrink.js");
 var show = require("./show.js");
 var primitive = require("./primitive.js");
 var generator = require("./generator.js");
+var utils = require("./utils.js");
+var random = require("./random.js");
 
 /**
   #### array (gen : generator a) : generator (array a)
@@ -190,6 +193,40 @@ function map(gen) {
 }
 
 /**
+  #### oneof (gs : array (generator any)...) : generator any
+
+  Randomly uses one of the given generators.
+*/
+function oneof() {
+  assert(arguments.length !== 0, "oneof: at least one parameter expected");
+
+  // TODO: write this in more functional way
+  var arbs = [];
+  var append = function (a) {
+    arbs.push(generator.force(a).arbitrary);
+  };
+  for (var i = 0; i < arguments.length; i++) {
+    var arg = arguments[i];
+    if (utils.isArray(arg)) {
+      arg.forEach(append);
+    } else {
+      append(arg);
+    }
+  }
+
+  return {
+    arbitrary: function (size) {
+      var idx = random(0, arbs.length - 1);
+      var arb = arbs[idx];
+      return arb(size);
+    },
+    // TODO: make shrink
+    shrink: shrink.noop,
+    show: show.def,
+  };
+}
+
+/**
   #### record (spec : {a: generator...}) : generator (record {a: generator...})
 
   Generates a javascript object with given record spec.
@@ -208,8 +245,14 @@ function record(spec) {
       });
       return res;
     },
-    // TODO: implement shrink for record (~ equivalent to tuple shrink)
-    shrink: shrink.noop,
+    shrink: function (value) {
+      // TODO: use mapValues
+      var shrinkSpec = {};
+      Object.keys(forcedSpec).forEach(function (k) {
+        shrinkSpec[k] = forcedSpec[k].shrink;
+      });
+      return shrink.record(shrinkSpec, value);
+    },
     show: function (m) {
       return "{" + Object.keys(m).map(function (k) {
         return k + ": " + forcedSpec[k].show(m[k]);
@@ -222,10 +265,11 @@ module.exports = {
   pair: pair,
   array: array,
   map: map,
+  oneof: oneof,
   record: record,
 };
 
-},{"./arbitrary.js":1,"./generator.js":8,"./primitive.js":10,"./show.js":12,"./shrink.js":13}],4:[function(require,module,exports){
+},{"./arbitrary.js":1,"./generator.js":8,"./primitive.js":10,"./random.js":11,"./show.js":12,"./shrink.js":13,"./utils.js":15,"assert":16}],4:[function(require,module,exports){
 "use strict";
 
 var combinator = require("./combinator.js");
@@ -439,6 +483,8 @@ module.exports = {
 },{}],9:[function(require,module,exports){
 /**
   # JSVerify
+
+  <img src="https://raw.githubusercontent.com/phadej/jsverify/master/jsverify-300.png" align="right" height="100" />
 
   > Property based checking.
 
@@ -753,11 +799,17 @@ var jsc = {
   pair: composite.pair,
   array: composite.array,
   map: composite.map,
+  oneof: composite.oneof,
   record: composite.record,
   fn: fn.fn,
   fun: fn.fn,
   suchthat: combinator.suchthat,
   nonshrink: combinator.nonshrink,
+
+  // compile
+  compile: function (str) {
+    return typify.parseTypify(environment, str);
+  },
 
   // internal utility lib
   _: {
@@ -788,8 +840,6 @@ var random = require("./random.js");
 var arbitrary = require("./arbitrary.js");
 var shrink = require("./shrink.js");
 var show = require("./show.js");
-var generator = require("./generator.js");
-var utils = require("./utils.js");
 
 /**
   ### Primitive generators
@@ -912,41 +962,6 @@ function elements(args) {
 }
 
 /**
-  #### oneof (gs : array (generator any)...) : generator any
-
-  Randomly uses one of the given generators.
-*/
-// TODO: move to composite
-function oneof() {
-  assert(arguments.length !== 0, "oneof: at least one parameter expected");
-
-  // TODO: write this in more functional way
-  var arbs = [];
-  var append = function (a) {
-    arbs.push(generator.force(a).arbitrary);
-  };
-  for (var i = 0; i < arguments.length; i++) {
-    var arg = arguments[i];
-    if (utils.isArray(arg)) {
-      arg.forEach(append);
-    } else {
-      append(arg);
-    }
-  }
-
-  return {
-    arbitrary: function (size) {
-      var idx = random(0, arbs.length - 1);
-      var arb = arbs[idx];
-      return arb(size);
-    },
-    // TODO: make shrink
-    shrink: shrink.noop,
-    show: show.def,
-  };
-}
-
-/**
   #### char : generator char
 
   Single character
@@ -1060,11 +1075,10 @@ module.exports = {
   asciichar: asciichar,
   asciistring: asciistring,
   elements: elements,
-  oneof: oneof,
   bool: bool,
 };
 
-},{"./arbitrary.js":1,"./generator.js":8,"./random.js":11,"./show.js":12,"./shrink.js":13,"./utils.js":15,"assert":16}],11:[function(require,module,exports){
+},{"./arbitrary.js":1,"./random.js":11,"./show.js":12,"./shrink.js":13,"assert":16}],11:[function(require,module,exports){
 "use strict";
 
 var generator = new (require("rc4").RC4small)();
@@ -1153,6 +1167,22 @@ function shrinkTuple(shrinks, tup) {
   return Array.prototype.concat.apply([], shrinked);
 }
 
+function shrinkRecord(shrinksRecord, record) {
+  var keys = Object.keys(record);
+  var values = keys.map(function (k) { return record[k]; });
+  var shrinks = keys.map(function (k) { return shrinksRecord[k]; });
+
+  var shrinked = shrinkTuple(shrinks, values);
+
+  return shrinked.map(function (s) {
+    var result = {};
+    keys.forEach(function (k, i) {
+      result[k] = s[i];
+    });
+    return result;
+  });
+}
+
 function shrinkArray(shrink, arr) {
   if (arr.length === 0) {
     return [];
@@ -1171,6 +1201,7 @@ module.exports = {
   noop: shrinkNoop,
   tuple: shrinkTuple,
   array: shrinkArray,
+  record: shrinkRecord,
 };
 
 },{"assert":16}],14:[function(require,module,exports){
@@ -1226,12 +1257,28 @@ function compileBrackets(env, type) {
   return composite.array(arg);
 }
 
+function compileDisjunction(env, type) {
+  var args = compileTypeArray(env, type.args);
+  return composite.oneof(args);
+}
+
+function compileRecord(env, type) {
+  // TODO: use mapValues
+  var spec = {};
+  Object.keys(type.fields).forEach(function (key) {
+    spec[key] = compileType(env, type.fields[key]);
+  });
+  return composite.record(spec);
+}
+
 compileType = function compileType(env, type) {
   switch (type.type) {
     case "ident": return compileIdent(env, type);
     case "application": return compileApplication(env, type);
     case "function": return compileFunction(env, type);
     case "brackets": return compileBrackets(env, type);
+    case "disjunction": return compileDisjunction(env, type);
+    case "record": return compileRecord(env, type);
     default: throw new Error("Unsupported typify ast type: " + type.type);
   }
 };
