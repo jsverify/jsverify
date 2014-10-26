@@ -58,7 +58,7 @@ describe("primitive generators", function () {
 
   describe("bool", function () {
     it("generates either true or false", function () {
-      jsc.assert(jsc.forall(jsc.bool(), function (b) {
+      jsc.assert(jsc.forall(jsc.bool, function (b) {
         return b === true || b === false;
       }));
     });
@@ -119,7 +119,7 @@ describe("primitive generators", function () {
 
   describe("value", function () {
     it("generates json stringify parse invariant", function () {
-      jsc.assert(jsc.forall(jsc.value(), function (x) {
+      jsc.assert(jsc.forall(jsc.json, function (x) {
         return _.isEqual(x, JSON.parse(JSON.stringify(x)));
       }));
     });
@@ -133,7 +133,7 @@ describe("primitive generators", function () {
     });
 
     it("generates well-behaved functions", function () {
-      jsc.assert(jsc.forall(jsc.fn(), jsc.value(), function (f, x) {
+      jsc.assert(jsc.forall(jsc.fn(), jsc.json, function (f, x) {
         return f(x) === f(x);
       }));
 

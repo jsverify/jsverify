@@ -47,7 +47,7 @@ describe("shrink", function () {
 
   describe("bool", function () {
     it("shrinks to false", function () {
-      checkShrink([false], jsc.forall(jsc.bool(), function (b) {
+      checkShrink([false], jsc.forall(jsc.bool, function (b) {
         return b !== b;
       }));
     });
@@ -55,7 +55,7 @@ describe("shrink", function () {
 
   describe("pair", function () {
     it("shrinks both elements", function () {
-      checkShrink([[false, false]], jsc.forall(jsc.pair(jsc.bool(), jsc.bool()), function (p) {
+      checkShrink([[false, false]], jsc.forall(jsc.pair(jsc.bool, jsc.bool), function (p) {
         return p[0] && p[0] !== p[1];
       }));
     });
@@ -132,9 +132,9 @@ describe("shrink", function () {
     });
   });
 
-  describe("value", function () {
+  describe("json", function () {
     it("cannot be shrinked, for now", function () {
-      var property = jsc.forall(jsc.value(), function (x) {
+      var property = jsc.forall(jsc.json, function (x) {
         return x !== x;
       });
 

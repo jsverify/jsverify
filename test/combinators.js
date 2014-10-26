@@ -14,7 +14,7 @@ describe("generator combinators", function () {
       }));
     });
 
-    it("without paramters generates pair of values", function () {
+    it("without parameters generates pair of values", function () {
       jsc.assert(jsc.forall(jsc.pair(), function (p) {
         return _.isArray(p) && p.length === 2;
       }));

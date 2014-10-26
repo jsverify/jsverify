@@ -45,8 +45,8 @@ describe("typify", function () {
 
   describe("jsc.compile", function () {
     it("compiles dsl to arbitraries", function () {
-      var gen = jsc.compile("[integer]");
-      jsc.assert(jsc.forall(gen, function (arr) {
+      var arb = jsc.compile("[integer]");
+      jsc.assert(jsc.forall(arb, function (arr) {
         var sorted = _.sortBy(arr);
         return _.isEqual(_.sortBy(sorted), sorted);
       }));
@@ -55,8 +55,8 @@ describe("typify", function () {
 
   describe("suchthat", function () {
     it("is supported too", function () {
-      var gen = jsc.suchthat("nat", function (n) { return n > 1; });
-      jsc.assert(jsc.forall(gen, function (n) {
+      var arb = jsc.suchthat("nat", function (n) { return n > 1; });
+      jsc.assert(jsc.forall(arb, function (n) {
         return n * n > n;
       }));
     });
