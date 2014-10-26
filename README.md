@@ -123,7 +123,7 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 - *identifiers* are fetched from the predefined environment.
 - *applications* are applied as one could expect: `"array bool"` is evaluated to `jsc.array(jsc.bool)`.
 - *functions* are supported: `"bool -> bool"` is evaluated to `jsc.fn(jsc.bool())`.
-- *square brackets* are treated as a shorthand for the array type: `"[nat]"` is evaulated to `jsc.array(jsc.nat)`.
+- *square brackets* are treated as a shorthand for the array type: `"[nat]"` is evaluated to `jsc.array(jsc.nat)`.
 
 
 
@@ -245,6 +245,9 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 - `generator.json: gen json`
 
 
+- `generator.oneof(gen: list (gen a), size: nat): gen a`
+
+
 
 ### Shrink functions
 
@@ -325,6 +328,7 @@ They will be regenerated before each release.
 
 ## Release History
 
+- 0.4.0-beta.4 generator.oneof
 - 0.4.0-beta.3 Expose shrink and show modules
 - 0.4.0-beta.2 Move everything around
     - Better looking README.md!
