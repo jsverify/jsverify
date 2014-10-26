@@ -76,36 +76,39 @@ C# -style `List<T> filter(List<T> v, Func<T, bool> predicate)` is represented by
 Generally every property can be wrapped inside [functor](http://learnyouahaskell.com/functors-applicative-functors-and-monoids),
 for now in either identity or promise functor, for synchronous and promise properties respectively.
 
-Some type definitions to keep developers sane:
-
-- Functor f => property (size : nat) : f result
-- result := true | { counterexample: any }
-- Functor f => property_rec := f (result | property)
-- generator a := { arbitrary : a, shrink : a -> [a] }
-
 
 ### Properties
 
 
-#### forall (gens : generator a ...) (prop : a -> property_rec) : property
+- `forall(arbs: arbitrary a ..., prop : a -> property): property`
 
-Property constructor
-
-
-#### check (prop : property) (opts : checkoptions) : promise result + result
-
-Run random checks for given `prop`. If `prop` is promise based, result is also wrapped in promise.
-
-Options:
-- `opts.tests` - test count to run, default 100
-- `opts.size`  - maximum size of generated values, default 5
-- `opts.quiet` - do not `console.log`
-- `opts.rngState` - state string for the rng
+    Property constructor
 
 
-#### assert (prop : property) (opts : checkoptions) : void
+- `check (prop: property, opts: checkoptions?): result`
 
-Same as `check`, but throw exception if property doesn't hold.
+    Run random checks for given `prop`. If `prop` is promise based, result is also wrapped in promise.
+
+    Options:
+    - `opts.tests` - test count to run, default 100
+    - `opts.size`  - maximum size of generated values, default 5
+
+    - `opts.quiet` - do not `console.log`
+    - `opts.rngState` - state string for the rng
+
+
+- `assert(prop : property, opts: checkoptions?) : void`
+
+    Same as `check`, but throw exception if property doesn't hold.
+
+
+### Types
+
+- `generator a` is a function `(size: nat) -> a`.
+- `show` is a function `a -> string`.
+- `shrink` is a function `a -> [a]`, returning *smaller* values.
+- `arbitrary a` is a triple of generator, shrink and show functions.
+    - `{ generator: nat -> a, shrink : a -> array a, show: a -> string }`
 
 
 ### DSL for input parameters
@@ -124,148 +127,183 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
 
 
-### Primitive generators
+### Primitive arbitraries
 
 
-#### integer (maxsize : nat) : generator integer
+- `integer: arbitrary integer`
+- `integer(maxsize: nat): arbitrary integer`
 
-Integers, ℤ
+    Integers, ℤ
 
 
-#### nat (maxsize : nat) : generator nat
+- `nat: arbitrary nat`
+- `nat(maxsize: nat): arbitrary nat`
 
-Natural numbers, ℕ (0, 1, 2...)
+    Natural numbers, ℕ (0, 1, 2...)
 
 
-#### number (maxsize : number) : generator number
+- `number: arbitrary number`
+- `number(maxsize: number): arbitrary number`
 
-JavaScript numbers, "doubles", ℝ. `NaN` and `Infinity` are not included.
+    JavaScript numbers, "doubles", ℝ. `NaN` and `Infinity` are not included.
 
 
-#### uint8, uint16, uint32 : generator nat
+- `uint8: arbitrary nat`
+- `uint16: arbitrary nat`
+- `uint32: arbitrary nat`
 
 
-#### int8, int16, int32 : generator integer
+- `int8: arbitrary integer`
+- `int16: arbitrary integer`
+- `int32: arbitrary integer`
 
 
-#### bool () : generator bool
+- `bool: generator bool`
 
-Booleans, `true` or `false`.
+    Booleans, `true` or `false`.
 
 
-#### elements (args : array any) : generator any
+- `elements(args: array a): generator a`
 
-Random element of `args` array.
+    Random element of `args` array.
 
 
-#### char : generator char
+- `char: generator char`
 
-Single character
+    Single character
 
 
-#### asciichar : generator char
+- `asciichar: generator char`
 
-Single ascii character (0x20-0x7e inclusive, no DEL)
+    Single ascii character (0x20-0x7e inclusive, no DEL)
 
 
-#### string () : generator string
+- `string: generator string`
 
-Strings
 
+- `asciistring: generator string`
 
-#### asciistring : generator string
 
+- `json: generator json`
 
-#### json : generator json
+     JavaScript Objects: boolean, number, string, array of `json` values or object with `json` values.
 
-JavaScript Objects: boolean, number, string, array of `json` values or object with `json` values.
+- `value: generator json`
 
 
 
-#### array (gen : generator a) : generator (array a)
+### Arbitrary combinators
 
 
-#### pair (a : generator A) (b : generator B) : generator (A * B)
+- `nonshrink(arb: arbitrary a): arbitrary a`
 
-If not specified `a` and `b` are equal to `value()`.
+    Non shrinkable version of arbitrary `arb`.
 
 
-#### map (gen : generator A) : generator (map A)
+- `array(arb: arbitrary a): arbitrary (array a)`
 
-Generates a javascript object with properties of type `A`.
 
+- `pair(arbA: arbitrary a, arbB : arbitrary b): arbitrary (pair a b)`
 
-#### oneof (gs : array (generator any)...) : generator any
+    If not specified `a` and `b` are equal to `value()`.
 
-Randomly uses one of the given generators.
 
+- `map(arb: arbitrary a): arbitrary (map a)`
 
-#### record (spec : {a: generator...}) : generator (record {a: generator...})
+    Generates a JavaScript object with properties of type `A`.
 
-Generates a javascript object with given record spec.
 
+- `oneof(gs : array (arbitrary a)...) : arbitrary a`
 
+    Randomly uses one of the given arbitraries.
 
-#### fn (gen : generator a) : generator (b -> a)
 
-Unary functions.
+- `record(spec: { key: arbitrary a... }): arbitrary { key: a... }`
 
-_fun_ alias for _fn_
+    Generates a javascript object with given record spec.
 
 
 
-### Generator combinators
+- `fn(gen: generator a): generator (b -> a)`
+- `fun(gen: generator a): generator (b -> a)`
+    Unary functions.
 
 
-#### suchthat (gen : generator a) (p : a -> bool) : generator {a | p a == true}
 
-Generator of values that satisfy `p` predicate. It's adviced that `p`'s accept rate is high.
+### Generator functions
 
 
-#### nonshrink (gen : generator a) : generator a
+- `generator.array(gen: Gen a, size: nat): gen (array a)`
 
-Non shrinkable version of generator `gen`.
 
+- `generator.string(size: nat): gen string`
 
 
-### jsc._ - miscellaneous utilities
+- `generator.map(gen: gen a, size: nat): gen (map a)`
 
-#### assert (exp : bool) (message : string) : void
 
-Throw an error with `message` if `exp` is falsy.
-Resembles [node.js assert](http://nodejs.org/api/assert.html).
+- `generator.json: gen json`
 
 
-#### isEqual (a b : value) : bool
 
-Equality test for `value` objects. See `value` generator.
+### Shrink functions
 
 
+- `shrink.noop(x: a): array a`
 
-#### random (min max : int) : int
 
-Returns random int from `[min, max]` range inclusively.
+- `shrink.tuple(shrinks: (a -> array a, b -> array b...), x: (a, b...)): array (a, b...)`
 
-```js
-getRandomInt(2, 3) // either 2 or 3
-```
 
+- `shrink.array(shrink: a -> array a, x: array a): array (array a)`
 
-#### random.number (min max : number) : number
 
-Returns random number from `[min, max)` range.
+- `shrink.record(shrinks: { key: a -> string... }, x: { key: a... }): array { key: a... }`
 
 
 
-#### FMap (eq : a -> a -> bool) : FMap a
+### Show functions
 
-Finite map, with any object a key.
 
-Short summary of member functions:
+- `show.def(x : a): string`
 
-- FMap.insert (key : a) (value : any) : void
-- FMap.get (key : a) : any
-- FMap.contains (key : a) : obool
+
+- `show.tuple(shrinks: (a -> string, b -> string...), x: (a, b...)): string`
+
+
+- `show.array(shrink: a -> string, x: array a): string`
+
+
+
+### Random functions
+
+
+- `random(min: int, max: int): int`
+
+    Returns random int from `[min, max]` range inclusively.
+
+    ```js
+    getRandomInt(2, 3) // either 2 or 3
+    ```
+
+
+- `random.number(min: number, max: number): number`
+
+    Returns random number from `[min, max)` range.
+
+
+
+### Utility functions
+
+
+- `utils.isEqual(x: json, y: json): bool`
+
+    Equality test for `json` objects.
+
+
+- `utils.force(x: a | () -> a) : a`
+
+    Evaluate `x` as nullary function, if it is one.
 
 
 

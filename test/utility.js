@@ -9,17 +9,17 @@ var assert = require("assert");
 describe("utility functions: _", function () {
   describe("isEqual", function () {
     it("is true for all values", function () {
-      jsc.assert(jsc.forall(jsc.value(), function (x) {
-        return jsc._.isEqual(x, JSON.parse(JSON.stringify(x)));
+      jsc.assert(jsc.forall(jsc.json, function (x) {
+        return jsc.utils.isEqual(x, JSON.parse(JSON.stringify(x)));
       }));
     });
 
     it("returns same as _.isEqual", function () {
       function predicate(x, y) {
-        return _.isEqual(x, y) === jsc._.isEqual(x, y);
+        return _.isEqual(x, y) === jsc.utils.isEqual(x, y);
       }
 
-      jsc.assert(jsc.forall(jsc.value(), jsc.value(), predicate));
+      jsc.assert(jsc.forall(jsc.json, jsc.json, predicate));
 
       // also special cases
       assert(predicate({ a: 1, b: 2 }, { a: 1, b: 3 }));
@@ -28,8 +28,8 @@ describe("utility functions: _", function () {
     });
 
     it("is reflexive", function () {
-      jsc.assert(jsc.forall(jsc.value(), function (x) {
-        return jsc._.isEqual(x, x);
+      jsc.assert(jsc.forall(jsc.json, function (x) {
+        return jsc.utils.isEqual(x, x);
       }));
     });
   });
