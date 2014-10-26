@@ -5,7 +5,7 @@
 var jsc = require("../lib/jsverify.js");
 var _ = require("underscore");
 
-describe("primitive generators", function () {
+describe("primitive arbitraries", function () {
   describe("integer", function () {
     it("generates integers", function () {
       jsc.assert(jsc.forall(jsc.integer(), function (i) {
