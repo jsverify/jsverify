@@ -97,7 +97,7 @@ for now in either identity or promise functor, for synchronous and promise prope
     - `opts.rngState` - state string for the rng
 
 
-- `assert(prop : property, opts: checkoptions?) : void`
+- `assert(prop: property, opts: checkoptions?) : void`
 
     Same as `check`, but throw exception if property doesn't hold.
 
@@ -325,6 +325,7 @@ They will be regenerated before each release.
 
 ## Release History
 
+- 0.4.0-beta.3 Expose shrink and show modules
 - 0.4.0-beta.2 Move everything around
     - Better looking README.md!
 - 0.4.0-beta.1 Beta!

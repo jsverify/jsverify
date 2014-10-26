@@ -1,5 +1,6 @@
 ## Release History
 
+- 0.4.0-beta.3 Expose shrink and show modules
 - 0.4.0-beta.2 Move everything around
     - Better looking README.md!
 - 0.4.0-beta.1 Beta!

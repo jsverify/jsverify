@@ -1,143 +1,61 @@
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.jsc=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 "use strict";
 
-var random = require("./random.js");
-
-function arbitraryArray(arbitrary, size) {
-  var arrsize = random(0, size);
-  var arr = new Array(arrsize);
-  for (var i = 0; i < arrsize; i++) {
-    arr[i] = arbitrary(size);
-  }
-  return arr;
-}
-
-function arbitraryString(size) {
-  return arbitraryArray(function () {
-    return String.fromCharCode(random(0, 0xff));
-  }, size).join("");
-}
-
-function arbitraryObject(arbitrary, size) {
-  var objsize = random(0, size);
-  var obj = {};
-  for (var i = 0; i < objsize; i++) {
-    obj[arbitraryString(size)] = arbitrary(size);
-  }
-  return obj;
-}
-
-module.exports = {
-  array: arbitraryArray,
-  string: arbitraryString,
-  object: arbitraryObject,
-};
-
-},{"./random.js":11}],2:[function(require,module,exports){
-"use strict";
-
-var shrink = require("./shrink.js");
-var environment = require("./environment.js");
-var typify = require("./typify.js");
-var generator = require("./generator.js");
-
-/**
-  ### Generator combinators
-*/
-
-/**
-  #### suchthat (gen : generator a) (p : a -> bool) : generator {a | p a == true}
-
-  Generator of values that satisfy `p` predicate. It's adviced that `p`'s accept rate is high.
-*/
-function suchthat(gen, predicate) {
-  gen = typeof gen === "string" ? typify.parseTypify(environment, gen) : gen;
-  gen = generator.force(gen);
-
-  return {
-    arbitrary: function (size) {
-      for (var i = 0; ; i++) {
-        // if 5 tries failed, increase size
-        if (i > 5) {
-          i = 0;
-          size += 1;
-        }
-
-        var x = gen.arbitrary(size);
-        if (predicate(x)) {
-          return x;
-        }
-      }
-    },
-
-    shrink: function (x) {
-      return gen.shrink(x).filter(predicate);
-    },
-
-    show: gen.show,
-  };
-}
-
-/**
-  #### nonshrink (gen : generator a) : generator a
-
-  Non shrinkable version of generator `gen`.
-*/
-function nonshrink(gen) {
-  gen = generator.force(gen);
-
-  return {
-    arbitrary: gen.arbitrary,
-    shrink: shrink.noop,
-    show: gen.show,
-  };
-}
-
-module.exports = {
-  suchthat: suchthat,
-  nonshrink: nonshrink,
-};
-
-},{"./environment.js":4,"./generator.js":8,"./shrink.js":13,"./typify.js":14}],3:[function(require,module,exports){
-"use strict";
-
 var assert = require("assert");
-var arbitrary = require("./arbitrary.js");
-var shrink = require("./shrink.js");
-var show = require("./show.js");
-var primitive = require("./primitive.js");
 var generator = require("./generator.js");
-var utils = require("./utils.js");
+var primitive = require("./primitive.js");
 var random = require("./random.js");
+var show = require("./show.js");
+var shrink = require("./shrink.js");
+var utils = require("./utils.js");
 
 /**
-  #### array (gen : generator a) : generator (array a)
+  ### Arbitrary combinators
 */
-function array(gen) {
-  gen = generator.force(gen || primitive.value);
+
+/**
+  - `nonshrink(arb: arbitrary a): arbitrary a`
+
+      Non shrinkable version of arbitrary `arb`.
+*/
+function nonshrink(arb) {
+  arb = utils.force(arb);
 
   return {
-    arbitrary: function (size) {
-      return arbitrary.array(gen.arbitrary, size);
-    },
-
-    shrink: shrink.array.bind(null, gen.shrink),
-    show: show.array.bind(null, gen.show),
+    generator: arb.generator,
+    shrink: shrink.noop,
+    show: arb.show,
   };
 }
 
 /**
-  #### pair (a : generator A) (b : generator B) : generator (A * B)
+  - `array(arb: arbitrary a): arbitrary (array a)`
+*/
+function array(arb) {
+  arb = utils.force(arb || primitive.json);
 
-  If not specified `a` and `b` are equal to `value()`.
+  return {
+    generator: function (size) {
+      return generator.array(arb.generator, size);
+    },
+
+    shrink: shrink.array.bind(null, arb.shrink),
+    show: show.array.bind(null, arb.show),
+  };
+}
+
+/**
+  - `pair(arbA: arbitrary a, arbB : arbitrary b): arbitrary (pair a b)`
+
+      If not specified `a` and `b` are equal to `value()`.
 */
 function pair(a, b) {
-  a = generator.force(a || primitive.value);
-  b = generator.force(b || primitive.value);
+  a = utils.force(a || primitive.json);
+  b = utils.force(b || primitive.json);
 
   return {
-    arbitrary: function (size) {
-      return [a.arbitrary(size), b.arbitrary(size)];
+    generator: function (size) {
+      return [a.generator(size), b.generator(size)];
     },
 
     shrink: function (p) {
@@ -149,9 +67,9 @@ function pair(a, b) {
 }
 
 /**
-  #### map (gen : generator A) : generator (map A)
+  - `map(arb: arbitrary a): arbitrary (map a)`
 
-  Generates a javascript object with properties of type `A`.
+      Generates a JavaScript object with properties of type `A`.
 */
 function fromArray(arrayOfPairs) {
   var res = {};
@@ -169,41 +87,41 @@ function toArray(m) {
   return res;
 }
 
-function map(gen) {
-  gen = generator.force(gen || primitive.value());
-  var pairGenerator = pair(primitive.string(), gen);
-  var arrayGenerator = array(pairGenerator);
+function map(arb) {
+  arb = utils.force(arb || primitive.json);
+  var pairArbitrary = pair(primitive.string(), arb);
+  var arrayArbitrary = array(pairArbitrary);
 
   return {
-    arbitrary: function (size) {
-      var arrayOfPairs = arrayGenerator.arbitrary(size);
+    generator: function (size) {
+      var arrayOfPairs = arrayArbitrary.generator(size);
       return fromArray(arrayOfPairs);
     },
     shrink: function (m) {
       var arrayOfPairs = toArray(m);
-      var shrinked = arrayGenerator.shrink(arrayOfPairs);
+      var shrinked = arrayArbitrary.shrink(arrayOfPairs);
       return shrinked.map(fromArray);
     },
     show: function (m) {
       return "{" + Object.keys(m).map(function (k) {
-        return k + ": " + gen.show(m[k]);
+        return k + ": " + arb.show(m[k]);
       }).join(", ") + "}";
     }
   };
 }
 
 /**
-  #### oneof (gs : array (generator any)...) : generator any
+  - `oneof(gs : array (arbitrary a)...) : arbitrary a`
 
-  Randomly uses one of the given generators.
+      Randomly uses one of the given arbitraries.
 */
 function oneof() {
   assert(arguments.length !== 0, "oneof: at least one parameter expected");
 
   // TODO: write this in more functional way
-  var arbs = [];
+  var generators = [];
   var append = function (a) {
-    arbs.push(generator.force(a).arbitrary);
+    generators.push(utils.force(a).generator);
   };
   for (var i = 0; i < arguments.length; i++) {
     var arg = arguments[i];
@@ -215,9 +133,9 @@ function oneof() {
   }
 
   return {
-    arbitrary: function (size) {
-      var idx = random(0, arbs.length - 1);
-      var arb = arbs[idx];
+    generator: function (size) {
+      var idx = random(0, generators.length - 1);
+      var arb = generators[idx];
       return arb(size);
     },
     // TODO: make shrink
@@ -227,21 +145,22 @@ function oneof() {
 }
 
 /**
-  #### record (spec : {a: generator...}) : generator (record {a: generator...})
+  - `record(spec: { key: arbitrary a... }): arbitrary { key: a... }`
 
-  Generates a javascript object with given record spec.
+      Generates a javascript object with given record spec.
 */
 function record(spec) {
   var forcedSpec = {};
   // TODO: use mapValues
   Object.keys(spec).forEach(function (k) {
-    forcedSpec[k] = generator.force(spec[k]);
+    forcedSpec[k] = utils.force(spec[k]);
   });
+
   return {
-    arbitrary: function (size) {
+    generator: function (size) {
       var res = {};
       Object.keys(spec).forEach(function (k) {
-        res[k] = forcedSpec[k].arbitrary(size);
+        res[k] = forcedSpec[k].generator(size);
       });
       return res;
     },
@@ -262,6 +181,7 @@ function record(spec) {
 }
 
 module.exports = {
+  nonshrink: nonshrink,
   pair: pair,
   array: array,
   map: map,
@@ -269,11 +189,10 @@ module.exports = {
   record: record,
 };
 
-},{"./arbitrary.js":1,"./generator.js":8,"./primitive.js":10,"./random.js":11,"./show.js":12,"./shrink.js":13,"./utils.js":15,"assert":16}],4:[function(require,module,exports){
+},{"./generator.js":6,"./primitive.js":8,"./random.js":9,"./show.js":10,"./shrink.js":11,"./utils.js":14,"assert":15}],2:[function(require,module,exports){
 "use strict";
 
-var combinator = require("./combinator.js");
-var composite = require("./composite.js");
+var arbitrary = require("./arbitrary.js");
 var fn = require("./fn.js");
 var primitive = require("./primitive.js");
 
@@ -284,7 +203,8 @@ var environment = {
   bool: primitive.bool,
   char: primitive.char,
   string: primitive.string,
-  value: primitive.value,
+  json: primitive.json,
+  value: primitive.json,
   asciichar: primitive.asciichar,
   asciistring: primitive.asciistring,
   uint8: primitive.uint8,
@@ -293,22 +213,22 @@ var environment = {
   int8: primitive.int8,
   int16: primitive.int16,
   int32: primitive.int32,
-  pair: composite.pair,
-  array: composite.array,
-  map: composite.map,
+  pair: arbitrary.pair,
+  array: arbitrary.array,
+  map: arbitrary.map,
   fn: fn.fn,
   fun: fn.fn,
-  nonshrink: combinator.nonshrink,
+  nonshrink: arbitrary.nonshrink,
 };
 
 module.exports = environment;
 
-},{"./combinator.js":2,"./composite.js":3,"./fn.js":6,"./primitive.js":10}],5:[function(require,module,exports){
+},{"./arbitrary.js":1,"./fn.js":4,"./primitive.js":8}],3:[function(require,module,exports){
 "use strict";
 
 var utils = require("./utils.js");
 
-/**
+/*
   #### FMap (eq : a -> a -> bool) : FMap a
 
   Finite map, with any object a key.
@@ -355,32 +275,30 @@ FMap.prototype.get = function FMapGet(key) {
 
 module.exports = FMap;
 
-},{"./utils.js":15}],6:[function(require,module,exports){
+},{"./utils.js":14}],4:[function(require,module,exports){
 "use strict";
 
-var shrink = require("./shrink.js");
-var primitive = require("./primitive.js");
 var FMap = require("./finitemap.js");
-var generator = require("./generator.js");
+var primitive = require("./primitive.js");
+var shrink = require("./shrink.js");
+var utils = require("./utils.js");
 
 /**
-  #### fn (gen : generator a) : generator (b -> a)
-
-  Unary functions.
-
-  _fun_ alias for _fn_
+  - `fn(gen: generator a): generator (b -> a)`
+  - `fun(gen: generator a): generator (b -> a)`
+      Unary functions.
 */
 
-function fn(gen) {
-  gen = generator.force(gen || primitive.value);
+function fn(arb) {
+  arb = utils.force(arb || primitive.json);
 
   return {
-    arbitrary: function (size) {
+    generator: function (size) {
       var m = new FMap();
 
       var f = function (arg) {
         if (!m.contains(arg)) {
-          var value = gen.arbitrary(size);
+          var value = arb.generator(size);
           m.insert(arg, value);
         }
 
@@ -394,7 +312,7 @@ function fn(gen) {
     shrink: shrink.noop,
     show: function (f) {
       return "[" + f.internalMap.data.map(function (item) {
-        return "" + item[0] + ": " + gen.show(item[1]);
+        return "" + item[0] + ": " + arb.show(item[1]);
       }).join(", ") + "]";
     }
   };
@@ -405,7 +323,7 @@ module.exports = {
   fun: fn,
 };
 
-},{"./finitemap.js":5,"./generator.js":8,"./primitive.js":10,"./shrink.js":13}],7:[function(require,module,exports){
+},{"./finitemap.js":3,"./primitive.js":8,"./shrink.js":11,"./utils.js":14}],5:[function(require,module,exports){
 "use strict";
 
 /**
@@ -469,18 +387,84 @@ module.exports = {
   bind: bind,
 };
 
-},{}],8:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 "use strict";
 
-function force(gen) {
-  return (typeof gen === "function") ? gen() : gen;
+var random = require("./random.js");
+
+/**
+    ### Generator functions
+*/
+
+/**
+   - `generator.array(gen: Gen a, size: nat): gen (array a)`
+*/
+function generateArray(gen, size) {
+  var arrsize = random(0, size);
+  var arr = new Array(arrsize);
+  for (var i = 0; i < arrsize; i++) {
+    arr[i] = gen(size);
+  }
+  return arr;
+}
+
+/**
+  - `generator.string(size: nat): gen string`
+*/
+function generateString(size) {
+  return generateArray(function () {
+    return String.fromCharCode(random(0, 0xff));
+  }, size).join("");
+}
+
+/**
+  - `generator.map(gen: gen a, size: nat): gen (map a)`
+*/
+function generateMap(gen, size) {
+  var objsize = random(0, size);
+  var obj = {};
+  for (var i = 0; i < objsize; i++) {
+    obj[generateString(size)] = gen(size);
+  }
+  return obj;
+}
+
+/**
+  - `generator.json: gen json`
+*/
+function generateJson(size) {
+  var type = random(0, 5);
+  if (size === 0) {
+    switch (type) {
+      case 0: return 0;
+      case 1: return random.number(0, 1);
+      case 2: return random(0, 1) === 0;
+      case 3: return "";
+      case 4: return [];
+      case 5: return {};
+    }
+  }
+
+  size = size - 1;
+
+  switch (type) {
+    case 0: return random(-size, size);
+    case 1: return random.number(-size, size);
+    case 2: return random(0, 1) === 0;
+    case 3: return generateString(size);
+    case 4: return generateArray(generateJson, size);
+    case 5: return generateMap(generateJson, size);
+  }
 }
 
 module.exports = {
-  force: force,
+  array: generateArray,
+  string: generateString,
+  map: generateMap,
+  json: generateJson,
 };
 
-},{}],9:[function(require,module,exports){
+},{"./random.js":9}],7:[function(require,module,exports){
 /**
   # JSVerify
 
@@ -561,25 +545,17 @@ module.exports = {
   `jsverify` can operate with both synchronous and asynchronous-promise properties.
   Generally every property can be wrapped inside [functor](http://learnyouahaskell.com/functors-applicative-functors-and-monoids),
   for now in either identity or promise functor, for synchronous and promise properties respectively.
-
-  Some type definitions to keep developers sane:
-
-  - Functor f => property (size : nat) : f result
-  - result := true | { counterexample: any }
-  - Functor f => property_rec := f (result | property)
-  - generator a := { arbitrary : a, shrink : a -> [a] }
 */
 
 var assert = require("assert");
 
-var combinator = require("./combinator.js");
-var composite = require("./composite.js");
+var arbitrary = require("./arbitrary.js");
+var primitive = require("./primitive.js");
 var environment = require("./environment.js");
 var FMap = require("./finitemap.js");
 var fn = require("./fn.js");
+var suchthat = require("./suchthat.js");
 var functor = require("./functor.js");
-var generator = require("./generator.js");
-var primitive = require("./primitive.js");
 var random = require("./random.js");
 var show = require("./show.js");
 var shrink = require("./shrink.js");
@@ -618,9 +594,9 @@ function shrinkResult(gens, x, test, size, shrinks, exc, transform) {
 }
 
 /**
-  #### forall (gens : generator a ...) (prop : a -> property_rec) : property
+  - `forall(arbs: arbitrary a ..., prop : a -> property): property`
 
-  Property constructor
+      Property constructor
 */
 function forall() {
   var args = Array.prototype.slice.call(arguments);
@@ -630,7 +606,7 @@ function forall() {
   // Map typify-dsl to hard generators
   gens = gens.map(function (g) {
     g = typeof g === "string" ? typify.parseTypify(environment, g) : g;
-    return generator.force(g);
+    return utils.force(g);
   });
 
   assert(typeof property === "function", "property should be a function");
@@ -665,7 +641,7 @@ function forall() {
   }
 
   return function (size) {
-    var x = gens.map(function (gen) { return gen.arbitrary(size); });
+    var x = gens.map(function (arb) { return arb.generator(size); });
     var r = test(size, x);
     return r;
   };
@@ -690,15 +666,16 @@ function findRngState(argv) {
 }
 
 /**
-  #### check (prop : property) (opts : checkoptions) : promise result + result
+  - `check (prop: property, opts: checkoptions?): result`
 
-  Run random checks for given `prop`. If `prop` is promise based, result is also wrapped in promise.
+      Run random checks for given `prop`. If `prop` is promise based, result is also wrapped in promise.
 
-  Options:
-  - `opts.tests` - test count to run, default 100
-  - `opts.size`  - maximum size of generated values, default 5
-  - `opts.quiet` - do not `console.log`
-  - `opts.rngState` - state string for the rng
+      Options:
+      - `opts.tests` - test count to run, default 100
+      - `opts.size`  - maximum size of generated values, default 5
+
+      - `opts.quiet` - do not `console.log`
+      - `opts.rngState` - state string for the rng
 */
 function check(property, opts) {
   opts = opts || {};
@@ -754,9 +731,9 @@ function check(property, opts) {
 }
 
 /**
-  #### assert (prop : property) (opts : checkoptions) : void
+  - `assert(prop: property, opts: checkoptions?) : void`
 
-  Same as `check`, but throw exception if property doesn't hold.
+      Same as `check`, but throw exception if property doesn't hold.
 */
 function checkThrow(property, opts) {
   opts = opts || {};
@@ -771,23 +748,25 @@ function checkThrow(property, opts) {
   });
 }
 
+/**
+  ### Types
+
+  - `generator a` is a function `(size: nat) -> a`.
+  - `show` is a function `a -> string`.
+  - `shrink` is a function `a -> [a]`, returning *smaller* values.
+  - `arbitrary a` is a triple of generator, shrink and show functions.
+      - `{ generator: nat -> a, shrink : a -> array a, show: a -> string }`
+*/
+
 /// include ./typify.js
 /// include ./primitive.js
-/// include ./composite.js
+/// include ./arbitrary.js
 /// include ./fn.js
-/// include ./combinator.js
-
-/**
-  ### jsc._ - miscellaneous utilities
-
-  #### assert (exp : bool) (message : string) : void
-
-  Throw an error with `message` if `exp` is falsy.
-  Resembles [node.js assert](http://nodejs.org/api/assert.html).
-*/
-/// include ./utils.js
+/// include ./generator.js
+/// include ./shrink.js
+/// include ./show.js
 /// include ./random.js
-/// include ./finitemap.js
+/// include ./utils.js
 
 // Export
 var jsc = {
@@ -796,15 +775,16 @@ var jsc = {
   assert: checkThrow,
 
   // generators
-  pair: composite.pair,
-  array: composite.array,
-  map: composite.map,
-  oneof: composite.oneof,
-  record: composite.record,
+  pair: arbitrary.pair,
+  array: arbitrary.array,
+  map: arbitrary.map,
+  oneof: arbitrary.oneof,
+  record: arbitrary.record,
+  nonshrink: arbitrary.nonshrink,
   fn: fn.fn,
   fun: fn.fn,
-  suchthat: combinator.suchthat,
-  nonshrink: combinator.nonshrink,
+  suchthat: suchthat.suchthat,
+  value: primitive.json,
 
   // compile
   compile: function (str) {
@@ -812,10 +792,11 @@ var jsc = {
   },
 
   // internal utility lib
+  random: random,
+  shrink: shrink,
+  show: show,
+  utils: utils,
   _: {
-    assert: assert,
-    isEqual: utils.isEqual,
-    random: random,
     FMap: FMap,
   },
 };
@@ -832,27 +813,28 @@ module.exports = jsc;
 /// plain ../related-work.md
 /// plain ../LICENSE
 
-},{"./combinator.js":2,"./composite.js":3,"./environment.js":4,"./finitemap.js":5,"./fn.js":6,"./functor.js":7,"./generator.js":8,"./primitive.js":10,"./random.js":11,"./show.js":12,"./shrink.js":13,"./typify.js":14,"./utils.js":15,"assert":16}],10:[function(require,module,exports){
+},{"./arbitrary.js":1,"./environment.js":2,"./finitemap.js":3,"./fn.js":4,"./functor.js":5,"./primitive.js":8,"./random.js":9,"./show.js":10,"./shrink.js":11,"./suchthat.js":12,"./typify.js":13,"./utils.js":14,"assert":15}],8:[function(require,module,exports){
 "use strict";
 
 var assert = require("assert");
 var random = require("./random.js");
-var arbitrary = require("./arbitrary.js");
+var generator = require("./generator.js");
 var shrink = require("./shrink.js");
 var show = require("./show.js");
 
 /**
-  ### Primitive generators
+  ### Primitive arbitraries
 */
 
 /**
-  #### integer (maxsize : nat) : generator integer
+  - `integer: arbitrary integer`
+  - `integer(maxsize: nat): arbitrary integer`
 
-  Integers, ℤ
+      Integers, ℤ
 */
 function integer(maxsize) {
   return {
-    arbitrary: function (size) {
+    generator: function (size) {
       size = maxsize || size;
       return random(-size, size);
     },
@@ -871,13 +853,14 @@ function integer(maxsize) {
 }
 
 /**
-  #### nat (maxsize : nat) : generator nat
+  - `nat: arbitrary nat`
+  - `nat(maxsize: nat): arbitrary nat`
 
-  Natural numbers, ℕ (0, 1, 2...)
+      Natural numbers, ℕ (0, 1, 2...)
 */
 function nat(maxsize) {
   return {
-    arbitrary: function (size) {
+    generator: function (size) {
       size = maxsize || size;
       return random(0, size);
     },
@@ -893,13 +876,14 @@ function nat(maxsize) {
 }
 
 /**
-  #### number (maxsize : number) : generator number
+  - `number: arbitrary number`
+  - `number(maxsize: number): arbitrary number`
 
-  JavaScript numbers, "doubles", ℝ. `NaN` and `Infinity` are not included.
+      JavaScript numbers, "doubles", ℝ. `NaN` and `Infinity` are not included.
 */
 function number(maxsize) {
   return {
-    arbitrary: function (size) {
+    generator: function (size) {
       size = maxsize || size;
       return random.number(-size, size);
     },
@@ -909,48 +893,50 @@ function number(maxsize) {
 }
 
 /**
-  #### uint8, uint16, uint32 : generator nat
+  - `uint8: arbitrary nat`
+  - `uint16: arbitrary nat`
+  - `uint32: arbitrary nat`
 */
 var uint8 = nat(0xff);
 var uint16 = nat(0xffff);
 var uint32 = nat(0xffffffff);
 
 /**
-  #### int8, int16, int32 : generator integer
+  - `int8: arbitrary integer`
+  - `int16: arbitrary integer`
+  - `int32: arbitrary integer`
 */
 var int8 = integer(0x80);
 var int16 = integer(0x8000);
 var int32 = integer(0x80000000);
 
 /**
-  #### bool () : generator bool
+  - `bool: generator bool`
 
-  Booleans, `true` or `false`.
+      Booleans, `true` or `false`.
 */
-function bool() {
-  return {
-    arbitrary: function (/* size */) {
-      var i = random(0, 1);
-      return i === 0 ? false : true;
-    },
+var bool = {
+  generator: function (/* size */) {
+    var i = random(0, 1);
+    return i === 0 ? false : true;
+  },
 
-    shrink: function (b) {
-      return b === true ? [false] : [];
-    },
-    show: show.def,
-  };
-}
+  shrink: function (b) {
+    return b === true ? [false] : [];
+  },
+  show: show.def,
+};
 
 /**
-  #### elements (args : array any) : generator any
+  - `elements(args: array a): generator a`
 
-  Random element of `args` array.
+      Random element of `args` array.
 */
 function elements(args) {
   assert(args.length !== 0, "elements: at least one parameter expected");
 
   return {
-    arbitrary: function (/* size */) {
+    generator: function (/* size */) {
       var i = random(0, args.length - 1);
       return args[i];
     },
@@ -962,12 +948,12 @@ function elements(args) {
 }
 
 /**
-  #### char : generator char
+  - `char: generator char`
 
-  Single character
+      Single character
 */
 var char = {
-  arbitrary: function (/* size */) {
+  generator: function (/* size */) {
     return String.fromCharCode(random(0, 0x1ff));
   },
   shrink: shrink.noop,
@@ -975,12 +961,12 @@ var char = {
 };
 
 /**
-  #### asciichar : generator char
+  - `asciichar: generator char`
 
-  Single ascii character (0x20-0x7e inclusive, no DEL)
+      Single ascii character (0x20-0x7e inclusive, no DEL)
 */
 var asciichar = {
-  arbitrary: function (/* size */) {
+  generator: function (/* size */) {
     return String.fromCharCode(random(0x20, 0x7f));
   },
   shrink: shrink.noop,
@@ -988,13 +974,11 @@ var asciichar = {
 };
 
 /**
-  #### string () : generator string
-
-  Strings
+  - `string: generator string`
 */
 function string() {
   return {
-    arbitrary: arbitrary.string,
+    generator: generator.string,
     shrink: function (str) {
       return str === "" ? [] : [""]; // TODO
     },
@@ -1003,11 +987,11 @@ function string() {
 }
 
 /**
-  #### asciistring : generator string
+  - `asciistring: generator string`
 */
 var asciistring = {
-  arbitrary: function (size) {
-    return arbitrary.array(asciichar.arbitrary, size).join("");
+  generator: function (size) {
+    return generator.array(asciichar.generator, size).join("");
   },
   shrink: function (str) {
     return str === "" ? [] : [""]; // TODO
@@ -1016,47 +1000,19 @@ var asciistring = {
 };
 
 /**
-  #### json : generator json
+  - `json: generator json`
 
-  JavaScript Objects: boolean, number, string, array of `json` values or object with `json` values.
+       JavaScript Objects: boolean, number, string, array of `json` values or object with `json` values.
+
+  - `value: generator json`
 */
-function arbitraryJson(size) {
-  var type = random(0, 5);
-  if (size === 0) {
-    switch (type) {
-      case 0: return 0;
-      case 1: return random.number(0, 1);
-      case 2: return random(0, 1) === 0;
-      case 3: return "";
-      case 4: return [];
-      case 5: return {};
-    }
-  }
-
-  size = size - 1;
-
-  switch (type) {
-    case 0: return random(-size, size);
-    case 1: return random.number(-size, size);
-    case 2: return random(0, 1) === 0;
-    case 3: return arbitrary.string(size);
-    case 4: return arbitrary.array(arbitraryJson, size);
-    case 5: return arbitrary.object(arbitraryJson, size);
-  }
-}
-
 var json = {
-  arbitrary: arbitraryJson,
+  generator: generator.json,
   shrink: shrink.noop,
   show: function (v) {
     return JSON.stringify(v);
   },
 };
-
-// Backward compatibility
-function value() {
-  return json;
-}
 
 module.exports = {
   integer: integer,
@@ -1069,7 +1025,6 @@ module.exports = {
   uint32: uint32,
   number: number,
   json: json,
-  value: value,
   char: char,
   string: string,
   asciichar: asciichar,
@@ -1078,48 +1033,62 @@ module.exports = {
   bool: bool,
 };
 
-},{"./arbitrary.js":1,"./random.js":11,"./show.js":12,"./shrink.js":13,"assert":16}],11:[function(require,module,exports){
+},{"./generator.js":6,"./random.js":9,"./show.js":10,"./shrink.js":11,"assert":15}],9:[function(require,module,exports){
 "use strict";
 
-var generator = new (require("rc4").RC4small)();
+var rc4 = new (require("rc4").RC4small)();
 
 /**
-  #### random (min max : int) : int
+  ### Random functions
+*/
 
-  Returns random int from `[min, max]` range inclusively.
+/**
+  - `random(min: int, max: int): int`
 
-  ```js
-  getRandomInt(2, 3) // either 2 or 3
-  ```
+      Returns random int from `[min, max]` range inclusively.
+
+      ```js
+      getRandomInt(2, 3) // either 2 or 3
+      ```
 */
 function randomInteger(min, max) {
-  return generator.random(min, max);
+  return rc4.random(min, max);
 }
 
 /**
-  #### random.number (min max : number) : number
+  - `random.number(min: number, max: number): number`
 
-  Returns random number from `[min, max)` range.
+      Returns random number from `[min, max)` range.
 */
 function randomNumber(min, max) {
-  return generator.randomFloat() * (max - min) + min;
+  return rc4.randomFloat() * (max - min) + min;
 }
 
 randomInteger.integer = randomInteger;
 randomInteger.number = randomNumber;
 
-randomInteger.currentStateString = generator.currentStateString.bind(generator);
-randomInteger.setStateString = generator.setStateString.bind(generator);
+randomInteger.currentStateString = rc4.currentStateString.bind(rc4);
+randomInteger.setStateString = rc4.setStateString.bind(rc4);
 
 module.exports = randomInteger;
 
-},{"rc4":20}],12:[function(require,module,exports){
+},{"rc4":19}],10:[function(require,module,exports){
 "use strict";
 
+/**
+  ### Show functions
+*/
+
+/**
+  - `show.def(x : a): string`
+*/
 function showDef(obj) {
   return "" + obj;
 }
 
+/**
+  - `show.tuple(shrinks: (a -> string, b -> string...), x: (a, b...)): string`
+*/
 function showTuple(shows, objs) {
   var strs = [];
   for (var i = 0; i < shows.length; i++) {
@@ -1128,6 +1097,9 @@ function showTuple(shows, objs) {
   return strs.join("; ");
 }
 
+/**
+  - `show.array(shrink: a -> string, x: array a): string`
+*/
 function showArray(show, arr) {
   return "[" + arr.map(show).join(", ") + "]";
 }
@@ -1138,15 +1110,25 @@ module.exports = {
   array: showArray,
 };
 
-},{}],13:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 "use strict";
 
 var assert = require("assert");
 
+/**
+  ### Shrink functions
+*/
+
+/**
+  - `shrink.noop(x: a): array a`
+*/
 function shrinkNoop() {
   return [];
 }
 
+/**
+  - `shrink.tuple(shrinks: (a -> array a, b -> array b...), x: (a, b...)): array (a, b...)`
+*/
 function shrinkTuple(shrinks, tup) {
   assert(shrinks.length === tup.length, "there should be as much shrinks as values in the tuple");
 
@@ -1167,6 +1149,26 @@ function shrinkTuple(shrinks, tup) {
   return Array.prototype.concat.apply([], shrinked);
 }
 
+/**
+  - `shrink.array(shrink: a -> array a, x: array a): array (array a)`
+*/
+function shrinkArray(shrink, arr) {
+  if (arr.length === 0) {
+    return [];
+  } else {
+    var x = arr[0];
+    var xs = arr.slice(1);
+
+    return [xs].concat(
+      shrink(x).map(function (xp) { return [xp].concat(xs); }),
+      shrinkArray(shrink, xs).map(function (xsp) { return [x].concat(xsp); })
+    );
+  }
+}
+
+/**
+  - `shrink.record(shrinks: { key: a -> string... }, x: { key: a... }): array { key: a... }`
+*/
 function shrinkRecord(shrinksRecord, record) {
   var keys = Object.keys(record);
   var values = keys.map(function (k) { return record[k]; });
@@ -1183,20 +1185,6 @@ function shrinkRecord(shrinksRecord, record) {
   });
 }
 
-function shrinkArray(shrink, arr) {
-  if (arr.length === 0) {
-    return [];
-  } else {
-    var x = arr[0];
-    var xs = arr.slice(1);
-
-    return [xs].concat(
-      shrink(x).map(function (xp) { return [xp].concat(xs); }),
-      shrinkArray(shrink, xs).map(function (xsp) { return [x].concat(xsp); })
-    );
-  }
-}
-
 module.exports = {
   noop: shrinkNoop,
   tuple: shrinkTuple,
@@ -1204,7 +1192,50 @@ module.exports = {
   record: shrinkRecord,
 };
 
-},{"assert":16}],14:[function(require,module,exports){
+},{"assert":15}],12:[function(require,module,exports){
+"use strict";
+
+var environment = require("./environment.js");
+var typify = require("./typify.js");
+var utils = require("./utils.js");
+
+/**
+  - `suchthat(arb: arbitrary a, p : a -> bool): arbitrary a`
+      Arbitrary of values that satisfy `p` predicate. It's advised that `p`'s accept rate is high.
+*/
+function suchthat(arb, predicate) {
+  arb = typeof arb === "string" ? typify.parseTypify(environment, arb) : arb;
+  arb = utils.force(arb);
+
+  return {
+    generator: function (size) {
+      for (var i = 0; ; i++) {
+        // if 5 tries failed, increase size
+        if (i > 5) {
+          i = 0;
+          size += 1;
+        }
+
+        var x = arb.generator(size);
+        if (predicate(x)) {
+          return x;
+        }
+      }
+    },
+
+    shrink: function (x) {
+      return arb.shrink(x).filter(predicate);
+    },
+
+    show: arb.show,
+  };
+}
+
+module.exports = {
+  suchthat: suchthat,
+};
+
+},{"./environment.js":2,"./typify.js":13,"./utils.js":14}],13:[function(require,module,exports){
 "use strict";
 
 /**
@@ -1224,7 +1255,7 @@ module.exports = {
 */
 
 var fn = require("./fn.js");
-var composite = require("./composite.js");
+var arbitrary = require("./arbitrary.js");
 var typifyParser = require("typify-parser");
 
 // Forward declarations
@@ -1254,12 +1285,12 @@ function compileFunction(env, type) {
 
 function compileBrackets(env, type) {
   var arg = compileType(env, type.arg);
-  return composite.array(arg);
+  return arbitrary.array(arg);
 }
 
 function compileDisjunction(env, type) {
   var args = compileTypeArray(env, type.args);
-  return composite.oneof(args);
+  return arbitrary.oneof(args);
 }
 
 function compileRecord(env, type) {
@@ -1268,7 +1299,7 @@ function compileRecord(env, type) {
   Object.keys(type.fields).forEach(function (key) {
     spec[key] = compileType(env, type.fields[key]);
   });
-  return composite.record(spec);
+  return arbitrary.record(spec);
 }
 
 compileType = function compileType(env, type) {
@@ -1298,7 +1329,7 @@ module.exports = {
   parseTypify: parseTypify,
 };
 
-},{"./composite.js":3,"./fn.js":6,"typify-parser":21}],15:[function(require,module,exports){
+},{"./arbitrary.js":1,"./fn.js":4,"typify-parser":20}],14:[function(require,module,exports){
 "use strict";
 
 var isArray = Array.isArray;
@@ -1309,9 +1340,13 @@ function isObject(o) {
 }
 
 /**
-  #### isEqual (a b : value) : bool
+  ### Utility functions
+*/
 
-  Equality test for `value` objects. See `value` generator.
+/**
+  - `utils.isEqual(x: json, y: json): bool`
+
+      Equality test for `json` objects.
 */
 function isEqual(a, b) {
   var i;
@@ -1349,14 +1384,24 @@ function pluck(arr, key) {
   });
 }
 
+/**
+  - `utils.force(x: a | () -> a) : a`
+
+      Evaluate `x` as nullary function, if it is one.
+*/
+function force(arb) {
+  return (typeof arb === "function") ? arb() : arb;
+}
+
 module.exports = {
   isArray: isArray,
   isObject: isObject,
   isEqual: isEqual,
   pluck: pluck,
+  force: force,
 };
 
-},{}],16:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
@@ -1718,7 +1763,7 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":19}],17:[function(require,module,exports){
+},{"util/":18}],16:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -1743,14 +1788,14 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],18:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],19:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -2338,7 +2383,7 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-},{"./support/isBuffer":18,"inherits":17}],20:[function(require,module,exports){
+},{"./support/isBuffer":17,"inherits":16}],19:[function(require,module,exports){
 "use strict";
 
 // Based on RC4 algorithm, as described in
@@ -2534,7 +2579,7 @@ RC4.RC4small = RC4small;
 
 module.exports = RC4;
 
-},{}],21:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 /**
   # typify type parser
 
@@ -2920,5 +2965,5 @@ function parse(input) {
 
 module.exports = parse;
 
-},{}]},{},[9])(9)
+},{}]},{},[7])(7)
 });
