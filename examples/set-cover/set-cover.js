@@ -183,7 +183,7 @@ function better(ls) {
   var sorted = _.sortBy(ls, function (subls) {
     return -_.uniq(subls).length;
   });
-  var ret =  greedy(sorted);
+  var ret = greedy(sorted);
   return ret;
 }
 /**

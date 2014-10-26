@@ -12,7 +12,7 @@ function checkShrink(mincase, message, property) {
     var r = jsc.check(property, { quiet: true });
     assert(r !== true, "property should not hold");
     assert(r.exc.message, message, "should pass message");
-    if (mincase !==  undefined) {
+    if (mincase !== undefined) {
       assert.deepEqual(r.counterexample, mincase);
     }
     wasShrinked = wasShrinked || r.shrinks > 0;

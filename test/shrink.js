@@ -13,7 +13,7 @@ function checkShrink(mincase, property, tries) {
   for (var i = 0; i < tries; i++) {
     var r = jsc.check(property, { quiet: true });
     assert(r !== true, "property should not hold");
-    if (mincase !==  undefined) {
+    if (mincase !== undefined) {
       assert.deepEqual(r.counterexample, mincase);
     }
     wasShrinked = wasShrinked || r.shrinks > 0;

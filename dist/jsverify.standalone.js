@@ -176,7 +176,7 @@ function map(gen) {
 
   return {
     arbitrary: function (size) {
-      var arrayOfPairs =  arrayGenerator.arbitrary(size);
+      var arrayOfPairs = arrayGenerator.arbitrary(size);
       return fromArray(arrayOfPairs);
     },
     shrink: function (m) {
@@ -280,7 +280,7 @@ var primitive = require("./primitive.js");
 var environment = {
   nat: primitive.nat,
   integer: primitive.integer,
-  number : primitive.number,
+  number: primitive.number,
   bool: primitive.bool,
   char: primitive.char,
   string: primitive.string,
@@ -666,13 +666,13 @@ function forall() {
 
   return function (size) {
     var x = gens.map(function (gen) { return gen.arbitrary(size); });
-    var r =  test(size, x);
+    var r = test(size, x);
     return r;
   };
 }
 
 function formatFailedCase(r, state) {
-  var msg =  "Failed after " + r.tests + " tests and " + r.shrinks + " shrinks. ";
+  var msg = "Failed after " + r.tests + " tests and " + r.shrinks + " shrinks. ";
   msg += "rngState: " + (r.rngState || state) + "; ";
   msg += "Counterexample: " + r.counterexamplestr + "; ";
   if (r.exc) {

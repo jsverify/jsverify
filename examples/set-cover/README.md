@@ -9,6 +9,7 @@
 
 
 ```js
+"use strict";
 var _ = require("lodash");
 var jsc = require("../../lib/jsverify.js");
 ```
@@ -208,7 +209,7 @@ jsc.check(jsc.forall(array2Nat, function (ls) {
 > Failed after 11 tests and 2 shrinks. rngState: ...; Counterexample: [[0], [0, 1]]; 
 
 The failing case makes sense. `greedy` is so trivial, it doesn't satisfy the fifth property.
-Thus we have to improve our solver! 
+Thus we have to improve our solver!
 
 However we will not alter `greedy` itself, but make a more optimal solver.
 
@@ -224,7 +225,7 @@ function better(ls) {
   var sorted = _.sortBy(ls, function (subls) {
     return -_.uniq(subls).length;
   });
-  var ret =  greedy(sorted);
+  var ret = greedy(sorted);
   return ret;
 }
 ```

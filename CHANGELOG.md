@@ -1,5 +1,7 @@
 ## Release History
 
+- 0.4.0-beta.1 Beta!
+    - Dev Dependencies update
 - 0.4.0-alpha8 oneof &amp; record -dsl support
     - also `jsc.compile`
     - record is shrinkable!
