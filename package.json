@@ -2,7 +2,7 @@
   "name": "jsverify",
   "description": "Property-based testing for JavaScript.",
   "version": "0.4.0",
-  "homepage": "https://github.com/phadej/jsverify",
+  "homepage": "http://jsverify.github.io/",
   "author": {
     "name": "Oleg Grenrus",
     "email": "oleg.grenrus@iki.fi",
@@ -10,15 +10,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/phadej/jsverify.git"
+    "url": "git://github.com/jsverify/jsverify.git"
   },
   "bugs": {
-    "url": "https://github.com/phadej/jsverify/issues"
+    "url": "https://github.com/jsverify/jsverify/issues"
   },
   "licenses": [
     {
       "type": "MIT",
-      "url": "https://github.com/phadej/jsverify/blob/master/LICENSE"
+      "url": "https://github.com/jsverify/jsverify/blob/master/LICENSE"
     }
   ],
   "main": "lib/jsverify",
