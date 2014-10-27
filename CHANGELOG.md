@@ -1,5 +1,12 @@
 ## Release History
 
+- 0.4.0 *2014-10-27* typify-dsl &amp; more arbitraries.
+    Changes from 0.3.6:
+    - DSL for `forall` and `suchthat`
+    - new primitive arbitraries
+    - `oneof` behaves as in QuickCheck (BREAKING CHANGE)
+    - `elements` is new name of old `oneof`
+    - Other smaller stuff under the hood
 - 0.4.0-beta.4 generator.oneof
 - 0.4.0-beta.3 Expose shrink and show modules
 - 0.4.0-beta.2 Move everything around
