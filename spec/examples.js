@@ -26,7 +26,7 @@
     });
 
     it("forall (f : bool -> bool) (b : bool), f (f (f b)) = f b", function () {
-      var prop = jsc.forall(jsc.fn(jsc.bool()), jsc.bool(), function (f, b) {
+      var prop = jsc.forall(jsc.fn(jsc.bool), jsc.bool, function (f, b) {
         return f(f(f(b))) === f(b);
       });
 
@@ -46,24 +46,24 @@
     });
 
     it("booleans", function () {
-      var true_and_left_prop = jsc.forall(jsc.bool(), function (x) {
+      var true_and_left_prop = jsc.forall(jsc.bool, function (x) {
         return true && x === x;
       });
 
       expect(true_and_left_prop).toHold();
 
-      var true_and_right_prop = jsc.forall(jsc.bool(), function (x) {
+      var true_and_right_prop = jsc.forall(jsc.bool, function (x) {
         return x && true === x;
       });
 
       expect(true_and_right_prop).not.toHold(); // be careful!
 
 
-      var true_and_right_fixed_prop = jsc.forall(jsc.bool(), function (x) {
+      var true_and_right_fixed_prop = jsc.forall(jsc.bool, function (x) {
         return (x && true) === x;
       });
 
-      var true_and_left_fixed_prop = jsc.forall(jsc.bool(), function (x) {
+      var true_and_left_fixed_prop = jsc.forall(jsc.bool, function (x) {
         return (true && x) === x;
       });
 
@@ -139,13 +139,13 @@
       }
 
       var prop1 = jsc.forall(jsc.array(), function (l) {
-        return jsc._.isEqual(sort(l), l);
+        return jsc.utils.isEqual(sort(l), l);
       });
 
       expect(prop1).not.toHold();
 
       var prop2 = jsc.forall(jsc.array(), function (l) {
-        return jsc._.isEqual(sort(sort(l)), sort(l));
+        return jsc.utils.isEqual(sort(sort(l)), sort(l));
       });
 
       expect(prop2).toHold();
