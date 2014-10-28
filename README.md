@@ -328,6 +328,7 @@ They will be regenerated before each release.
 
 ## Release History
 
+- 0.4.1 Move to own organization in GitHub
 - 0.4.0 *2014-10-27* typify-dsl &amp; more arbitraries.
     Changes from 0.3.6:
     - DSL for `forall` and `suchthat`
