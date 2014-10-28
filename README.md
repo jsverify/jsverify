@@ -1,14 +1,14 @@
 # JSVerify
 
-<img src="https://raw.githubusercontent.com/phadej/jsverify/master/jsverify-300.png" align="right" height="100" />
+<img src="https://raw.githubusercontent.com/jsverify/jsverify/master/jsverify-300.png" align="right" height="100" />
 
 > Property based checking.
 
-[![Build Status](https://secure.travis-ci.org/phadej/jsverify.svg?branch=master)](http://travis-ci.org/phadej/jsverify)
+[![Build Status](https://secure.travis-ci.org/jsverify/jsverify.svg?branch=master)](http://travis-ci.org/jsverify/jsverify)
 [![NPM version](https://badge.fury.io/js/jsverify.svg)](http://badge.fury.io/js/jsverify)
-[![Dependency Status](https://david-dm.org/phadej/jsverify.svg)](https://david-dm.org/phadej/jsverify)
-[![devDependency Status](https://david-dm.org/phadej/jsverify/dev-status.svg)](https://david-dm.org/phadej/jsverify#info=devDependencies)
-[![Code Climate](https://img.shields.io/codeclimate/github/phadej/jsverify.svg)](https://codeclimate.com/github/phadej/jsverify)
+[![Dependency Status](https://david-dm.org/jsverify/jsverify.svg)](https://david-dm.org/jsverify/jsverify)
+[![devDependency Status](https://david-dm.org/jsverify/jsverify/dev-status.svg)](https://david-dm.org/jsverify/jsverify#info=devDependencies)
+[![Code Climate](https://img.shields.io/codeclimate/github/jsverify/jsverify.svg)](https://codeclimate.com/github/jsverify/jsverify)
 
 ## Getting Started
 
