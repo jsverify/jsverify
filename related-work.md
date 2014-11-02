@@ -9,6 +9,7 @@
 - [quickcheck](https://npmjs.org/package/quickcheck)
 - [qc.js](https://bitbucket.org/darrint/qc.js/)
 - [quick\_check](https://www.npmjs.org/package/quick_check)
+- [gencheck](https://github.com/graue/gentest)
 
 ### Others
 
