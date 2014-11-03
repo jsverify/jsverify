@@ -43,7 +43,7 @@ mocha :
 	$(MOCHA) --reporter spec test
 
 istanbul : 
-	$(ISTANBUL) cover $(MOCHA) test
+	$(ISTANBUL) cover -- $(MOCHA) --timeout 10000 test
 	$(ISTANBUL) check-coverage --statements -2 --branches -3 --functions 100 coverage/coverage.json
 
 dist : test karma jasmine literate $(DIST)
