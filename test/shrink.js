@@ -169,6 +169,27 @@ describe("shrink", function () {
         return x <= 0;
       }));
     });
+
+    it("isomap ∘ isomap", function () {
+      var neg = function (n) { return -n; };
+      var f = function (n) { return n + 1; };
+      var g = function (n) { return n - 1; };
+
+      var shrink1 = jsc.nat().shrink.isomap(neg, neg).isomap(f, g);
+      // →: f ∘ neg
+      // ← neg ∘ g
+      // neg⁻¹ ≡ neg
+      // f⁻¹ ≡ f
+      var shrink2 = jsc.nat().shrink.isomap(_.compose(f, neg), _.compose(neg, g));
+
+      jsc.assert(jsc.forall(jsc.nat(), function (i) {
+        var j = f(neg(i));
+        var a = shrink1(j);
+        var b = shrink2(j);
+
+        return _.isEqual(a, b);
+      }));
+    });
   });
 
   describe("function", function () {

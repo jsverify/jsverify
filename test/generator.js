@@ -4,6 +4,7 @@
 
 var assert = require("assert");
 var jsc = require("../lib/jsverify.js");
+var _ = require("underscore");
 
 describe("jsc.generator", function () {
   describe("array", function () {
@@ -28,6 +29,24 @@ describe("jsc.generator", function () {
       }
       for (var i = 0; i < 20; i++) {
         assertPredicate(gen(i));
+      }
+    });
+
+    it("map ∘ map", function () {
+      var f = function (n) { return n * n; };
+      var g = function (n) { return n + 1; };
+      var gen1 = jsc.nat().generator.map(f).map(g);
+      var gen2 = jsc.nat().generator.map(_.compose(g, f));
+      for (var i = 0; i < 20; i++) {
+        var seed = jsc.random.currentStateString();
+        var a = gen1(i);
+        var nextSeed = jsc.random.currentStateString();
+
+        jsc.random.setStateString(seed);
+        var b = gen2(i);
+        jsc.random.setStateString(nextSeed);
+
+        assert(a === b);
       }
     });
   });
