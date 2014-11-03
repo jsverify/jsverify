@@ -65,5 +65,18 @@ describe("regressions", function () {
         return !pred(xs);
       }));
     });
+
+    it("user environment works in suchthat", function () {
+      var arb = jsc.suchthat("set nat", { set: set }, function () { return true; });
+      jsc.assert(jsc.forall(arb, pred));
+    });
+
+    it("user environment works in forall", function () {
+      jsc.assert(jsc.forall("set nat", { set: set }, pred));
+    });
+
+    it("user environment works in compile", function () {
+      jsc.assert(jsc.forall(jsc.compile("set nat", { set: set }), pred));
+    });
   });
 });
