@@ -134,17 +134,21 @@
     });
 
     it("sort idempotent", function () {
-      function sort(l) {
-        return l.slice().sort();
+      function compareNumber(a, b) {
+        return a - b;
       }
 
-      var prop1 = jsc.forall(jsc.array(), function (l) {
+      function sort(l) {
+        return l.slice().sort(compareNumber);
+      }
+
+      var prop1 = jsc.forall("array nat", function (l) {
         return jsc.utils.isEqual(sort(l), l);
       });
 
       expect(prop1).not.toHold();
 
-      var prop2 = jsc.forall(jsc.array(), function (l) {
+      var prop2 = jsc.forall("array nat", function (l) {
         return jsc.utils.isEqual(sort(sort(l)), sort(l));
       });
 
