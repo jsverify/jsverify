@@ -130,6 +130,18 @@ describe("shrink", function () {
         return record.a === record.a + 1;
       }));
     });
+
+    it("is auto-curried", function () {
+      var natShrink = jsc.nat().shrink;
+      var prop = jsc.forall("nat", function (n) {
+        var a = jsc.shrink.record({ key: natShrink }, { key: n });
+        var b = jsc.shrink.record({ key: natShrink })({ key: n});
+
+        return _.isEqual(a, b);
+      });
+
+      jsc.assert(prop);
+    });
   });
 
   describe("json", function () {
@@ -144,6 +156,18 @@ describe("shrink", function () {
         assert(r !== true);
         assert(r.shrinks === 0);
       }
+    });
+  });
+
+  describe("isomap", function () {
+    it("transforms shrinks", function () {
+      var neg = function (x) { return -x; };
+      var shrink = jsc.nat().shrink.isomap(neg, neg);
+
+      var shrinked = shrink(10);
+      assert(shrinked.every(function (x) {
+        return x <= 0;
+      }));
     });
   });
 
