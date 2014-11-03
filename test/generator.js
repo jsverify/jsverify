@@ -20,6 +20,18 @@ describe("jsc.generator", function () {
     });
   });
 
+  describe("bless", function () {
+    it("map", function () {
+      var gen = jsc.generator.array(jsc.nat().generator).map(function (arr) { return arr.slice(0, 1); });
+      function assertPredicate(arr) {
+        return arr.length <= 1;
+      }
+      for (var i = 0; i < 20; i++) {
+        assertPredicate(gen(i));
+      }
+    });
+  });
+
   describe("map", function () {
     it("is auto-curried", function () {
       function assertPredicate(obj) {
