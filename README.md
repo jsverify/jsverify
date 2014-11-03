@@ -80,7 +80,7 @@ for now in either identity or promise functor, for synchronous and promise prope
 ### Properties
 
 
-- `forall(arbs: arbitrary a ..., prop : a -> property): property`
+- `forall(arbs: arbitrary a ..., userenv: (map arbitrary)?, prop : a -> property): property`
 
     Property constructor
 
@@ -309,6 +309,11 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
     Evaluate `x` as nullary function, if it is one.
 
 
+- `utils.merge(x: obj, y: obj): obj`
+
+  Merge two objects, a bit like `_.extend({}, x, y)`
+
+
 
 ## Contributing
 
@@ -328,6 +333,10 @@ They will be regenerated before each release.
 
 ## Release History
 
+- 0.4.2 &mdash; *2014-11-03* User environments for DSL
+    - User environments for DSL
+    - Generator prototype `map`, and shrink prototype `isomap`
+    - JSON generator works with larger sizes
 - 0.4.1 Move to own organization in GitHub
 - 0.4.0 *2014-10-27* typify-dsl &amp; more arbitraries.
     Changes from 0.3.6:

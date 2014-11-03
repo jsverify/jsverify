@@ -1,5 +1,9 @@
 ## Release History
 
+- 0.4.2 &mdash; *2014-11-03* User environments for DSL
+    - User environments for DSL
+    - Generator prototype `map`, and shrink prototype `isomap`
+    - JSON generator works with larger sizes
 - 0.4.1 Move to own organization in GitHub
 - 0.4.0 *2014-10-27* typify-dsl &amp; more arbitraries.
     Changes from 0.3.6:
