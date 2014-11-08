@@ -4,6 +4,7 @@
 
 var jsc = require("../lib/jsverify.js");
 var _ = require("underscore");
+var assert = require("assert");
 
 describe("primitive arbitraries", function () {
   describe("falsy", function () {
@@ -23,8 +24,18 @@ describe("primitive arbitraries", function () {
       return !x;
     });
 
-    jsc.property("show returns string starting with 'falsy: '", "falsy", function (x) {
+    function falsyShowProperty(x) {
       return !!jsc.falsy.show(x).match(/^falsy: /);
+    }
+
+    jsc.property("show returns string starting with 'falsy: '", "falsy", falsyShowProperty);
+    it("show returns string starting with 'falsy' - special cases", function () {
+      assert(falsyShowProperty(0));
+      assert(falsyShowProperty(undefined));
+      assert(falsyShowProperty(""));
+      assert(falsyShowProperty(false));
+      assert(falsyShowProperty(null));
+      assert(falsyShowProperty(NaN));
     });
   });
 
