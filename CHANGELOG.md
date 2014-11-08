@@ -1,8 +1,8 @@
 ## Release History
 
 - 0.4.3 &mdash; *2014-11-08* jsc.property
-    - Now you can write your specs without any boilerplate:
-    - support for nat-litearls in dsl
+    - Now you can write your bdd specs without any boilerplate
+    - support for nat-litearls in dsl [#36](https://github.com/jsverify/jsverify/issues/36)
         ```js
         describe("Math.abs", function () {
           jsc.property("result is non-negative", "integer 100", function (x) {
@@ -10,6 +10,7 @@
           });
         });
         ```
+    - Falsy generator [#42](https://github.com/jsverify/jsverify/issues/42)
 - 0.4.2 &mdash; *2014-11-03* User environments for DSL
     - User environments for DSL
     - Generator prototype `map`, and shrink prototype `isomap`
