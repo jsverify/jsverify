@@ -6,6 +6,28 @@ var jsc = require("../lib/jsverify.js");
 var _ = require("underscore");
 
 describe("primitive arbitraries", function () {
+  describe("falsy", function () {
+    it("generates falsy values", function () {
+      jsc.assert(jsc.forall(jsc.falsy, function (x) {
+        return !x;
+      }));
+    });
+
+    it("generates falsy values, dsl", function () {
+      jsc.assert(jsc.forall("falsy", function (x) {
+        return !x;
+      }));
+    });
+
+    jsc.property("generates falsy values, dsl - property", "falsy", function (x) {
+      return !x;
+    });
+
+    jsc.property("show returns string starting with 'falsy: '", "falsy", function (x) {
+      return !!jsc.falsy.show(x).match(/^falsy: /);
+    });
+  });
+
   describe("integer", function () {
     it("generates integers", function () {
       jsc.assert(jsc.forall(jsc.integer(), function (i) {

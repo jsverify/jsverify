@@ -6,12 +6,22 @@ var jsc = require("../lib/jsverify.js");
 var _ = require("underscore");
 var assert = require("assert");
 
+describe("Math.abs", function () {
+  jsc.property("result is non-negative", "integer 100", function (x) {
+    return Math.abs(x) >= 0;
+  });
+});
+
 describe("typify", function () {
   describe("primitives", function () {
     it("integer", function () {
       jsc.assert(jsc.forall("integer", function (i) {
         return Math.round(i) === i;
       }));
+    });
+
+    jsc.property("integer with bounds", "integer 5", function (i) {
+      return Math.round(i) === i && Math.abs(i) <= 5;
     });
   });
 
