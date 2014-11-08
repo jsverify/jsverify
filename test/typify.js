@@ -13,6 +13,12 @@ describe("typify", function () {
         return Math.round(i) === i;
       }));
     });
+
+    it("integer with bounds", function () {
+      jsc.assert(jsc.forall("integer 5", function (i) {
+        return Math.round(i) === i && Math.abs(i) <= 5;
+      }));
+    });
   });
 
   describe("compositional", function () {
