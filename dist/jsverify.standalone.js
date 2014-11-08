@@ -183,6 +183,7 @@ var environment = {
   integer: primitive.integer,
   number: primitive.number,
   bool: primitive.bool,
+  falsy: primitive.falsy,
   char: primitive.char,
   string: primitive.string,
   json: primitive.json,
@@ -540,6 +541,16 @@ module.exports = {
 
   Using jsverify with mocha is easy, just define the properties and use `jsverify.assert`.
 
+  Starting from version 0.4.3 you can write your specs without any boilerplate:
+
+  ```js
+  describe("sort", function () {
+    jsc.property("idempotent", "array nat", function (arr) {
+      return _.isEqual(sort(sort(arr)), sort(arr));
+    });
+  });
+  ```
+
   You can also provide `--jsverifyRngState state` command line argument, to run tests with particular random generator state.
 
   ```
@@ -663,7 +674,7 @@ function forall() {
   assert(typeof property === "function", "property should be a function");
 
   function test(size, x, shrinks) {
-    assert(x !== undefined, "generator result should be always not undefined -- temporary self check");
+    assert(Array.isArray(x), "generators results should be always tuple");
     shrinks = shrinks || 0;
 
     return functor.bind(property, x, function (r, exc) {
@@ -800,6 +811,27 @@ function checkThrow(property, opts) {
 }
 
 /**
+   - `property(name: string, ...)
+
+      Assuming there is globally defined `it`, the same as:
+
+      ```js
+      it(name, function () {
+        jsc.assert(jsc.forall(...));
+      }
+      ```
+*/
+function bddProperty(name) {
+  /* global it: true */
+  var args = Array.prototype.slice.call(arguments, 1);
+  var prop = forall.apply(undefined, args);
+  it(name, function () {
+    checkThrow(prop);
+  });
+  /* global it: false */
+}
+
+/**
   ### Types
 
   - `generator a` is a function `(size: nat) -> a`.
@@ -824,6 +856,7 @@ var jsc = {
   forall: forall,
   check: check,
   assert: checkThrow,
+  property: bddProperty,
 
   // generators
   pair: arbitrary.pair,
@@ -1067,6 +1100,24 @@ var json = {
   },
 };
 
+/**
+  - `falsy: generator *
+
+      Generates falsy values: `false`, `null`, `undefined`, `""`, `0`, and `NaN`.
+*/
+var falsy = elements([false, null, undefined, "", 0, NaN]);
+falsy.show = function (v) {
+  if (v !== v) {
+    return "falsy: NaN";
+  } else if (v === "") {
+    return "falsy: empty string";
+  } else if (v === undefined) {
+    return "falsy: undefined";
+  } else {
+    return "falsy: " + v;
+  }
+};
+
 module.exports = {
   integer: integer,
   nat: nat,
@@ -1084,6 +1135,7 @@ module.exports = {
   asciistring: asciistring,
   elements: elements,
   bool: bool,
+  falsy: falsy,
 };
 
 },{"./generator.js":6,"./random.js":9,"./show.js":10,"./shrink.js":11,"assert":15}],9:[function(require,module,exports){
@@ -1412,6 +1464,7 @@ compileType = function compileType(env, type) {
     case "brackets": return compileBrackets(env, type);
     case "disjunction": return compileDisjunction(env, type);
     case "record": return compileRecord(env, type);
+    case "number": return type.value;
     default: throw new Error("Unsupported typify ast type: " + type.type);
   }
 };

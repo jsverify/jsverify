@@ -36,6 +36,16 @@ jsc.assert(boolFnAppliedThrice);
 
 Using jsverify with mocha is easy, just define the properties and use `jsverify.assert`.
 
+Starting from version 0.4.3 you can write your specs without any boilerplate:
+
+```js
+describe("sort", function () {
+  jsc.property("idempotent", "array nat", function (arr) {
+    return _.isEqual(sort(sort(arr)), sort(arr));
+  });
+});
+```
+
 You can also provide `--jsverifyRngState state` command line argument, to run tests with particular random generator state.
 
 ```
@@ -100,6 +110,17 @@ for now in either identity or promise functor, for synchronous and promise prope
 - `assert(prop: property, opts: checkoptions?) : void`
 
     Same as `check`, but throw exception if property doesn't hold.
+
+
+- `property(name: string, ...)
+
+   Assuming there is globally defined `it`, the same as:
+
+   ```js
+   it(name, function () {
+     jsc.assert(jsc.forall(...));
+   }
+   ```
 
 
 ### Types
@@ -189,6 +210,11 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
      JavaScript Objects: boolean, number, string, array of `json` values or object with `json` values.
 
 - `value: generator json`
+
+
+- `falsy: generator *
+
+    Generates falsy values: `false`, `null`, `undefined`, `""`, `0`, and `NaN`.
 
 
 
@@ -333,6 +359,17 @@ They will be regenerated before each release.
 
 ## Release History
 
+- 0.4.3 &mdash; *2014-11-08* jsc.property
+    - Now you can write your bdd specs without any boilerplate
+    - support for nat-litearls in dsl [#36](https://github.com/jsverify/jsverify/issues/36)
+        ```js
+        describe("Math.abs", function () {
+          jsc.property("result is non-negative", "integer 100", function (x) {
+            return Math.abs(x) >= 0;
+          });
+        });
+        ```
+    - Falsy generator [#42](https://github.com/jsverify/jsverify/issues/42)
 - 0.4.2 &mdash; *2014-11-03* User environments for DSL
     - User environments for DSL
     - Generator prototype `map`, and shrink prototype `isomap`
