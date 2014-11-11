@@ -92,7 +92,7 @@ describe("jsc.utils", function () {
   });
 
   describe("logical pred combinators", function () {
-    var notEmptyArray = function (a) {
+    var arrayWithAtLeastTwoElems = function (a) {
       return Array.isArray(a) && a.length >= 2;
     };
 
@@ -104,8 +104,8 @@ describe("jsc.utils", function () {
     // shared behaviors
     var shouldThrowWhenNotGivenArrayWithAtLeastTwoElems = function (testSubject) {
       it("should throw when not given an array with at least 2 elements", function () {
-        jsc.assert(jsc.forall(jsc.suchthat(jsc.array(jsc.fn(jsc.bool)),
-                                           jsc.utils.not(notEmptyArray)),
+        jsc.assert(jsc.forall(jsc.suchthat(jsc.json,
+                                           jsc.utils.not(arrayWithAtLeastTwoElems)),
                               function (fs) {
           return exceptionIfThrown(testSubject.bind(undefined, fs)) !== undefined;
         }));
@@ -189,7 +189,7 @@ describe("jsc.utils", function () {
       shouldStopEvaluatingPredsOnResult(jsc.utils.and, true, false);
       it("should return the logical AND of its arguments' results", function () {
         jsc.assert(jsc.forall(
-            jsc.suchthat(jsc.array(jsc.bool), notEmptyArray),
+            jsc.suchthat(jsc.array(jsc.bool), arrayWithAtLeastTwoElems),
             function (bs) {
           // if bs.contains(false) is true, then the AND of bs should be false
           return jsc.utils.and(bs.map(supplierOf))(true) !== (bs.indexOf(false) !== -1);
@@ -205,7 +205,7 @@ describe("jsc.utils", function () {
       shouldStopEvaluatingPredsOnResult(jsc.utils.or, false, true);
       it("should return the logical OR of its arguments' results", function () {
         jsc.assert(jsc.forall(
-            jsc.suchthat(jsc.array(jsc.bool), notEmptyArray),
+            jsc.suchthat(jsc.array(jsc.bool), arrayWithAtLeastTwoElems),
             function (bs) {
           // if bs.contains(true) is true, then the OR of bs should be true
           return jsc.utils.or(bs.map(supplierOf))(true) === (bs.indexOf(true) !== -1);
