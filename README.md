@@ -212,9 +212,19 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 - `value: generator json`
 
 
-- `falsy: generator *
+- `falsy: arbitrary *`
 
     Generates falsy values: `false`, `null`, `undefined`, `""`, `0`, and `NaN`.
+
+
+- `literal(x): x`
+
+    Returns an unshrinkable arbitrary that yields the given object.
+
+
+- `notEmptyString: arbitrary string`
+
+    Generates strings which are not empty.
 
 
 
@@ -338,6 +348,57 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 - `utils.merge(x: obj, y: obj): obj`
 
   Merge two objects, a bit like `_.extend({}, x, y)`
+
+
+- `utils.not(x -> y): x -> y`
+
+    An inverted version of the given function. For example,
+    `utils.not(empty)` will return a function that returns `true`
+    when soemthing is _not_ empty.
+
+
+- `utils.and(preds: array (a -> bool)): a -> bool`
+
+    Returns a function which ANDs togther results of passing its argument
+    to the given predicates.  For example: `utils.and([f,g,h])(x)` is equivalent
+    to `f(x) && g(x) && h(x)`.
+
+
+- `utils.or(preds: array (a -> bool)): a -> bool`
+
+    Returns a function which ORs together results of passing its argument
+    to the given predicates. For example: `utils.or([f,g,h])(x)` is equivalent
+    to `f(x) || g(x) || h(x)`.
+
+
+- `utils.empty(a): bool`
+
+    Predicate which returns `true` if something is empty. Only
+    works with "dimensional" types: string, object, and array.
+    If using a custom class, you can also use this predicate
+    if your class has a `length` property or getter.
+
+
+- `utils.sample(arb: arbitrary a, n: nat): () -> a`
+
+    Sample a given arbitrary with an optional size.  Handy when used in
+    a REPL:
+    ```
+    > jsc = require('jsverify') // or require('./lib/jsverify') w/in the project
+    ...
+    > sampledJson = jsc.utils.sample(jsc.json, 4)
+    [Function]
+    > sampledJson()
+    0.08467432763427496
+    > sampledJson()
+    [ [ [] ] ]
+    > sampledJson()
+    ''
+    > sampledJson()
+    -0.4199344692751765
+    > sampledJson()
+    false
+    ```
 
 
 
