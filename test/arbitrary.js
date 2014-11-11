@@ -184,14 +184,28 @@ describe("primitive arbitraries", function () {
 
   describe("elements", function () {
     it("picks one from argument array", function () {
-      var nonemptyarray = jsc.suchthat(jsc.array(), function (l) {
-        return l.length !== 0;
-      });
-
-      jsc.assert(jsc.forall(nonemptyarray, function (arr) {
+      jsc.assert(jsc.forall(jsc.nearray(), function (arr) {
         return jsc.forall(jsc.elements(arr), function (e) {
           return _.contains(arr, e);
         });
+      }));
+    });
+  });
+
+  describe("constant", function () {
+    it("should always generate the given value", function () {
+      jsc.assert(jsc.forall(jsc.json, function (a) {
+        return jsc.forall(jsc.constant(a), function (b) {
+          return a === b;
+        });
+      }));
+    });
+  });
+
+  describe("nestring", function () {
+    it("should generate non empty strings", function () {
+      jsc.assert(jsc.forall(jsc.nestring, function (s) {
+        return typeof s === "string" && s.length > 0;
       }));
     });
   });
