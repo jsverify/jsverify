@@ -201,4 +201,12 @@ describe("primitive arbitraries", function () {
       }));
     });
   });
+
+  describe("notEmptyString", function () {
+    it("should not generate empty strings", function () {
+      jsc.assert(jsc.forall(jsc.notEmptyString, function (s) {
+        return typeof s === "string" && s.length > 0;
+      }));
+    });
+  });
 });
