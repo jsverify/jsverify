@@ -21,6 +21,21 @@ describe("jsc.generator", function () {
     });
   });
 
+  describe("nearray", function () {
+    it("is auto-curried", function () {
+      function assertPredicate(arr) {
+        assert(arr.length > 0);
+        arr.forEach(function (x) {
+          assert(typeof x === "number");
+        });
+      }
+      for (var i = 0; i < 20; i++) {
+        assertPredicate(jsc.generator.nearray(jsc.nat().generator)(i));
+        assertPredicate(jsc.generator.nearray(jsc.nat().generator, i));
+      }
+    });
+  });
+
   describe("bless", function () {
     it("map", function () {
       var gen = jsc.generator.array(jsc.nat().generator).map(function (arr) { return arr.slice(0, 1); });
