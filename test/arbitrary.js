@@ -192,6 +192,12 @@ describe("primitive arbitraries", function () {
     });
   });
 
+  describe("datetime", function () {
+    jsc.property("should return date", "datetime", function (d) {
+      return d instanceof Date;
+    });
+  });
+
   describe("constant", function () {
     it("should always generate the given value", function () {
       jsc.assert(jsc.forall(jsc.json, function (a) {
