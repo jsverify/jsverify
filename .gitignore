@@ -2,3 +2,4 @@ node_modules/
 coverage/
 tests-bundle.js
 npm-debug.log
+jsverify.sublime-workspace
