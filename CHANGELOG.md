@@ -1,5 +1,10 @@
 ## Release History
 
+- 0.4.4 &mdash; *2014-11-22* new generators
+    - New generators: `nearray`, `nestring`
+    - `generator.constant`
+    - zero-ary `jsc.property` (it ∘ assert)
+    - `jsc.sampler`
 - 0.4.3 &mdash; *2014-11-08* jsc.property
     - Now you can write your bdd specs without any boilerplate
     - support for nat-litearls in dsl [#36](https://github.com/jsverify/jsverify/issues/36)

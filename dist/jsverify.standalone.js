@@ -41,6 +41,19 @@ function array(arb) {
 }
 
 /**
+  - `nearray(arb: arbitrary a): arbitrary (array a)`
+*/
+function nearray(arb) {
+  arb = utils.force(arb || primitive.json);
+
+  return {
+    generator: generator.nearray(arb.generator),
+    shrink: shrink.noop, // TODO: implement me
+    show: show.array.bind(null, arb.show),
+  };
+}
+
+/**
   - `pair(arbA: arbitrary a, arbB : arbitrary b): arbitrary (pair a b)`
 
       If not specified `a` and `b` are equal to `value()`.
@@ -166,6 +179,7 @@ module.exports = {
   nonshrink: nonshrink,
   pair: pair,
   array: array,
+  nearray: nearray,
   map: map,
   oneof: oneof,
   record: record,
@@ -177,36 +191,21 @@ module.exports = {
 var arbitrary = require("./arbitrary.js");
 var fn = require("./fn.js");
 var primitive = require("./primitive.js");
+var utils = require("./utils.js");
 
-var environment = {
-  nat: primitive.nat,
-  integer: primitive.integer,
-  number: primitive.number,
-  bool: primitive.bool,
-  falsy: primitive.falsy,
-  char: primitive.char,
-  string: primitive.string,
-  json: primitive.json,
-  value: primitive.json,
-  asciichar: primitive.asciichar,
-  asciistring: primitive.asciistring,
-  uint8: primitive.uint8,
-  uint16: primitive.uint16,
-  uint32: primitive.uint32,
-  int8: primitive.int8,
-  int16: primitive.int16,
-  int32: primitive.int32,
+var environment = utils.merge(primitive, {
   pair: arbitrary.pair,
   array: arbitrary.array,
+  nearray: arbitrary.nearray,
   map: arbitrary.map,
   fn: fn.fn,
   fun: fn.fn,
   nonshrink: arbitrary.nonshrink,
-};
+});
 
 module.exports = environment;
 
-},{"./arbitrary.js":1,"./fn.js":4,"./primitive.js":8}],3:[function(require,module,exports){
+},{"./arbitrary.js":1,"./fn.js":4,"./primitive.js":8,"./utils.js":14}],3:[function(require,module,exports){
 "use strict";
 
 var utils = require("./utils.js");
@@ -396,6 +395,15 @@ function generatorBless(generator) {
 }
 
 /**
+  - `generator.constant(x: a): gen a`
+*/
+function generateConstant(x) {
+  return generatorBless(function () {
+    return x;
+  });
+}
+
+/**
    - `generator.array(gen: Gen a, size: nat): gen (array a)`
 */
 function generateArray(gen) {
@@ -416,10 +424,39 @@ function generateArray(gen) {
 }
 
 /**
+   - `generator.nearray(gen: Gen a, size: nat): gen (array a)`
+*/
+function generateNEArray(gen) {
+  var result = generatorBless(function (size) {
+    var arrsize = random(1, Math.max(size, 1));
+    var arr = new Array(arrsize);
+    for (var i = 0; i < arrsize; i++) {
+      arr[i] = gen(size);
+    }
+    return arr;
+  });
+
+  if (arguments.length === 2) {
+    return result(arguments[1]);
+  } else {
+    return result;
+  }
+}
+
+/**
   - `generator.string(size: nat): gen string`
 */
 function generateString(size) {
   return generateArray(function () {
+    return String.fromCharCode(random(0, 0xff));
+  }, size).join("");
+}
+
+/**
+  - `generator.nestring(size: nat): gen string`
+*/
+function generateNEString(size) {
+  return generateNEArray(function () {
     return String.fromCharCode(random(0, 0xff));
   }, size).join("");
 }
@@ -492,10 +529,13 @@ function generateOneof(generators) {
 
 module.exports = {
   array: generateArray,
+  nearray: generateNEArray,
   string: generateString,
+  nestring: generateNEString,
   map: generateMap,
   json: generateJson,
   oneof: generateOneof,
+  constant: generateConstant,
   bless: generatorBless,
 };
 
@@ -820,15 +860,66 @@ function checkThrow(property, opts) {
         jsc.assert(jsc.forall(...));
       }
       ```
+
+      You can use `property` to write facts too:
+      ```js
+      jsc.property("+0 === -0", function () {
+        return +0 === -0;
+      });
+      ```
 */
 function bddProperty(name) {
   /* global it: true */
   var args = Array.prototype.slice.call(arguments, 1);
-  var prop = forall.apply(undefined, args);
-  it(name, function () {
-    checkThrow(prop);
-  });
+  if (args.length === 1) {
+    it(name, function () {
+      if (args[0]() !== true) {
+        throw new Error(name + " doesn't hold");
+      }
+    });
+  } else {
+    var prop = forall.apply(undefined, args);
+    it(name, function () {
+      checkThrow(prop);
+    });
+  }
   /* global it: false */
+}
+
+/**
+  - `sampler(arb: arbitrary a, genSize: nat = 10): (sampleSize: nat?) -> a`
+
+      Create a sampler for a given arbitrary with an optional size. Handy when used in
+      a REPL:
+      ```
+      > jsc = require('jsverify') // or require('./lib/jsverify') w/in the project
+      ...
+      > jsonSampler = jsc.sampler(jsc.json, 4)
+      [Function]
+      > jsonSampler()
+      0.08467432763427496
+      > jsonSampler()
+      [ [ [] ] ]
+      > jsonSampler()
+      ''
+      > sampledJson(2)
+      [-0.4199344692751765, false]
+      ```
+*/
+function sampler(arb, size) {
+  size = typeof size === "number" ? Math.abs(size) : 10;
+  return function (count) {
+    if (typeof count === "number") {
+      var acc = [];
+      count = Math.abs(count);
+      for (var i = 0; i < count; i++) {
+        acc.push(arb.generator(size));
+      }
+      return acc;
+    } else {
+      return arb.generator(size);
+    }
+  };
 }
 
 /**
@@ -857,10 +948,12 @@ var jsc = {
   check: check,
   assert: checkThrow,
   property: bddProperty,
+  sampler: sampler,
 
   // generators
   pair: arbitrary.pair,
   array: arbitrary.array,
+  nearray: arbitrary.nearray,
   map: arbitrary.map,
   oneof: arbitrary.oneof,
   record: arbitrary.record,
@@ -1014,6 +1107,23 @@ var bool = {
 };
 
 /**
+  - `datetime: generator datetime`
+
+      Random datetime
+*/
+var datetimeConst = 1416499879495; // arbitrary datetime
+
+var datetime = {
+  generator: generator.bless(function (size) {
+    // TODO: if size === 0 return datetimeConst or distantPast or distantFuture
+    return new Date(random.number(-size, size) * 768000000 + datetimeConst);
+  }),
+  // TODO: implement datetime shrink
+  shrink: shrink.noop,
+  show: show.def,
+};
+
+/**
   - `elements(args: array a): generator a`
 
       Random element of `args` array.
@@ -1073,6 +1183,17 @@ function string() {
 }
 
 /**
+  - `notEmptyString: arbitrary string`
+
+      Generates strings which are not empty.
+*/
+var nestring = {
+  generator: generator.nestring,
+  shrink: shrink.noop, // todo implement me
+  show: show.def,
+};
+
+/**
   - `asciistring: generator string`
 */
 var asciistring = {
@@ -1101,7 +1222,7 @@ var json = {
 };
 
 /**
-  - `falsy: generator *
+  - `falsy: arbitrary *`
 
       Generates falsy values: `false`, `null`, `undefined`, `""`, `0`, and `NaN`.
 */
@@ -1117,6 +1238,19 @@ falsy.show = function (v) {
     return "falsy: " + v;
   }
 };
+
+/**
+  - `constant(x: a): arbitrary a`
+
+      Returns an unshrinkable arbitrary that yields the given object.
+*/
+function constant(x) {
+  return {
+    generator: generator.constant(x),
+    shrink: shrink.noop,
+    show: show.def
+  };
+}
 
 module.exports = {
   integer: integer,
@@ -1136,6 +1270,9 @@ module.exports = {
   elements: elements,
   bool: bool,
   falsy: falsy,
+  constant: constant,
+  nestring: nestring,
+  datetime: datetime,
 };
 
 },{"./generator.js":6,"./random.js":9,"./show.js":10,"./shrink.js":11,"assert":15}],9:[function(require,module,exports){
@@ -1344,6 +1481,8 @@ module.exports = {
 var environment = require("./environment.js");
 var typify = require("./typify.js");
 var utils = require("./utils.js");
+var generator = require("./generator.js");
+var shrink = require("./shrink.js");
 
 /**
   - `suchthat(arb: arbitrary a, p : a -> bool): arbitrary a`
@@ -1362,7 +1501,7 @@ function suchthat(arb, userenv, predicate) {
   arb = utils.force(arb);
 
   return {
-    generator: function (size) {
+    generator: generator.bless(function (size) {
       for (var i = 0; ; i++) {
         // if 5 tries failed, increase size
         if (i > 5) {
@@ -1375,11 +1514,11 @@ function suchthat(arb, userenv, predicate) {
           return x;
         }
       }
-    },
+    }),
 
-    shrink: function (x) {
+    shrink: shrink.bless(function (x) {
       return arb.shrink(x).filter(predicate);
-    },
+    }),
 
     show: arb.show,
   };
@@ -1389,7 +1528,7 @@ module.exports = {
   suchthat: suchthat,
 };
 
-},{"./environment.js":2,"./typify.js":13,"./utils.js":14}],13:[function(require,module,exports){
+},{"./environment.js":2,"./generator.js":6,"./shrink.js":11,"./typify.js":13,"./utils.js":14}],13:[function(require,module,exports){
 "use strict";
 
 /**
@@ -1496,6 +1635,11 @@ function isObject(o) {
 
 /**
   ### Utility functions
+
+  Utility functions are exposed (and documented) only to make contributions to jsverify easy.
+  The changes here don't follow semver, i.e. ther might backward-incompatible changes even in patch releases.
+
+  Use [underscore.js](http://underscorejs.org/), [lodash](https://lodash.com/), [ramda](http://ramda.github.io/ramdocs/docs/), [lazy.js](http://danieltao.com/lazy.js/) or some other utility belt.
 */
 
 /**

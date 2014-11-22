@@ -122,6 +122,33 @@ for now in either identity or promise functor, for synchronous and promise prope
    }
    ```
 
+   You can use `property` to write facts too:
+   ```js
+   jsc.property("+0 === -0", function () {
+     return +0 === -0;
+   });
+   ```
+
+
+- `sampler(arb: arbitrary a, genSize: nat = 10): (sampleSize: nat?) -> a`
+
+    Create a sampler for a given arbitrary with an optional size. Handy when used in
+    a REPL:
+    ```
+    > jsc = require('jsverify') // or require('./lib/jsverify') w/in the project
+    ...
+    > jsonSampler = jsc.sampler(jsc.json, 4)
+    [Function]
+    > jsonSampler()
+    0.08467432763427496
+    > jsonSampler()
+    [ [ [] ] ]
+    > jsonSampler()
+    ''
+    > sampledJson(2)
+    [-0.4199344692751765, false]
+    ```
+
 
 ### Types
 
@@ -184,6 +211,11 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
     Booleans, `true` or `false`.
 
 
+- `datetime: generator datetime`
+
+    Random datetime
+
+
 - `elements(args: array a): generator a`
 
     Random element of `args` array.
@@ -202,6 +234,11 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 - `string: generator string`
 
 
+- `notEmptyString: arbitrary string`
+
+    Generates strings which are not empty.
+
+
 - `asciistring: generator string`
 
 
@@ -212,9 +249,14 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 - `value: generator json`
 
 
-- `falsy: generator *
+- `falsy: arbitrary *`
 
     Generates falsy values: `false`, `null`, `undefined`, `""`, `0`, and `NaN`.
+
+
+- `constant(x: a): arbitrary a`
+
+    Returns an unshrinkable arbitrary that yields the given object.
 
 
 
@@ -227,6 +269,9 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
 
 - `array(arb: arbitrary a): arbitrary (array a)`
+
+
+- `nearray(arb: arbitrary a): arbitrary (array a)`
 
 
 - `pair(arbA: arbitrary a, arbB : arbitrary b): arbitrary (pair a b)`
@@ -259,10 +304,19 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 ### Generator functions
 
 
+- `generator.constant(x: a): gen a`
+
+
 - `generator.array(gen: Gen a, size: nat): gen (array a)`
 
 
+- `generator.nearray(gen: Gen a, size: nat): gen (array a)`
+
+
 - `generator.string(size: nat): gen string`
+
+
+- `generator.nestring(size: nat): gen string`
 
 
 - `generator.map(gen: gen a, size: nat): gen (map a)`
@@ -324,6 +378,11 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
 ### Utility functions
 
+Utility functions are exposed (and documented) only to make contributions to jsverify easy.
+The changes here don't follow semver, i.e. ther might backward-incompatible changes even in patch releases.
+
+Use [underscore.js](http://underscorejs.org/), [lodash](https://lodash.com/), [ramda](http://ramda.github.io/ramdocs/docs/), [lazy.js](http://danieltao.com/lazy.js/) or some other utility belt.
+
 
 - `utils.isEqual(x: json, y: json): bool`
 
@@ -359,6 +418,11 @@ They will be regenerated before each release.
 
 ## Release History
 
+- 0.4.4 &mdash; *2014-11-22* new generators
+    - New generators: `nearray`, `nestring`
+    - `generator.constant`
+    - zero-ary `jsc.property` (it ∘ assert)
+    - `jsc.sampler`
 - 0.4.3 &mdash; *2014-11-08* jsc.property
     - Now you can write your bdd specs without any boilerplate
     - support for nat-litearls in dsl [#36](https://github.com/jsverify/jsverify/issues/36)
