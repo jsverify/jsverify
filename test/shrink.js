@@ -128,6 +128,20 @@ describe("shrink", function () {
     });
   });
 
+  describe("number", function () {
+    var arb = jsc.number;
+    it("zero isn't shrinked", function () {
+      chai.expect(arb.shrink(0)).to.deep.equal([]);
+    });
+
+    it("shrinked to absolutely smaller values", function () {
+      var n = 10;
+      assert(arb.shrink(n).every(function (x) {
+        return x < n;
+      }));
+    });
+  });
+
   describe("nonshrink array", function () {
     it("cannot be shrinked", function () {
       var property = jsc.forall(jsc.nonshrink(jsc.array(jsc.nat())), function (arr) {
