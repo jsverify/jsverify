@@ -30,6 +30,7 @@
   },
   "devDependencies": {
     "browserify": "~6.3.2",
+    "chai": "^1.10.0",
     "david": "^5.0.0",
     "eslint": "^0.9.1",
     "esprima": "~1.2.2",
