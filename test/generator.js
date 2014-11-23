@@ -80,6 +80,29 @@ describe("jsc.generator", function () {
     });
   });
 
+  describe("combine", function () {
+    it("applicative combinator", function () {
+      var gen = jsc.generator.combine(jsc.nat.generator, jsc.nat.generator, function (a, b) { return a + b; });
+
+      for (var i = 0; i < 100; i++) {
+        assert(typeof gen(i) === "number");
+      }
+    });
+  });
+
+  describe("flatmap", function () {
+    it("monadic combinator", function () {
+      var gen = jsc.bool.generator.flatmap(function (b) {
+        return b ? jsc.string.generator : jsc.number.generator;
+      });
+
+      for (var i = 0; i < 100; i++) {
+        var value = gen(i);
+        assert(typeof value === "number" || typeof value === "string");
+      }
+    });
+  });
+
   describe("oneof", function () {
     it("is auto-curried", function () {
       function assertPredicate(x) {
