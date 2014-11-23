@@ -86,10 +86,9 @@ describe("shrink", function () {
       assert(jsc.string().shrink("").length === 0);
     });
 
-    it("shrinked array contains empty string for non-empty input", function () {
+    it("shrinks to smaller strings", function () {
       assert(jsc.string().shrink("foobar").indexOf("fobar") !== -1);
       assert(jsc.string().shrink("f").indexOf("") !== -1);
-      assert(jsc.string().shrink("").length === 0);
     });
   });
 
@@ -98,10 +97,23 @@ describe("shrink", function () {
       assert(jsc.asciistring.shrink("").length === 0);
     });
 
-    it("shrinked array contains empty asciistring for non-empty input", function () {
+    it("shrinks to smaller asciistrings", function () {
       assert(jsc.asciistring.shrink("foobar").indexOf("fobar") !== -1);
       assert(jsc.asciistring.shrink("f").indexOf("") !== -1);
-      assert(jsc.asciistring.shrink("").length === 0);
+    });
+  });
+
+  describe("nearray", function () {
+    jsc.property("shrink of singleton nearray is empty", "nat", function (n) {
+      return jsc.nearray(jsc.nat).shrink([n]).length === 0;
+    });
+
+    it("shrinks to smaller nearrays", function () {
+      assert(jsc.nearray(jsc.nat).shrink([0, 0]).map(function (x) { return x.join(""); }).indexOf("0") !== -1);
+      assert(jsc.nearray(jsc.nat).shrink([0, 0, 0]).map(function (x) { return x.join(""); }).indexOf("00") !== -1);
+
+      assert(jsc.shrink.nearray(jsc.nat.shrink)([1, 1]).map(function (x) { return x.join(""); }).indexOf("1") !== -1);
+      assert(jsc.shrink.nearray(jsc.nat.shrink, [1, 1]).map(function (x) { return x.join(""); }).indexOf("1") !== -1);
     });
   });
 
