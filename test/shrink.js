@@ -5,6 +5,7 @@
 var jsc = require("../lib/jsverify.js");
 var assert = require("assert");
 var _ = require("underscore");
+var chai = require("chai");
 
 function checkShrink(mincase, property, tries) {
   tries = tries || 20;
@@ -114,6 +115,16 @@ describe("shrink", function () {
 
       assert(jsc.shrink.nearray(jsc.nat.shrink)([1, 1]).map(function (x) { return x.join(""); }).indexOf("1") !== -1);
       assert(jsc.shrink.nearray(jsc.nat.shrink, [1, 1]).map(function (x) { return x.join(""); }).indexOf("1") !== -1);
+    });
+  });
+
+  describe("elements", function () {
+    var arb = jsc.elements([1, 2, 3]);
+    it("shrinks to values towars beginning of the list", function () {
+      chai.expect(arb.shrink(1)).to.deep.equal([]);
+      chai.expect(arb.shrink(2)).to.deep.equal([1]);
+      chai.expect(arb.shrink(3)).to.deep.equal([1, 2]);
+      chai.expect(arb.shrink(4)).to.deep.equal([]);
     });
   });
 
