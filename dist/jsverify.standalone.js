@@ -387,10 +387,19 @@ function generatorProtoMap(generator) {
     });
   };
 }
+
+function generatorProtoFlatMap(generator) {
+  return function (f) {
+    return generatorBless(function (size) {
+      return f(generator(size))(size);
+    });
+  };
+}
 /* eslint-enable no-use-before-define */
 
 function generatorBless(generator) {
   generator.map = generatorProtoMap(generator);
+  generator.flatmap = generatorProtoFlatMap(generator);
   return generator;
 }
 
@@ -527,6 +536,22 @@ function generateOneof(generators) {
   }
 }
 
+/**
+  - `generator.combine(gen: gen a..., f: a... -> b): gen b`
+*/
+function generatorCombine() {
+  var generators = Array.prototype.slice.call(arguments, 0, -1);
+  var f = arguments[arguments.length - 1];
+
+  return generatorBless(function (size) {
+    var values = generators.map(function (gen) {
+      return gen(size);
+    });
+
+    return f.apply(undefined, values);
+  });
+}
+
 module.exports = {
   array: generateArray,
   nearray: generateNEArray,
@@ -537,6 +562,7 @@ module.exports = {
   oneof: generateOneof,
   constant: generateConstant,
   bless: generatorBless,
+  combine: generatorCombine,
 };
 
 },{"./random.js":9}],7:[function(require,module,exports){
@@ -1005,6 +1031,13 @@ var shrink = require("./shrink.js");
   ### Primitive arbitraries
 */
 
+function extendWithDefault(arb) {
+  var def = arb();
+  arb.generator = def.generator;
+  arb.shrink = def.shrink;
+  arb.show = def.show;
+}
+
 /**
   - `integer: arbitrary integer`
   - `integer(maxsize: nat): arbitrary integer`
@@ -1031,6 +1064,8 @@ function integer(maxsize) {
   };
 }
 
+extendWithDefault(integer);
+
 /**
   - `nat: arbitrary nat`
   - `nat(maxsize: nat): arbitrary nat`
@@ -1054,6 +1089,8 @@ function nat(maxsize) {
   };
 }
 
+extendWithDefault(nat);
+
 /**
   - `number: arbitrary number`
   - `number(maxsize: number): arbitrary number`
@@ -1070,6 +1107,8 @@ function number(maxsize) {
     show: show.def,
   };
 }
+
+extendWithDefault(number);
 
 /**
   - `uint8: arbitrary nat`
@@ -1113,15 +1152,34 @@ var bool = {
 */
 var datetimeConst = 1416499879495; // arbitrary datetime
 
-var datetime = {
-  generator: generator.bless(function (size) {
-    // TODO: if size === 0 return datetimeConst or distantPast or distantFuture
-    return new Date(random.number(-size, size) * 768000000 + datetimeConst);
-  }),
-  // TODO: implement datetime shrink
-  shrink: shrink.noop,
-  show: show.def,
-};
+function datetime(from, to) {
+  if (arguments.length === 2) {
+    from = from.getTime();
+    to = to.getTime();
+
+    return {
+      generator: generator.bless(function () {
+        return new Date(random.number(from, to));
+      }),
+      // TODO: implement datetime shrink
+      shrink: shrink.noop,
+      show: show.def,
+    };
+  } else {
+    return {
+      generator: generator.bless(function (size) {
+        // TODO: if size === 0 return datetimeConst or distantPast or distantFuture
+        return new Date(random.number(-size, size) * 768000000 + datetimeConst);
+      }),
+
+      // TODO: implement datetime shrink
+      shrink: shrink.noop,
+      show: show.def,
+    };
+  }
+}
+
+extendWithDefault(datetime);
 
 /**
   - `elements(args: array a): generator a`
@@ -1181,6 +1239,8 @@ function string() {
     show: show.def,
   };
 }
+
+extendWithDefault(string);
 
 /**
   - `notEmptyString: arbitrary string`

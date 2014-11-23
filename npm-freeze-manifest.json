@@ -1,5 +1,5 @@
 {
-  "version": "0.4.4",
+  "version": "0.4.5",
   "dependencies": {
     "browserify": {
       "version": "6.3.2",
