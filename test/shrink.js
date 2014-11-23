@@ -87,7 +87,9 @@ describe("shrink", function () {
     });
 
     it("shrinked array contains empty string for non-empty input", function () {
-      assert(jsc.string().shrink("foobar").indexOf("") !== -1);
+      assert(jsc.string().shrink("foobar").indexOf("fobar") !== -1);
+      assert(jsc.string().shrink("f").indexOf("") !== -1);
+      assert(jsc.string().shrink("").length === 0);
     });
   });
 
@@ -97,7 +99,9 @@ describe("shrink", function () {
     });
 
     it("shrinked array contains empty asciistring for non-empty input", function () {
-      assert(jsc.asciistring.shrink("foobar").indexOf("") !== -1);
+      assert(jsc.asciistring.shrink("foobar").indexOf("fobar") !== -1);
+      assert(jsc.asciistring.shrink("f").indexOf("") !== -1);
+      assert(jsc.asciistring.shrink("").length === 0);
     });
   });
 
