@@ -196,6 +196,15 @@ describe("primitive arbitraries", function () {
     jsc.property("should return date", "datetime", function (d) {
       return d instanceof Date;
     });
+
+    it("takes two parameters for range", function () {
+      var now = new Date();
+      var nextHour = new Date(now.getTime() + 3600 * 1000);
+
+      jsc.assert(jsc.forall(jsc.datetime(now, nextHour), function (d) {
+        return now.getTime() <= d.getTime() && d.getTime() <= nextHour.getTime();
+      }));
+    });
   });
 
   describe("constant", function () {
