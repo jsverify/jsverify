@@ -142,6 +142,18 @@ describe("shrink", function () {
 
       jsc.assert(prop);
     });
+
+    it("is auto-curried, nat acts as object too!", function () {
+      var natShrink = jsc.nat.shrink;
+      var prop = jsc.forall("nat", function (n) {
+        var a = jsc.shrink.record({ key: natShrink }, { key: n });
+        var b = jsc.shrink.record({ key: natShrink })({ key: n});
+
+        return _.isEqual(a, b);
+      });
+
+      jsc.assert(prop);
+    });
   });
 
   describe("json", function () {
