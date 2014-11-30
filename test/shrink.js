@@ -44,6 +44,18 @@ describe("shrink", function () {
         return n < 2 ? true : n === n + 1;
       }));
     });
+
+    it("shrinks to smaller values, 3", function () {
+      checkShrink([2], jsc.forall(jsc.integer(5), function (n) {
+        return n < 2 ? true : n === n + 1;
+      }));
+    });
+
+    it("shrinks to smaller values, 4", function () {
+      checkShrink([2], jsc.forall(jsc.integer(-1, 5), function (n) {
+        return n < 2 ? true : n === n + 1;
+      }));
+    });
   });
 
   describe("bool", function () {
@@ -129,15 +141,45 @@ describe("shrink", function () {
   });
 
   describe("number", function () {
-    var arb = jsc.number;
     it("zero isn't shrinked", function () {
+      var arb = jsc.number;
       chai.expect(arb.shrink(0)).to.deep.equal([]);
     });
 
     it("shrinked to absolutely smaller values", function () {
+      var arb = jsc.number;
       var n = 10;
       assert(arb.shrink(n).every(function (x) {
-        return x < n;
+        return Math.abs(x) < n;
+      }));
+    });
+
+    it("shrinked to absolutely smaller values, 2", function () {
+      var n = 10;
+      var arb = jsc.number(n);
+      assert(arb.shrink(n).every(function (x) {
+        return Math.abs(x) < n;
+      }));
+    });
+
+    it("shrinked to absolutely smaller values, 3", function () {
+      var n = 10;
+      var m = 5;
+      var arb = jsc.number(m, n);
+      assert(arb.shrink(n).every(function (x) {
+        return x >= m && x < n;
+      }));
+    });
+  });
+
+  describe("datetime", function () {
+    it("shrinked days stay in the interval", function () {
+      var from = new Date("Sun Nov 30 2014 10:00:00 GMT+0200 (EET)");
+      var to = new Date("Sun Nov 30 2014 14:00:00 GMT+0200 (EET)");
+      var arb = jsc.datetime(from, to);
+      var date = new Date("Sun Nov 30 2014 11:00:00 GMT+0200 (EET)");
+      assert(arb.shrink(date).every(function (x) {
+        return from.getTime() <= x.getTime() && x.getTime() <= to.getTime();
       }));
     });
   });
