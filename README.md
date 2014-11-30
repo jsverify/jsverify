@@ -180,6 +180,7 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
 - `integer: arbitrary integer`
 - `integer(maxsize: nat): arbitrary integer`
+- `integer(minsize: integer, maxsize: integer): arbitrary integer`
 
     Integers, ℤ
 
@@ -192,6 +193,7 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
 - `number: arbitrary number`
 - `number(maxsize: number): arbitrary number`
+- `number(min: number, max: number): arbitrary number`
 
     JavaScript numbers, "doubles", ℝ. `NaN` and `Infinity` are not included.
 
@@ -322,13 +324,16 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 - `generator.map(gen: gen a, size: nat): gen (map a)`
 
 
-- `generator.json: gen json`
-
-
 - `generator.oneof(gen: list (gen a), size: nat): gen a`
 
 
 - `generator.combine(gen: gen a..., f: a... -> b): gen b`
+
+
+- `generator.recursive(genZ: gen a, genS: gen a -> gen a): gen a<
+
+
+- `generator.json: gen json`
 
 
 
@@ -342,6 +347,9 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
 
 - `shrink.array(shrink: a -> array a, x: array a): array (array a)`
+
+
+- `shrink.nearray(shrink: a -> nearray a, x:  nearray a): array (nearray a)`
 
 
 - `shrink.record(shrinks: { key: a -> string... }, x: { key: a... }): array { key: a... }`
@@ -421,6 +429,10 @@ They will be regenerated before each release.
 
 ## Release History
 
+- **0.4.6** &mdash; *2014-11-30* better shrinks &amp; recursive
+    - Implemented shrinks: [#51](https://github.com/jsverify/jsverify/issues/51)
+    - `jsc.generator.recursive`: [#37](https://github.com/jsverify/jsverify/issues/37)
+    - array, nearray &amp; map generators return a bit smaller results (*log2* of size)
 - **0.4.5** &mdash; *2014-11-22* stuff
     - `generator.combine` &amp; `.flatmap`
     - `nat`, `integer`, `number` &amp; and `string` act as objects too

@@ -1,5 +1,9 @@
 ## Release History
 
+- **0.4.6** &mdash; *2014-11-30* better shrinks &amp; recursive
+    - Implemented shrinks: [#51](https://github.com/jsverify/jsverify/issues/51)
+    - `jsc.generator.recursive`: [#37](https://github.com/jsverify/jsverify/issues/37)
+    - array, nearray &amp; map generators return a bit smaller results (*log2* of size)
 - **0.4.5** &mdash; *2014-11-22* stuff
     - `generator.combine` &amp; `.flatmap`
     - `nat`, `integer`, `number` &amp; and `string` act as objects too

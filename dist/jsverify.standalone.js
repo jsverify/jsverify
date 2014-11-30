@@ -48,7 +48,7 @@ function nearray(arb) {
 
   return {
     generator: generator.nearray(arb.generator),
-    shrink: shrink.noop, // TODO: implement me
+    shrink: shrink.nearray(arb.shrink),
     show: show.array.bind(null, arb.show),
   };
 }
@@ -412,12 +412,17 @@ function generateConstant(x) {
   });
 }
 
+// Helper, essentially: log2(size + 1)
+function logsize(size) {
+  return Math.max(Math.round(Math.log(size + 1) / Math.log(2), 0));
+}
+
 /**
    - `generator.array(gen: Gen a, size: nat): gen (array a)`
 */
 function generateArray(gen) {
   var result = generatorBless(function (size) {
-    var arrsize = random(0, size);
+    var arrsize = random(0, logsize(size));
     var arr = new Array(arrsize);
     for (var i = 0; i < arrsize; i++) {
       arr[i] = gen(size);
@@ -437,7 +442,7 @@ function generateArray(gen) {
 */
 function generateNEArray(gen) {
   var result = generatorBless(function (size) {
-    var arrsize = random(1, Math.max(size, 1));
+    var arrsize = random(1, Math.max(logsize(size), 1));
     var arr = new Array(arrsize);
     for (var i = 0; i < arrsize; i++) {
       arr[i] = gen(size);
@@ -475,7 +480,7 @@ function generateNEString(size) {
 */
 function generateMap(gen) {
   var result = generatorBless(function (size) {
-    var objsize = random(0, size);
+    var objsize = random(0, logsize(size));
     var obj = {};
     for (var i = 0; i < objsize; i++) {
       obj[generateString(size)] = gen(size);
@@ -489,35 +494,6 @@ function generateMap(gen) {
     return result;
   }
 }
-
-/**
-  - `generator.json: gen json`
-*/
-var generateJson = generatorBless(function generateJson(size) {
-  var type = random(0, 5);
-  if (size === 0) {
-    switch (type) {
-      case 0: return 0;
-      case 1: return random.number(0, 1);
-      case 2: return random(0, 1) === 0;
-      case 3: return "";
-      case 4: return [];
-      case 5: return {};
-    }
-  }
-
-  // divide by 2
-  size = size >> 1;
-
-  switch (type) {
-    case 0: return random(-size, size);
-    case 1: return random.number(-size, size);
-    case 2: return random(0, 1) === 0;
-    case 3: return generateString(size);
-    case 4: return generateArray(generateJson, size);
-    case 5: return generateMap(generateJson, size);
-  }
-});
 
 /**
   - `generator.oneof(gen: list (gen a), size: nat): gen a`
@@ -552,6 +528,46 @@ function generatorCombine() {
   });
 }
 
+/**
+  - `generator.recursive(genZ: gen a, genS: gen a -> gen a): gen a<
+*/
+function generatorRecursive(genZ, genS) {
+  return generatorBless(function (size) {
+    function rec(n, sizep) {
+      if (n <= 0 || random(0, 3) === 0) {
+        return genZ(sizep);
+      } else {
+        return genS(generatorBless(function (sizeq) {
+          return rec(n - 1, sizeq);
+        }))(sizep);
+      }
+    }
+
+    return rec(logsize(size), size);
+  });
+}
+
+/**
+  - `generator.json: gen json`
+*/
+var generateInteger = generatorBless(function (size) {
+  return random(-size, size);
+});
+
+var generateNumber = generatorBless(function (size) {
+  return random.number(-size, size);
+});
+
+var generateBool = generatorBless(function () {
+  return random(0, 1) === 0;
+});
+
+var generateJson = generatorRecursive(
+  generateOneof([generateInteger, generateNumber, generateBool, generateString]),
+  function (gen) {
+    return generateOneof([generateArray(gen), generateMap(gen)]);
+  });
+
 module.exports = {
   array: generateArray,
   nearray: generateNEArray,
@@ -563,6 +579,7 @@ module.exports = {
   constant: generateConstant,
   bless: generatorBless,
   combine: generatorCombine,
+  recursive: generatorRecursive,
 };
 
 },{"./random.js":9}],7:[function(require,module,exports){
@@ -1026,6 +1043,7 @@ var generator = require("./generator.js");
 var random = require("./random.js");
 var show = require("./show.js");
 var shrink = require("./shrink.js");
+var utils = require("./utils.js");
 
 /**
   ### Primitive arbitraries
@@ -1041,10 +1059,29 @@ function extendWithDefault(arb) {
 /**
   - `integer: arbitrary integer`
   - `integer(maxsize: nat): arbitrary integer`
+  - `integer(minsize: integer, maxsize: integer): arbitrary integer`
 
       Integers, ℤ
 */
-function integer(maxsize) {
+function integer(minsize, maxsize) {
+  if (arguments.length === 2) {
+    var arb = integer(maxsize - minsize);
+    var to = function to(x) {
+      return Math.abs(x) + minsize;
+    };
+    var from = function from(x) {
+      return x - minsize;
+    };
+
+    return {
+      generator: arb.generator.map(to),
+      shrink: arb.shrink.isomap(to, from),
+      show: show.def,
+    };
+  } else if (arguments.length === 1) {
+    maxsize = minsize;
+  }
+
   return {
     generator: generator.bless(function (size) {
       size = maxsize || size;
@@ -1055,8 +1092,16 @@ function integer(maxsize) {
       if (i === 0) {
         return [];
       } else {
-        // TODO: redo
-        return [0, -i + 1, i - 1];
+        var arr = [0];
+        var j = utils.div2(i);
+        var k = Math.max(j, 1);
+        while (j < i) {
+          arr.push(j);
+          arr.push(-j);
+          k = Math.max(utils.div2(k), 1);
+          j += k;
+        }
+        return arr;
       }
     }),
 
@@ -1080,8 +1125,12 @@ function nat(maxsize) {
     }),
     shrink: shrink.bless(function (i) {
       var arr = [];
-      for (var j = 0; j < i; j++) {
+      var j = utils.div2(i);
+      var k = Math.max(j, 1);
+      while (j < i) {
         arr.push(j);
+        k = Math.max(utils.div2(k), 1);
+        j += k;
       }
       return arr;
     }),
@@ -1094,16 +1143,41 @@ extendWithDefault(nat);
 /**
   - `number: arbitrary number`
   - `number(maxsize: number): arbitrary number`
+  - `number(min: number, max: number): arbitrary number`
 
       JavaScript numbers, "doubles", ℝ. `NaN` and `Infinity` are not included.
 */
-function number(maxsize) {
+function number(minsize, maxsize) {
+  if (arguments.length === 2) {
+    var arb = number(maxsize - minsize);
+    var to = function to(x) {
+      return Math.abs(x) + minsize;
+    };
+    var from = function from(x) {
+      return x - minsize;
+    };
+
+    return {
+      generator: arb.generator.map(to),
+      shrink: arb.shrink.isomap(to, from),
+      show: show.def,
+    };
+  } else if (arguments.length === 1) {
+    maxsize = minsize;
+  }
+
   return {
     generator: generator.bless(function (size) {
       size = maxsize || size;
       return random.number(-size, size);
     }),
-    shrink: shrink.noop,
+    shrink: shrink.bless(function (x) {
+      if (Math.abs(x) > 1e-6) {
+        return [0, x / 2, -x / 2];
+      } else {
+        return [];
+      }
+    }),
     show: show.def,
   };
 }
@@ -1153,26 +1227,34 @@ var bool = {
 var datetimeConst = 1416499879495; // arbitrary datetime
 
 function datetime(from, to) {
+  var toDate;
+  var fromDate;
+  var arb;
+
   if (arguments.length === 2) {
-    from = from.getTime();
-    to = to.getTime();
+    toDate = function toDate(x) {
+      return new Date(x);
+    };
+    fromDate = function fromDate(x) {
+      return x.getTime();
+    };
+    from = fromDate(from);
+    to = fromDate(to);
+    arb = number(from, to);
 
     return {
-      generator: generator.bless(function () {
-        return new Date(random.number(from, to));
-      }),
-      // TODO: implement datetime shrink
-      shrink: shrink.noop,
+      generator: arb.generator.map(toDate),
+      shrink: arb.shrink.isomap(toDate, fromDate),
       show: show.def,
     };
   } else {
-    return {
-      generator: generator.bless(function (size) {
-        // TODO: if size === 0 return datetimeConst or distantPast or distantFuture
-        return new Date(random.number(-size, size) * 768000000 + datetimeConst);
-      }),
+    toDate = function toDate(x) {
+      return new Date(x * 768000000 + datetimeConst);
+    };
+    arb = number;
 
-      // TODO: implement datetime shrink
+    return {
+      generator: arb.generator.map(toDate),
       shrink: shrink.noop,
       show: show.def,
     };
@@ -1195,10 +1277,20 @@ function elements(args) {
       return args[i];
     }),
 
-    // TODO: make shrink
-    shrink: shrink.noop,
+    shrink: function (x) {
+      var idx = args.indexOf(x);
+      if (idx <= 0) {
+        return [];
+      } else {
+        return args.slice(0, idx);
+      }
+    },
     show: show.def,
   };
+}
+
+function natToChar(n) {
+  return String.fromCharCode(n);
 }
 
 /**
@@ -1206,26 +1298,38 @@ function elements(args) {
 
       Single character
 */
+var natChar = nat(0x1ff);
+
 var char = {
-  generator: generator.bless(function (/* size */) {
-    return String.fromCharCode(random(0, 0x1ff));
-  }),
+  generator: natChar.generator.map(natToChar),
   shrink: shrink.noop,
   show: show.def,
 };
+
+function natToAsciiChar(n) {
+  return String.fromCharCode(n + 0x20);
+}
 
 /**
   - `asciichar: generator char`
 
       Single ascii character (0x20-0x7e inclusive, no DEL)
 */
+var natAsciiChar = nat(0x77 - 0x20);
+
 var asciichar = {
-  generator: generator.bless(function (/* size */) {
-    return String.fromCharCode(random(0x20, 0x7f));
-  }),
+  generator: natAsciiChar.generator.map(natToAsciiChar),
   shrink: shrink.noop,
   show: show.def,
 };
+
+function arrayToString(arr) {
+  return arr.join("");
+}
+
+function stringToArray(str) {
+  return str.split("");
+}
 
 /**
   - `string: generator string`
@@ -1233,9 +1337,7 @@ var asciichar = {
 function string() {
   return {
     generator: generator.string,
-    shrink: function (str) {
-      return str === "" ? [] : [""]; // TODO
-    },
+    shrink: shrink.array(char.shrink).isomap(arrayToString, stringToArray),
     show: show.def,
   };
 }
@@ -1249,7 +1351,7 @@ extendWithDefault(string);
 */
 var nestring = {
   generator: generator.nestring,
-  shrink: shrink.noop, // todo implement me
+  shrink: shrink.nearray(asciichar.shrink).isomap(arrayToString, stringToArray),
   show: show.def,
 };
 
@@ -1260,9 +1362,7 @@ var asciistring = {
   generator: generator.bless(function (size) {
     return generator.array(asciichar.generator, size).join("");
   }),
-  shrink: shrink.bless(function (str) {
-    return str === "" ? [] : [""]; // TODO
-  }),
+  shrink: shrink.array(asciichar.shrink).isomap(arrayToString, stringToArray),
   show: show.def,
 };
 
@@ -1335,7 +1435,7 @@ module.exports = {
   datetime: datetime,
 };
 
-},{"./generator.js":6,"./random.js":9,"./show.js":10,"./shrink.js":11,"assert":15}],9:[function(require,module,exports){
+},{"./generator.js":6,"./random.js":9,"./show.js":10,"./shrink.js":11,"./utils.js":14,"assert":15}],9:[function(require,module,exports){
 "use strict";
 
 var rc4 = new (require("rc4").RC4small)();
@@ -1501,6 +1601,31 @@ function shrinkArray(shrink) {
 }
 
 /**
+  - `shrink.nearray(shrink: a -> nearray a, x:  nearray a): array (nearray a)`
+*/
+function shrinkNEArray(shrink) {
+  var result = shrinkBless(function (arr) {
+    if (arr.length <= 1) {
+      return [];
+    } else {
+      var x = arr[0];
+      var xs = arr.slice(1);
+
+      return [xs].concat(
+        shrink(x).map(function (xp) { return [xp].concat(xs); }),
+        shrinkArray(shrink, xs).map(function (xsp) { return [x].concat(xsp); })
+      );
+    }
+  });
+
+  if (arguments.length === 2) {
+    return result(arguments[1]);
+  } else {
+    return result;
+  }
+}
+
+/**
   - `shrink.record(shrinks: { key: a -> string... }, x: { key: a... }): array { key: a... }`
 */
 function shrinkRecord(shrinksRecord) {
@@ -1531,6 +1656,7 @@ module.exports = {
   noop: shrinkNoop,
   tuple: shrinkTuple,
   array: shrinkArray,
+  nearray: shrinkNEArray,
   record: shrinkRecord,
   bless: shrinkBless,
 };
@@ -1768,6 +1894,10 @@ function merge(x, y) {
   return res;
 }
 
+function div2(x) {
+  return Math.floor(x / 2);
+}
+
 module.exports = {
   isArray: isArray,
   isObject: isObject,
@@ -1775,6 +1905,7 @@ module.exports = {
   pluck: pluck,
   force: force,
   merge: merge,
+  div2: div2,
 };
 
 },{}],15:[function(require,module,exports){
