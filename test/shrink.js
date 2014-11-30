@@ -5,6 +5,7 @@
 var jsc = require("../lib/jsverify.js");
 var assert = require("assert");
 var _ = require("underscore");
+var chai = require("chai");
 
 function checkShrink(mincase, property, tries) {
   tries = tries || 20;
@@ -40,6 +41,18 @@ describe("shrink", function () {
 
     it("shrinks to smaller values, 2", function () {
       checkShrink([2], jsc.forall(jsc.integer(), function (n) {
+        return n < 2 ? true : n === n + 1;
+      }));
+    });
+
+    it("shrinks to smaller values, 3", function () {
+      checkShrink([2], jsc.forall(jsc.integer(5), function (n) {
+        return n < 2 ? true : n === n + 1;
+      }));
+    });
+
+    it("shrinks to smaller values, 4", function () {
+      checkShrink([2], jsc.forall(jsc.integer(-1, 5), function (n) {
         return n < 2 ? true : n === n + 1;
       }));
     });
@@ -86,8 +99,9 @@ describe("shrink", function () {
       assert(jsc.string().shrink("").length === 0);
     });
 
-    it("shrinked array contains empty string for non-empty input", function () {
-      assert(jsc.string().shrink("foobar").indexOf("") !== -1);
+    it("shrinks to smaller strings", function () {
+      assert(jsc.string().shrink("foobar").indexOf("fobar") !== -1);
+      assert(jsc.string().shrink("f").indexOf("") !== -1);
     });
   });
 
@@ -96,8 +110,77 @@ describe("shrink", function () {
       assert(jsc.asciistring.shrink("").length === 0);
     });
 
-    it("shrinked array contains empty asciistring for non-empty input", function () {
-      assert(jsc.asciistring.shrink("foobar").indexOf("") !== -1);
+    it("shrinks to smaller asciistrings", function () {
+      assert(jsc.asciistring.shrink("foobar").indexOf("fobar") !== -1);
+      assert(jsc.asciistring.shrink("f").indexOf("") !== -1);
+    });
+  });
+
+  describe("nearray", function () {
+    jsc.property("shrink of singleton nearray is empty", "nat", function (n) {
+      return jsc.nearray(jsc.nat).shrink([n]).length === 0;
+    });
+
+    it("shrinks to smaller nearrays", function () {
+      assert(jsc.nearray(jsc.nat).shrink([0, 0]).map(function (x) { return x.join(""); }).indexOf("0") !== -1);
+      assert(jsc.nearray(jsc.nat).shrink([0, 0, 0]).map(function (x) { return x.join(""); }).indexOf("00") !== -1);
+
+      assert(jsc.shrink.nearray(jsc.nat.shrink)([1, 1]).map(function (x) { return x.join(""); }).indexOf("1") !== -1);
+      assert(jsc.shrink.nearray(jsc.nat.shrink, [1, 1]).map(function (x) { return x.join(""); }).indexOf("1") !== -1);
+    });
+  });
+
+  describe("elements", function () {
+    var arb = jsc.elements([1, 2, 3]);
+    it("shrinks to values towars beginning of the list", function () {
+      chai.expect(arb.shrink(1)).to.deep.equal([]);
+      chai.expect(arb.shrink(2)).to.deep.equal([1]);
+      chai.expect(arb.shrink(3)).to.deep.equal([1, 2]);
+      chai.expect(arb.shrink(4)).to.deep.equal([]);
+    });
+  });
+
+  describe("number", function () {
+    it("zero isn't shrinked", function () {
+      var arb = jsc.number;
+      chai.expect(arb.shrink(0)).to.deep.equal([]);
+    });
+
+    it("shrinked to absolutely smaller values", function () {
+      var arb = jsc.number;
+      var n = 10;
+      assert(arb.shrink(n).every(function (x) {
+        return Math.abs(x) < n;
+      }));
+    });
+
+    it("shrinked to absolutely smaller values, 2", function () {
+      var n = 10;
+      var arb = jsc.number(n);
+      assert(arb.shrink(n).every(function (x) {
+        return Math.abs(x) < n;
+      }));
+    });
+
+    it("shrinked to absolutely smaller values, 3", function () {
+      var n = 10;
+      var m = 5;
+      var arb = jsc.number(m, n);
+      assert(arb.shrink(n).every(function (x) {
+        return x >= m && x < n;
+      }));
+    });
+  });
+
+  describe("datetime", function () {
+    it("shrinked days stay in the interval", function () {
+      var from = new Date("Sun Nov 30 2014 10:00:00 GMT+0200 (EET)");
+      var to = new Date("Sun Nov 30 2014 14:00:00 GMT+0200 (EET)");
+      var arb = jsc.datetime(from, to);
+      var date = new Date("Sun Nov 30 2014 11:00:00 GMT+0200 (EET)");
+      assert(arb.shrink(date).every(function (x) {
+        return from.getTime() <= x.getTime() && x.getTime() <= to.getTime();
+      }));
     });
   });
 
