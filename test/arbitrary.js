@@ -45,6 +45,18 @@ describe("primitive arbitraries", function () {
         return Math.round(i) === i;
       }));
     });
+
+    it("with maxsize, generates integers: abs(_) ≤  maxsize", function () {
+      jsc.assert(jsc.forall(jsc.integer(5), function (i) {
+        return Math.round(i) === i && Math.abs(i) <= 5;
+      }));
+    });
+
+    it("with min & max, generates integers: min ≤ _ ≤ max", function () {
+      jsc.assert(jsc.forall(jsc.integer(2, 5), function (i) {
+        return Math.round(i) === i && i >= 2 && i <= 5;
+      }));
+    });
   });
 
   describe("nat", function () {
@@ -71,6 +83,18 @@ describe("primitive arbitraries", function () {
     it("doesn't generate NaN", function () {
       jsc.assert(jsc.forall(jsc.number(), function (x) {
         return !isNaN(x);
+      }));
+    });
+
+    it("with maxsize, generates numbers: abs(_) <  maxsize", function () {
+      jsc.assert(jsc.forall(jsc.number(5.5), function (i) {
+        return typeof i === "number" && Math.abs(i) < 5.5;
+      }));
+    });
+
+    it("with min & max, generates numbers: min ≤ _ < max", function () {
+      jsc.assert(jsc.forall(jsc.number(2.2, 5.5), function (i) {
+        return typeof i === "number" && i >= 2.2 && i < 5.5;
       }));
     });
   });
