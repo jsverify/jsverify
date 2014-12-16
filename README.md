@@ -2,7 +2,7 @@
 
 <img src="https://raw.githubusercontent.com/jsverify/jsverify/master/jsverify-300.png" align="right" height="100" />
 
-> Property based checking.
+> Property based checking. Like QuickCheck.
 
 [![Build Status](https://secure.travis-ci.org/jsverify/jsverify.svg?branch=master)](http://travis-ci.org/jsverify/jsverify)
 [![NPM version](https://badge.fury.io/js/jsverify.svg)](http://badge.fury.io/js/jsverify)
@@ -309,7 +309,10 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 - `generator.constant(x: a): gen a`
 
 
-- `generator.array(gen: Gen a, size: nat): gen (array a)`
+- `generator.tuple(gens: (gen a, gen b...), size: nat): gen (a, b...)`
+
+
+- `generator.array(gen: gen a, size: nat): gen (array a)`
 
 
 - `generator.nearray(gen: Gen a, size: nat): gen (array a)`
@@ -535,6 +538,7 @@ They will be regenerated before each release.
 - [qc.js](https://bitbucket.org/darrint/qc.js/)
 - [quick\_check](https://www.npmjs.org/package/quick_check)
 - [gencheck](https://github.com/graue/gentest)
+- [node-quickcheck](https://github.com/mcandre/node-quickcheck)
 
 ### Others
 
