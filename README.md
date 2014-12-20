@@ -208,32 +208,32 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 - `int32: arbitrary integer`
 
 
-- `bool: generator bool`
+- `bool: arbitrary bool`
 
     Booleans, `true` or `false`.
 
 
-- `datetime: generator datetime`
+- `datetime: arbitrary datetime`
 
     Random datetime
 
 
-- `elements(args: array a): generator a`
+- `elements(args: array a): arbitrary a`
 
     Random element of `args` array.
 
 
-- `char: generator char`
+- `char: arbitrary char`
 
     Single character
 
 
-- `asciichar: generator char`
+- `asciichar: arbitrary char`
 
     Single ascii character (0x20-0x7e inclusive, no DEL)
 
 
-- `string: generator string`
+- `string: arbitrary string`
 
 
 - `notEmptyString: arbitrary string`
@@ -241,14 +241,14 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
     Generates strings which are not empty.
 
 
-- `asciistring: generator string`
+- `asciistring: arbitrary string`
 
 
-- `json: generator json`
+- `json: arbitrary json`
 
      JavaScript Objects: boolean, number, string, array of `json` values or object with `json` values.
 
-- `value: generator json`
+- `value: arbitrary json`
 
 
 - `falsy: arbitrary *`
@@ -318,10 +318,19 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 - `generator.nearray(gen: Gen a, size: nat): gen (array a)`
 
 
+- `generator.char: gen char`
+
+
 - `generator.string(size: nat): gen string`
 
 
 - `generator.nestring(size: nat): gen string`
+
+
+- `generator.asciichar: gen char`
+
+
+- `generator.asciistring(size: nat): gen string`
 
 
 - `generator.map(gen: gen a, size: nat): gen (map a)`
@@ -432,19 +441,23 @@ They will be regenerated before each release.
 
 ## Release History
 
-- **0.4.6** &mdash; *2014-11-30* better shrinks &amp; recursive
+- **0.5.0-beta.1**; &mdash; *2014-12-20* &mdash; Almost there!
+    - `bless` don't close over (uses `this`)
+    - Cleanup generator module
+    - Other code cleanup here and there
+- **0.4.6** &mdash; *2014-11-30*  &mdash; better shrinks &amp; recursive
     - Implemented shrinks: [#51](https://github.com/jsverify/jsverify/issues/51)
     - `jsc.generator.recursive`: [#37](https://github.com/jsverify/jsverify/issues/37)
     - array, nearray &amp; map generators return a bit smaller results (*log2* of size)
-- **0.4.5** &mdash; *2014-11-22* stuff
+- **0.4.5** &mdash; *2014-11-22*  &mdash; stuff
     - `generator.combine` &amp; `.flatmap`
     - `nat`, `integer`, `number` &amp; and `string` act as objects too
-- **0.4.4** &mdash; *2014-11-22* new generators
+- **0.4.4** &mdash; *2014-11-22*  &mdash; new generators
     - New generators: `nearray`, `nestring`
     - `generator.constant`
     - zero-ary `jsc.property` (it ∘ assert)
     - `jsc.sampler`
-- **0.4.3** &mdash; *2014-11-08* jsc.property
+- **0.4.3** &mdash; *2014-11-08*  &mdash; jsc.property
     - Now you can write your bdd specs without any boilerplate
     - support for nat-litearls in dsl [#36](https://github.com/jsverify/jsverify/issues/36)
         ```js
@@ -455,12 +468,12 @@ They will be regenerated before each release.
         });
         ```
     - Falsy generator [#42](https://github.com/jsverify/jsverify/issues/42)
-- **0.4.2** &mdash; *2014-11-03* User environments for DSL
+- **0.4.2** &mdash; *2014-11-03*  &mdash; User environments for DSL
     - User environments for DSL
     - Generator prototype `map`, and shrink prototype `isomap`
     - JSON generator works with larger sizes
 - **0.4.1** Move to own organization in GitHub
-- **0.4.0** *2014-10-27* typify-dsl &amp; more arbitraries.
+- **0.4.0**  &mdash; *2014-10-27*  &mdash; typify-dsl &amp; more arbitraries.
     Changes from **0.3.6**:
     - DSL for `forall` and `suchthat`
     - new primitive arbitraries
