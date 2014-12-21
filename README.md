@@ -299,17 +299,40 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
 ### Shrink functions
 
-- `shrink.noop(x: a): array a`
+A shrink function, `shrink a`, is a function `a -> [a]`, returning an array of *smaller* values.
 
-- `shrink.pair(shrA: a -> array a, shrB: b -> array, x: (a, b)): array (a, b)`
+Shrink combinators are auto-curried:
 
-- `shrink.tuple(shrinks: (a -> array a, b -> array b...), x: (a, b...)): array (a, b...)`
+```js
+var xs = shrink.array(shrink.nat, [1]); // ≡
+var ys = shrink.array(shrink.nat)([1]);
+```
 
-- `shrink.array(shrink: a -> array a, x: array a): array (array a)`
+- `shrink.bless(f: a -> [a]): shrink a`
 
-- `shrink.nearray(shrink: a -> nearray a, x:  nearray a): array (nearray a)`
+    Bless function with `.isomap` property.
 
-- `shrink.record(shrinks: { key: a -> string... }, x: { key: a... }): array { key: a... }`
+- `.isomap(f: a -> b, g: b -> a): shrink b`
+
+    Transform `shrink a` into `shrink b`. For example:
+
+    ```js
+    positiveIntegersShrink = nat.shrink.isomap(
+      function (x) { return x + 1; },
+      function (x) { return x - 1; });
+    ```
+
+- `shrink.noop: shrink a`
+
+- `shrink.pair(shrA: shrink a, shrB: shrink b): shrink (a, b)`
+
+- `shrink.tuple(shrs: (shrink a, shrink b...)): shrink (a, b...)`
+
+- `shrink.array(shr: shrink a): shrink (array a)`
+
+- `shrink.nearray(shr: shrink a): shrink (nearray a)`
+
+- `shrink.record(shrs: { key: shrink a... }): shrink { key: a... }`
 
 ### Show functions
 
