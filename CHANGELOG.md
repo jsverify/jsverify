@@ -1,6 +1,11 @@
 ## Release History
 
-- **0.5.0-beta.1**; &mdash; *2014-12-20* &mdash; Almost there!
+- **0.5.0-beta.2** &mdash; *2014-12-21* &mdash; Beta 2!
+    - Pair &amp; tuple related code cleanup
+    - Update `CONTRIBUTING.md`
+    - Small documentation type fixes
+    - Bless `jsc.elements` shrink
+- **0.5.0-beta.1** &mdash; *2014-12-20* &mdash; Beta!
     - `bless` don't close over (uses `this`)
     - Cleanup generator module
     - Other code cleanup here and there

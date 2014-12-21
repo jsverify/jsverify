@@ -37,7 +37,7 @@ function array(arb) {
   return {
     generator: generator.array(arb.generator),
     shrink: shrink.array(arb.shrink),
-    show: show.array.bind(null, arb.show),
+    show: show.array(arb.show),
   };
 }
 
@@ -50,7 +50,7 @@ function nearray(arb) {
   return {
     generator: generator.nearray(arb.generator),
     shrink: shrink.nearray(arb.shrink),
-    show: show.array.bind(null, arb.show),
+    show: show.array(arb.show),
   };
 }
 
@@ -64,9 +64,21 @@ function pair(a, b) {
   b = utils.force(b || primitive.json);
 
   return {
-    generator: generator.tuple([a.generator, b.generator]),
-    shrink: shrink.tuple([a.shrink, b.shrink]),
-    show: show.def,
+    generator: generator.pair(a.generator, b.generator),
+    shrink: shrink.pair(a.shrink, b.shrink),
+    show: show.pair(a.show, b.show),
+  };
+}
+
+/**
+  - `tuple(arbs: (arbitrary a, arbitrary b...)): arbitrary (a, b...)`
+*/
+function tuple(arbs) {
+  arbs = arbs.map(utils.force);
+  return {
+    generator: generator.tuple(utils.pluck(arbs, "generator")),
+    shrink: shrink.tuple(utils.pluck(arbs, "shrink")),
+    show: show.tuple(utils.pluck(arbs, "show")),
   };
 }
 
@@ -176,6 +188,7 @@ function record(spec) {
 module.exports = {
   nonshrink: nonshrink,
   pair: pair,
+  tuple: tuple,
   array: array,
   nearray: nearray,
   map: map,
@@ -422,6 +435,17 @@ function logsize(size) {
 }
 
 /**
+  - `generator.pair(genA: gen a, genB: gen b, size: nat): gen (a, b)`
+*/
+function generatePair(genA, genB) {
+  var result = generatorBless(function (size) {
+    return [genA(size), genB(size)];
+  });
+
+  return utils.curried3(result, arguments);
+}
+
+/**
   - `generator.tuple(gens: (gen a, gen b...), size: nat): gen (a, b...)`
 */
 function generateTuple(gens) {
@@ -544,7 +568,7 @@ function generatorCombine() {
 }
 
 /**
-  - `generator.recursive(genZ: gen a, genS: gen a -> gen a): gen a<
+  - `generator.recursive(genZ: gen a, genS: gen a -> gen a): gen a`
 */
 function generatorRecursive(genZ, genS) {
   return generatorBless(function (size) {
@@ -584,6 +608,7 @@ var generateJson = generatorRecursive(
   });
 
 module.exports = {
+  pair: generatePair,
   tuple: generateTuple,
   array: generateArray,
   nearray: generateNEArray,
@@ -913,7 +938,7 @@ function checkThrow(property, opts) {
 }
 
 /**
-   - `property(name: string, ...)
+   - `property(name: string, ...)`
 
       Assuming there is globally defined `it`, the same as:
 
@@ -1013,13 +1038,6 @@ var jsc = {
   sampler: sampler,
 
   // generators
-  pair: arbitrary.pair,
-  array: arbitrary.array,
-  nearray: arbitrary.nearray,
-  map: arbitrary.map,
-  oneof: arbitrary.oneof,
-  record: arbitrary.record,
-  nonshrink: arbitrary.nonshrink,
   fn: fn.fn,
   fun: fn.fn,
   suchthat: suchthat.suchthat,
@@ -1043,8 +1061,12 @@ var jsc = {
 };
 
 /* primitives */
-for (var k in primitive) {
+var k;
+for (k in primitive) {
   jsc[k] = primitive[k];
+}
+for (k in arbitrary) {
+  jsc[k] = arbitrary[k];
 }
 
 module.exports = jsc;
@@ -1285,14 +1307,14 @@ function elements(args) {
       return args[i];
     }),
 
-    shrink: function (x) {
+    shrink: shrink.bless(function (x) {
       var idx = args.indexOf(x);
       if (idx <= 0) {
         return [];
       } else {
         return args.slice(0, idx);
       }
-    },
+    }),
     show: show.def,
   };
 }
@@ -1470,6 +1492,8 @@ module.exports = randomInteger;
   ### Show functions
 */
 
+var utils = require("./utils.js");
+
 /**
   - `show.def(x : a): string`
 */
@@ -1478,30 +1502,50 @@ function showDef(obj) {
 }
 
 /**
+  - `show.pair(showA: a -> string, showB: b -> string, x: (a, b)): string`
+*/
+function showPair(showA, showB) {
+  var result = function (p) {
+    return "(" + showA(p[0]) + ", " + showB(p[1]) + ")";
+  };
+
+  return utils.curried3(result, arguments);
+}
+
+/**
   - `show.tuple(shrinks: (a -> string, b -> string...), x: (a, b...)): string`
 */
-function showTuple(shows, objs) {
-  var strs = [];
-  for (var i = 0; i < shows.length; i++) {
-    strs.push(shows[i](objs[i]));
-  }
-  return strs.join("; ");
+function showTuple(shows) {
+  var result = function (objs) {
+    var strs = [];
+    for (var i = 0; i < shows.length; i++) {
+      strs.push(shows[i](objs[i]));
+    }
+    return strs.join("; ");
+  };
+
+  return utils.curried2(result, arguments);
 }
 
 /**
   - `show.array(shrink: a -> string, x: array a): string`
 */
-function showArray(show, arr) {
-  return "[" + arr.map(show).join(", ") + "]";
+function showArray(show) {
+  var result = function (arr) {
+    return "[" + arr.map(show).join(", ") + "]";
+  };
+
+  return utils.curried2(result, arguments);
 }
 
 module.exports = {
   def: showDef,
+  pair: showPair,
   tuple: showTuple,
   array: showArray,
 };
 
-},{}],11:[function(require,module,exports){
+},{"./utils.js":14}],11:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -1536,29 +1580,68 @@ var shrinkNoop = shrinkBless(function shrinkNoop() {
 });
 
 /**
+  - `shrink.pair(shrA: a -> array a, shrB: b -> array, x: (a, b)): array (a, b)`
+*/
+function shrinkPair(shrinkA, shrinkB) {
+  var result = shrinkBless(function (pair) {
+    assert(pair.length === 2, "shrinkPair: pair should be an Array of length 2");
+
+    var a = pair[0];
+    var b = pair[1];
+
+    var shrinkedA = shrinkA(a);
+    var shrinkedB = shrinkB(b);
+
+    var pairA = shrinkedA.map(function (ap) {
+      return [ap, b];
+    });
+
+    var pairB = shrinkedB.map(function (bp) {
+      return [a, bp];
+    });
+
+    return pairA.concat(pairB);
+  });
+
+  return utils.curried3(result, arguments);
+}
+
+// a → Vec a 1
+function toSingleton(x) {
+  return [x];
+}
+
+// Vec a 1 → a
+function fromSingleton(a) {
+  return a[0];
+}
+
+// a × HList b → HList (a ∷ b)
+function toHList(p) {
+  return [p[0]].concat(p[1]);
+}
+
+// HList (a ∷ b) → a × HList b
+function fromHList(h) {
+  return [h[0], h.slice(1)];
+}
+
+function shrinkTupleImpl(shrinks, n) {
+  if (n + 1 === shrinks.length) {
+    return shrinks[n].isomap(toSingleton, fromSingleton);
+  } else {
+    var shrinkA = shrinks[0];
+    var shrinkB = shrinkTupleImpl(shrinks, n + 1);
+    return shrinkPair(shrinkA, shrinkB).isomap(toHList, fromHList);
+  }
+}
+
+/**
   - `shrink.tuple(shrinks: (a -> array a, b -> array b...), x: (a, b...)): array (a, b...)`
 */
 function shrinkTuple(shrinks) {
-  var result = shrinkBless(function (tup) {
-    assert(shrinks.length === tup.length, "there should be as much shrinks as values in the tuple");
-
-    var shrinked = new Array(tup.length);
-
-    for (var i = 0; i < tup.length; i++) {
-      /* jshint -W083 */
-      /* eslint-disable no-loop-func */
-      shrinked[i] = shrinks[i](tup[i]).map(function (x) {
-        var c = tup.slice(); // clone array
-        c[i] = x;
-        return c;
-      });
-      /* eslint-enable no-loop-func */
-      /* jshint +W083 */
-    }
-
-    return Array.prototype.concat.apply([], shrinked);
-  });
-
+  assert(shrinks.length > 0, "shrinkTuple needs > 0 values");
+  var result = shrinkTupleImpl(shrinks, 0);
   return utils.curried2(result, arguments);
 }
 
@@ -1619,6 +1702,7 @@ function shrinkRecord(shrinksRecord) {
 
 module.exports = {
   noop: shrinkNoop,
+  pair: shrinkPair,
   tuple: shrinkTuple,
   array: shrinkArray,
   nearray: shrinkNEArray,
@@ -1790,8 +1874,8 @@ function isObject(o) {
 /**
   ### Utility functions
 
-  Utility functions are exposed (and documented) only to make contributions to jsverify easy.
-  The changes here don't follow semver, i.e. ther might backward-incompatible changes even in patch releases.
+  Utility functions are exposed (and documented) only to make contributions to jsverify more easy.
+  The changes here don't follow semver, i.e. there might be backward-incompatible changes even in patch releases.
 
   Use [underscore.js](http://underscorejs.org/), [lodash](https://lodash.com/), [ramda](http://ramda.github.io/ramdocs/docs/), [lazy.js](http://danieltao.com/lazy.js/) or some other utility belt.
 */
@@ -1853,7 +1937,7 @@ function force(arb) {
 /**
   - `utils.merge(x: obj, y: obj): obj`
 
-    Merge two objects, a bit like `_.extend({}, x, y)`
+    Merge two objects, a bit like `_.extend({}, x, y)`.
 */
 function merge(x, y) {
   var res = {};
@@ -1870,13 +1954,19 @@ function div2(x) {
   return Math.floor(x / 2);
 }
 
-function curried2(result, args) {
-  if (args.length === 2) {
-    return result(args[1]);
-  } else {
-    return result;
-  }
+function curriedN(n) {
+  var n1 = n - 1;
+  return function curriedNInstance(result, args) {
+    if (args.length === n) {
+      return result(args[n1]);
+    } else {
+      return result;
+    }
+  };
 }
+
+var curried2 = curriedN(2);
+var curried3 = curriedN(3);
 
 function charArrayToString(arr) {
   return arr.join("");
@@ -1896,6 +1986,7 @@ module.exports = {
   merge: merge,
   div2: div2,
   curried2: curried2,
+  curried3: curried3,
   charArrayToString: charArrayToString,
   stringToCharArray: stringToCharArray,
 };
