@@ -267,35 +267,63 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
 ### Generator functions
 
-- `generator.constant(x: a): gen a`
+A generator function, `generator a`, is a function `(size: nat) -> a`, which generates a value of given size.
 
-- `generator.pair(genA: gen a, genB: gen b, size: nat): gen (a, b)`
+Generator combinators are auto-curried:
 
-- `generator.tuple(gens: (gen a, gen b...), size: nat): gen (a, b...)`
+```js
+var xs = generator.array(shrink.nat, 1); // ≡
+var ys = generator.array(shrink.nat)(1);
+```
 
-- `generator.array(gen: gen a, size: nat): gen (array a)`
+In purely functional approach `generator a` would be explicitly stateful computation: `(size: nat, rng: randomstate) -> (a, randomstate)`. *JSVerify* uses an implicit random number generator state, but the value generation is deterministic (tests reproduceable), if the primitives from *random* module are used.
 
-- `generator.nearray(gen: Gen a, size: nat): gen (array a)`
+- `generator.bless(f: nat -> a): generator a`
 
-- `generator.char: gen char`
+    Bless function with `.map` and `.flatmap` properties.
 
-- `generator.string(size: nat): gen string`
+- `.map(f: a -> b): generator b`
 
-- `generator.nestring(size: nat): gen string`
+    Map `generator a` into `generator b`. For example:
 
-- `generator.asciichar: gen char`
+    ```js
+    positiveIntegersGenerator = nat.generator.map(
+      function (x) { return x + 1; });
+    ```
 
-- `generator.asciistring(size: nat): gen string`
+- `.isomap(f: a -> generator b): generator b`
 
-- `generator.map(gen: gen a, size: nat): gen (map a)`
+    Monadic bind for generators.
 
-- `generator.oneof(gen: list (gen a), size: nat): gen a`
+- `generator.constant(x: a): generator a`
 
-- `generator.combine(gen: gen a..., f: a... -> b): gen b`
+- `generator.combine(gen: generator a..., f: a... -> b): generator b`
 
-- `generator.recursive(genZ: gen a, genS: gen a -> gen a): gen a`
+- `generator.oneof(gens: list (generator a)): generator a`
 
-- `generator.json: gen json`
+- `generator.recursive(genZ: generator a, genS: generator a -> generator a): generator a`
+
+- `generator.pair(genA: generator a, genB: generator b): generator (a, b)`
+
+- `generator.tuple(gens: (generator a, generator b...): generator (a, b...)`
+
+- `generator.array(gen: generator a): generator (array a)`
+
+- `generator.nearray(gen: generator a): generator (array a)`
+
+- `generator.char: generator char`
+
+- `generator.string: generator string`
+
+- `generator.nestring: generator string`
+
+- `generator.asciichar: generator char`
+
+- `generator.asciistring: generator string`
+
+- `generator.map(gen: generator a): generator (map a)`
+
+- `generator.json: generator json`
 
 ### Shrink functions
 
