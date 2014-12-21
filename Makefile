@@ -59,4 +59,4 @@ $(DIST) : lib/*
 	$(BROWSERIFY) --no-detect-globals -s jsc -o $(DIST) ./lib/jsverify.js
 
 literate : 
-	$(LJS) -c false -o README.md lib/jsverify.js
+	$(LJS) --no-code -o README.md lib/jsverify.js

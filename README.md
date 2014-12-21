@@ -29,7 +29,6 @@ jsc.assert(boolFnAppliedThrice);
 // OK, passed 100 tests
 ```
 
-
 ## Documentation
 
 ### Usage with [mocha](http://visionmedia.github.io/mocha/)
@@ -86,14 +85,11 @@ C# -style `List<T> filter(List<T> v, Func<T, bool> predicate)` is represented by
 Generally every property can be wrapped inside [functor](http://learnyouahaskell.com/functors-applicative-functors-and-monoids),
 for now in either identity or promise functor, for synchronous and promise properties respectively.
 
-
 ### Properties
-
 
 - `forall(arbs: arbitrary a ..., userenv: (map arbitrary)?, prop : a -> property): property`
 
     Property constructor
-
 
 - `check (prop: property, opts: checkoptions?): result`
 
@@ -106,11 +102,9 @@ for now in either identity or promise functor, for synchronous and promise prope
     - `opts.quiet` - do not `console.log`
     - `opts.rngState` - state string for the rng
 
-
 - `assert(prop: property, opts: checkoptions?) : void`
 
     Same as `check`, but throw exception if property doesn't hold.
-
 
 - `property(name: string, ...)`
 
@@ -128,7 +122,6 @@ for now in either identity or promise functor, for synchronous and promise prope
      return +0 === -0;
    });
    ```
-
 
 - `sampler(arb: arbitrary a, genSize: nat = 10): (sampleSize: nat?) -> a`
 
@@ -149,7 +142,6 @@ for now in either identity or promise functor, for synchronous and promise prope
     [-0.4199344692751765, false]
     ```
 
-
 ### Types
 
 - `generator a` is a function `(size: nat) -> a`.
@@ -157,7 +149,6 @@ for now in either identity or promise functor, for synchronous and promise prope
 - `shrink` is a function `a -> [a]`, returning *smaller* values.
 - `arbitrary a` is a triple of generator, shrink and show functions.
     - `{ generator: nat -> a, shrink : a -> array a, show: a -> string }`
-
 
 ### DSL for input parameters
 
@@ -173,10 +164,7 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 - *functions* are supported: `"bool -> bool"` is evaluated to `jsc.fn(jsc.bool())`.
 - *square brackets* are treated as a shorthand for the array type: `"[nat]"` is evaluated to `jsc.array(jsc.nat)`.
 
-
-
 ### Primitive arbitraries
-
 
 - `integer: arbitrary integer`
 - `integer(maxsize: nat): arbitrary integer`
@@ -184,12 +172,10 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
     Integers, ℤ
 
-
 - `nat: arbitrary nat`
 - `nat(maxsize: nat): arbitrary nat`
 
     Natural numbers, ℕ (0, 1, 2...)
-
 
 - `number: arbitrary number`
 - `number(maxsize: number): arbitrary number`
@@ -197,52 +183,41 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
     JavaScript numbers, "doubles", ℝ. `NaN` and `Infinity` are not included.
 
-
 - `uint8: arbitrary nat`
 - `uint16: arbitrary nat`
 - `uint32: arbitrary nat`
-
 
 - `int8: arbitrary integer`
 - `int16: arbitrary integer`
 - `int32: arbitrary integer`
 
-
 - `bool: arbitrary bool`
 
     Booleans, `true` or `false`.
-
 
 - `datetime: arbitrary datetime`
 
     Random datetime
 
-
 - `elements(args: array a): arbitrary a`
 
     Random element of `args` array.
-
 
 - `char: arbitrary char`
 
     Single character
 
-
 - `asciichar: arbitrary char`
 
     Single ascii character (0x20-0x7e inclusive, no DEL)
 
-
 - `string: arbitrary string`
-
 
 - `notEmptyString: arbitrary string`
 
     Generates strings which are not empty.
 
-
 - `asciistring: arbitrary string`
-
 
 - `json: arbitrary json`
 
@@ -250,151 +225,103 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
 - `value: arbitrary json`
 
-
 - `falsy: arbitrary *`
 
     Generates falsy values: `false`, `null`, `undefined`, `""`, `0`, and `NaN`.
-
 
 - `constant(x: a): arbitrary a`
 
     Returns an unshrinkable arbitrary that yields the given object.
 
-
-
 ### Arbitrary combinators
-
 
 - `nonshrink(arb: arbitrary a): arbitrary a`
 
     Non shrinkable version of arbitrary `arb`.
 
-
 - `array(arb: arbitrary a): arbitrary (array a)`
 
-
 - `nearray(arb: arbitrary a): arbitrary (array a)`
-
 
 - `pair(arbA: arbitrary a, arbB : arbitrary b): arbitrary (pair a b)`
 
     If not specified `a` and `b` are equal to `value()`.
 
-
 - `tuple(arbs: (arbitrary a, arbitrary b...)): arbitrary (a, b...)`
-
 
 - `map(arb: arbitrary a): arbitrary (map a)`
 
     Generates a JavaScript object with properties of type `A`.
 
-
 - `oneof(gs : array (arbitrary a)...) : arbitrary a`
 
     Randomly uses one of the given arbitraries.
-
 
 - `record(spec: { key: arbitrary a... }): arbitrary { key: a... }`
 
     Generates a javascript object with given record spec.
 
-
-
 - `fn(gen: generator a): generator (b -> a)`
 - `fun(gen: generator a): generator (b -> a)`
     Unary functions.
 
-
-
 ### Generator functions
-
 
 - `generator.constant(x: a): gen a`
 
-
 - `generator.pair(genA: gen a, genB: gen b, size: nat): gen (a, b)`
-
 
 - `generator.tuple(gens: (gen a, gen b...), size: nat): gen (a, b...)`
 
-
 - `generator.array(gen: gen a, size: nat): gen (array a)`
-
 
 - `generator.nearray(gen: Gen a, size: nat): gen (array a)`
 
-
 - `generator.char: gen char`
-
 
 - `generator.string(size: nat): gen string`
 
-
 - `generator.nestring(size: nat): gen string`
-
 
 - `generator.asciichar: gen char`
 
-
 - `generator.asciistring(size: nat): gen string`
-
 
 - `generator.map(gen: gen a, size: nat): gen (map a)`
 
-
 - `generator.oneof(gen: list (gen a), size: nat): gen a`
-
 
 - `generator.combine(gen: gen a..., f: a... -> b): gen b`
 
-
 - `generator.recursive(genZ: gen a, genS: gen a -> gen a): gen a`
-
 
 - `generator.json: gen json`
 
-
-
 ### Shrink functions
-
 
 - `shrink.noop(x: a): array a`
 
-
 - `shrink.pair(shrA: a -> array a, shrB: b -> array, x: (a, b)): array (a, b)`
-
 
 - `shrink.tuple(shrinks: (a -> array a, b -> array b...), x: (a, b...)): array (a, b...)`
 
-
 - `shrink.array(shrink: a -> array a, x: array a): array (array a)`
-
 
 - `shrink.nearray(shrink: a -> nearray a, x:  nearray a): array (nearray a)`
 
-
 - `shrink.record(shrinks: { key: a -> string... }, x: { key: a... }): array { key: a... }`
-
-
 
 ### Show functions
 
-
 - `show.def(x : a): string`
-
 
 - `show.pair(showA: a -> string, showB: b -> string, x: (a, b)): string`
 
-
 - `show.tuple(shrinks: (a -> string, b -> string...), x: (a, b...)): string`
-
 
 - `show.array(shrink: a -> string, x: array a): string`
 
-
-
 ### Random functions
-
 
 - `random(min: int, max: int): int`
 
@@ -404,12 +331,9 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
     getRandomInt(2, 3) // either 2 or 3
     ```
 
-
 - `random.number(min: number, max: number): number`
 
     Returns random number from `[min, max)` range.
-
-
 
 ### Utility functions
 
@@ -418,22 +342,17 @@ The changes here don't follow semver, i.e. there might be backward-incompatible 
 
 Use [underscore.js](http://underscorejs.org/), [lodash](https://lodash.com/), [ramda](http://ramda.github.io/ramdocs/docs/), [lazy.js](http://danieltao.com/lazy.js/) or some other utility belt.
 
-
 - `utils.isEqual(x: json, y: json): bool`
 
     Equality test for `json` objects.
-
 
 - `utils.force(x: a | () -> a) : a`
 
     Evaluate `x` as nullary function, if it is one.
 
-
 - `utils.merge(x: obj, y: obj): obj`
 
   Merge two objects, a bit like `_.extend({}, x, y)`.
-
-
 
 ## Contributing
 
