@@ -4,9 +4,7 @@
 
 > The set covering problem (SCP) is a classical question in combinatorics, computer science and complexity theory.
 
-
 ## Prelude
-
 
 ```js
 "use strict";
@@ -14,17 +12,13 @@ var _ = require("lodash");
 var jsc = require("../../lib/jsverify.js");
 ```
 
-
 We will want to see *jsverify* output.
-
 
 ```js
 var jscOptions = { quiet: false };
 ```
 
-
 and we will also need a *subset relation*, `⊂`
-
 
 ```js
 function isSubset(a, b) {
@@ -38,11 +32,9 @@ function isSubset(a, b) {
 }
 ```
 
-
 Let's test `isSubset` right away.
 In TDD we should write the tests first,
 but in a single [ljs](https://github.com/phadej/ljs)-powered literate script that is unfortunately impossible.
-
 
 We could start with testing *reflexivity*: `∀ l, l ⊂ l`. 
 
@@ -55,9 +47,7 @@ jsc.check(jsc.forall(arrayNat, function (ls) {
 }), jscOptions);
 ```
 
-
 > OK, passed 100 tests
-
 
 And one negative test: `∀ l x, ¬ x ∈ l → ¬ ({x} ∪ l) ⊂ l`.
 
@@ -69,15 +59,12 @@ jsc.check(jsc.forall(arrayNat, function (ls) {
 }), jscOptions);
 ```
 
-
 > OK, passed 100 tests
-
 
 ## Model
 
 We define a greedy solver to the problem. It doesn't give an optimal solution,
 but it is easier to verify that the solver is correct.
-
 
 ```js
 function greedy(ls) {
@@ -92,16 +79,13 @@ function greedy(ls) {
 }
 ```
 
-
 Single example: 
 
 ```js
 console.log("Greedy example:", greedy([[1, 2, 3], [3], [4], [3, 4, 5], [4, 5], [1]]));
 ```
 
-
 > Greedy example: [ [ 1, 2, 3 ], [ 4 ], [ 3, 4, 5 ] ]
-
 
 ## Verifying model
 
@@ -109,8 +93,6 @@ We will use properties described in [the blog post by Jessica Kerr](http://blog.
 Actually, the idea of this example is originated from that post.
 
 ### 1. Every element in the input is also in the output
-
-
 
 ```js
 function soundProp(input, output) {
@@ -121,13 +103,11 @@ jsc.check(jsc.forall(array2Nat, function (ls) {
 }), jscOptions);
 ```
 
-
 > OK, passed 100 tests 
 
 ### 2. Every output set was in the input
 
 Counter example: `_.range(_.min(input), _.max(input))` will satisfy (1) but not (2).
-
 
 ```js
 function completeProp(input, output) {
@@ -138,13 +118,11 @@ jsc.check(jsc.forall(array2Nat, function (ls) {
 }), jscOptions);
 ```
 
-
 > OK, passed 100 tests 
 
 ### 3. The quantity of output sets is less than or equal to the input
 
 We aim for minimality.
-
 
 ```js
 function smallerProp(input, output) {
@@ -155,13 +133,11 @@ jsc.check(jsc.forall(array2Nat, function (ls) {
 }), jscOptions);
 ```
 
-
 > OK, passed 100 tests 
 
 ### 4. The same set never appears more than once in the output
 
 Counter example could be the function operating: `[[1], [1], [1]] → [[1], [1]]`. That would satisfy (1)—(3)!
-
 
 ```js
 function toString(x) {
@@ -176,13 +152,11 @@ jsc.check(jsc.forall(array2Nat, function (ls) {
 }), jscOptions);
 ```
 
-
 > OK, passed 100 tests 
 
 ### 5. No output set is a subset of any other output set
 
 Generalizes (3) and (4)!
-
 
 ```js
 function redundancyProp(input, output) {
@@ -205,7 +179,6 @@ jsc.check(jsc.forall(array2Nat, function (ls) {
 }), jscOptions);
 ```
 
-
 > Failed after 11 tests and 2 shrinks. rngState: ...; Counterexample: [[0], [0, 1]]; 
 
 The failing case makes sense. `greedy` is so trivial, it doesn't satisfy the fifth property.
@@ -213,12 +186,10 @@ Thus we have to improve our solver!
 
 However we will not alter `greedy` itself, but make a more optimal solver.
 
-
 ## Better solver
 
 This *better* solver is still trivial.
 We sort the input so larger sets are in the beginning, thus the fift property will be satisfied.
-
 
 ```js
 function better(ls) {
@@ -230,15 +201,12 @@ function better(ls) {
 }
 ```
 
-
 Why there is `_.uniq` in `_.sortBy`'s iterator function?
 
 Because during writing this example, the fifth property still found a counter-example: `[0, 0], [0, 1]]`!
 If we omit `_.uniq`, the input wouldn't be altered, but `[0, 0]` is a subset of `[0, 1]`.
 
-
 And we reuse already defined properties. All pass.
-
 
 ```js
 jsc.check(jsc.forall(array2Nat, function (ls) { return soundProp(ls, better(ls)); }), jscOptions);
@@ -247,7 +215,6 @@ jsc.check(jsc.forall(array2Nat, function (ls) { return smallerProp(ls, better(ls
 jsc.check(jsc.forall(array2Nat, function (ls) { return uniqueProp(ls, better(ls)); }), jscOptions);
 jsc.check(jsc.forall(array2Nat, function (ls) { return redundancyProp(ls, better(ls)); }), jscOptions);
 ```
-
 
 ## Last property
 
@@ -263,7 +230,6 @@ So we rephrase the property into
 
 Also generating random permutation is not trivial. But as input is random anyway. we cut corner: we'll split input list at random point and swap the parts.
 
-
 ```js
 function optimalProp(input, output, split) {
   var len = input.length;
@@ -276,25 +242,21 @@ function optimalProp(input, output, split) {
 }
 ```
 
-
 Let's first test `greedy` for optimality. 
 
 ```js
 jsc.check(jsc.forall(array2Nat, jsc.nat(), function (ls, split) { return optimalProp(ls, greedy(ls), split); }), jscOptions);
 ```
 
-
 > Failed after 2 tests and 8 shrinks. rngState: ...; Counterexample: [[0], [0, 1]]; 1
 
 That was expected.
-
 
 How does `better` perform? 
 
 ```js
 jsc.check(jsc.forall(array2Nat, jsc.nat(), function (ls, split) { return optimalProp(ls, better(ls), split); }), jscOptions);
 ```
-
 
 After running few times thru the file:
 
