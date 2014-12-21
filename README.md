@@ -261,55 +261,105 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
     Generates a javascript object with given record spec.
 
-- `fn(gen: generator a): generator (b -> a)`
-- `fun(gen: generator a): generator (b -> a)`
-    Unary functions.
+- `fn(arb: arbitrary a): arbitrary (b -> a)`
+- `fun(arb: arbitrary a): arbitrary (b -> a)`
 
 ### Generator functions
 
-- `generator.constant(x: a): gen a`
+A generator function, `generator a`, is a function `(size: nat) -> a`, which generates a value of given size.
 
-- `generator.pair(genA: gen a, genB: gen b, size: nat): gen (a, b)`
+Generator combinators are auto-curried:
 
-- `generator.tuple(gens: (gen a, gen b...), size: nat): gen (a, b...)`
+```js
+var xs = generator.array(shrink.nat, 1); // ≡
+var ys = generator.array(shrink.nat)(1);
+```
 
-- `generator.array(gen: gen a, size: nat): gen (array a)`
+In purely functional approach `generator a` would be explicitly stateful computation: `(size: nat, rng: randomstate) -> (a, randomstate)`. *JSVerify* uses an implicit random number generator state, but the value generation is deterministic (tests reproduceable), if the primitives from *random* module are used.
 
-- `generator.nearray(gen: Gen a, size: nat): gen (array a)`
+- `generator.bless(f: nat -> a): generator a`
 
-- `generator.char: gen char`
+    Bless function with `.map` and `.flatmap` properties.
 
-- `generator.string(size: nat): gen string`
+- `.map(f: a -> b): generator b`
 
-- `generator.nestring(size: nat): gen string`
+    Map `generator a` into `generator b`. For example:
 
-- `generator.asciichar: gen char`
+    ```js
+    positiveIntegersGenerator = nat.generator.map(
+      function (x) { return x + 1; });
+    ```
 
-- `generator.asciistring(size: nat): gen string`
+- `.isomap(f: a -> generator b): generator b`
 
-- `generator.map(gen: gen a, size: nat): gen (map a)`
+    Monadic bind for generators.
 
-- `generator.oneof(gen: list (gen a), size: nat): gen a`
+- `generator.constant(x: a): generator a`
 
-- `generator.combine(gen: gen a..., f: a... -> b): gen b`
+- `generator.combine(gen: generator a..., f: a... -> b): generator b`
 
-- `generator.recursive(genZ: gen a, genS: gen a -> gen a): gen a`
+- `generator.oneof(gens: list (generator a)): generator a`
 
-- `generator.json: gen json`
+- `generator.recursive(genZ: generator a, genS: generator a -> generator a): generator a`
+
+- `generator.pair(genA: generator a, genB: generator b): generator (a, b)`
+
+- `generator.tuple(gens: (generator a, generator b...): generator (a, b...)`
+
+- `generator.array(gen: generator a): generator (array a)`
+
+- `generator.nearray(gen: generator a): generator (array a)`
+
+- `generator.char: generator char`
+
+- `generator.string: generator string`
+
+- `generator.nestring: generator string`
+
+- `generator.asciichar: generator char`
+
+- `generator.asciistring: generator string`
+
+- `generator.map(gen: generator a): generator (map a)`
+
+- `generator.json: generator json`
 
 ### Shrink functions
 
-- `shrink.noop(x: a): array a`
+A shrink function, `shrink a`, is a function `a -> [a]`, returning an array of *smaller* values.
 
-- `shrink.pair(shrA: a -> array a, shrB: b -> array, x: (a, b)): array (a, b)`
+Shrink combinators are auto-curried:
 
-- `shrink.tuple(shrinks: (a -> array a, b -> array b...), x: (a, b...)): array (a, b...)`
+```js
+var xs = shrink.array(shrink.nat, [1]); // ≡
+var ys = shrink.array(shrink.nat)([1]);
+```
 
-- `shrink.array(shrink: a -> array a, x: array a): array (array a)`
+- `shrink.bless(f: a -> [a]): shrink a`
 
-- `shrink.nearray(shrink: a -> nearray a, x:  nearray a): array (nearray a)`
+    Bless function with `.isomap` property.
 
-- `shrink.record(shrinks: { key: a -> string... }, x: { key: a... }): array { key: a... }`
+- `.isomap(f: a -> b, g: b -> a): shrink b`
+
+    Transform `shrink a` into `shrink b`. For example:
+
+    ```js
+    positiveIntegersShrink = nat.shrink.isomap(
+      function (x) { return x + 1; },
+      function (x) { return x - 1; });
+    ```
+
+- `shrink.noop: shrink a`
+
+- `shrink.pair(shrA: shrink a, shrB: shrink b): shrink (a, b)`
+
+- `shrink.tuple(shrs: (shrink a, shrink b...)): shrink (a, b...)`
+
+- `shrink.array(shr: shrink a): shrink (array a)`
+
+- `shrink.nearray(shr: shrink a): shrink (nearray a)`
+
+- `shrink.record(shrs: { key: shrink a... }): shrink { key: a... }`
 
 ### Show functions
 
