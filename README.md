@@ -261,9 +261,8 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
     Generates a javascript object with given record spec.
 
-- `fn(gen: generator a): generator (b -> a)`
-- `fun(gen: generator a): generator (b -> a)`
-    Unary functions.
+- `fn(arb: arbitrary a): arbitrary (b -> a)`
+- `fun(arb: arbitrary a): arbitrary (b -> a)`
 
 ### Generator functions
 
