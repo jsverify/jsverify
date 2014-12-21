@@ -158,6 +158,15 @@ describe("primitive arbitraries", function () {
     });
   });
 
+  describe("tuple", function () {
+    it("generates tuples", function () {
+      var arb = jsc.tuple([jsc.nat, jsc.string, jsc.bool]);
+      jsc.assert(jsc.forall(arb, function (tri) {
+        return typeof tri[0] === "number" && typeof tri[1] === "string" && typeof tri[2] === "boolean";
+      }));
+    });
+  });
+
   describe("array", function () {
     it("generates array", function () {
       jsc.assert(jsc.forall(jsc.array(), function (arr) {
