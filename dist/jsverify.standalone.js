@@ -28,31 +28,27 @@ function nonshrink(arb) {
   };
 }
 
+function arrayImpl(flavour) {
+  return function array(arb) {
+    arb = utils.force(arb || primitive.json);
+
+    return {
+      generator: generator[flavour](arb.generator),
+      shrink: shrink[flavour](arb.shrink),
+      show: show.array(arb.show),
+    };
+  };
+}
+
 /**
   - `array(arb: arbitrary a): arbitrary (array a)`
 */
-function array(arb) {
-  arb = utils.force(arb || primitive.json);
-
-  return {
-    generator: generator.array(arb.generator),
-    shrink: shrink.array(arb.shrink),
-    show: show.array(arb.show),
-  };
-}
+var array = arrayImpl("array");
 
 /**
   - `nearray(arb: arbitrary a): arbitrary (array a)`
 */
-function nearray(arb) {
-  arb = utils.force(arb || primitive.json);
-
-  return {
-    generator: generator.nearray(arb.generator),
-    shrink: shrink.nearray(arb.shrink),
-    show: show.array(arb.show),
-  };
-}
+var nearray = arrayImpl("nearray");
 
 /**
   - `pair(arbA: arbitrary a, arbB : arbitrary b): arbitrary (pair a b)`
@@ -280,9 +276,8 @@ var shrink = require("./shrink.js");
 var utils = require("./utils.js");
 
 /**
-  - `fn(gen: generator a): generator (b -> a)`
-  - `fun(gen: generator a): generator (b -> a)`
-      Unary functions.
+  - `fn(arb: arbitrary a): arbitrary (b -> a)`
+  - `fun(arb: arbitrary a): arbitrary (b -> a)`
 */
 
 function fn(arb) {
@@ -392,7 +387,22 @@ var random = require("./random.js");
 var utils = require("./utils.js");
 
 /**
-    ### Generator functions
+  ### Generator functions
+
+  A generator function, `generator a`, is a function `(size: nat) -> a`, which generates a value of given size.
+
+  Generator combinators are auto-curried:
+
+  ```js
+  var xs = generator.array(shrink.nat, 1); // ≡
+  var ys = generator.array(shrink.nat)(1);
+  ```
+
+  In purely functional approach `generator a` would be explicitly stateful computation:
+  `(size: nat, rng: randomstate) -> (a, randomstate)`.
+  *JSVerify* uses an implicit random number generator state,
+  but the value generation is deterministic (tests reproduceable),
+  if the primitives from *random* module are used.
 */
 
 // Blessing: i.e adding prototype
@@ -414,6 +424,24 @@ function generatorProtoFlatMap(f) {
 }
 /* eslint-enable no-use-before-define */
 
+/**
+  - `generator.bless(f: nat -> a): generator a`
+
+      Bless function with `.map` and `.flatmap` properties.
+
+  - `.map(f: a -> b): generator b`
+
+      Map `generator a` into `generator b`. For example:
+
+      ```js
+      positiveIntegersGenerator = nat.generator.map(
+        function (x) { return x + 1; });
+      ```
+
+  - `.isomap(f: a -> generator b): generator b`
+
+      Monadic bind for generators.
+*/
 function generatorBless(generator) {
   generator.map = generatorProtoMap;
   generator.flatmap = generatorProtoFlatMap;
@@ -421,7 +449,7 @@ function generatorBless(generator) {
 }
 
 /**
-  - `generator.constant(x: a): gen a`
+  - `generator.constant(x: a): generator a`
 */
 function generateConstant(x) {
   return generatorBless(function () {
@@ -429,130 +457,8 @@ function generateConstant(x) {
   });
 }
 
-// Helper, essentially: log2(size + 1)
-function logsize(size) {
-  return Math.max(Math.round(Math.log(size + 1) / Math.log(2), 0));
-}
-
 /**
-  - `generator.pair(genA: gen a, genB: gen b, size: nat): gen (a, b)`
-*/
-function generatePair(genA, genB) {
-  var result = generatorBless(function (size) {
-    return [genA(size), genB(size)];
-  });
-
-  return utils.curried3(result, arguments);
-}
-
-/**
-  - `generator.tuple(gens: (gen a, gen b...), size: nat): gen (a, b...)`
-*/
-function generateTuple(gens) {
-  var len = gens.length;
-  var result = generatorBless(function (size) {
-    var r = [];
-    for (var i = 0; i < len; i++) {
-      r[i] = gens[i](size);
-    }
-    return r;
-  });
-
-  return utils.curried2(result, arguments);
-}
-
-/**
-   - `generator.array(gen: gen a, size: nat): gen (array a)`
-*/
-function generateArray(gen) {
-  var result = generatorBless(function (size) {
-    var arrsize = random(0, logsize(size));
-    var arr = new Array(arrsize);
-    for (var i = 0; i < arrsize; i++) {
-      arr[i] = gen(size);
-    }
-    return arr;
-  });
-
-  return utils.curried2(result, arguments);
-}
-
-/**
-   - `generator.nearray(gen: Gen a, size: nat): gen (array a)`
-*/
-function generateNEArray(gen) {
-  var result = generatorBless(function (size) {
-    var arrsize = random(1, Math.max(logsize(size), 1));
-    var arr = new Array(arrsize);
-    for (var i = 0; i < arrsize; i++) {
-      arr[i] = gen(size);
-    }
-    return arr;
-  });
-
-  return utils.curried2(result, arguments);
-}
-
-/**
-  - `generator.char: gen char`
-*/
-var generateChar = generatorBless(function generateChar(/* size */) {
-  return String.fromCharCode(random(0, 0xff));
-});
-
-/**
-  - `generator.string(size: nat): gen string`
-*/
-var generateString = generateArray(generateChar).map(utils.charArrayToString);
-
-/**
-  - `generator.nestring(size: nat): gen string`
-*/
-var generateNEString = generateNEArray(generateChar).map(utils.charArrayToString);
-
-/**
-  - `generator.asciichar: gen char`
-*/
-var generateAsciiChar = generatorBless(function generateAsciiChar(/* size */) {
-  return String.fromCharCode(random(0x20, 0x7e));
-});
-
-/**
-  - `generator.asciistring(size: nat): gen string`
-*/
-var generateAsciiString = generateArray(generateAsciiChar).map(utils.charArrayToString);
-
-/**
-  - `generator.map(gen: gen a, size: nat): gen (map a)`
-*/
-function generateMap(gen) {
-  var result = generatorBless(function (size) {
-    var objsize = random(0, logsize(size));
-    var obj = {};
-    for (var i = 0; i < objsize; i++) {
-      obj[generateString(size)] = gen(size);
-    }
-    return obj;
-  });
-
-  return utils.curried2(result, arguments);
-}
-
-/**
-  - `generator.oneof(gen: list (gen a), size: nat): gen a`
-*/
-function generateOneof(generators) {
-  var result = generatorBless(function (size) {
-    var idx = random(0, generators.length - 1);
-    var arb = generators[idx];
-    return arb(size);
-  });
-
-  return utils.curried2(result, arguments);
-}
-
-/**
-  - `generator.combine(gen: gen a..., f: a... -> b): gen b`
+  - `generator.combine(gen: generator a..., f: a... -> b): generator b`
 */
 function generatorCombine() {
   var generators = Array.prototype.slice.call(arguments, 0, -1);
@@ -568,7 +474,25 @@ function generatorCombine() {
 }
 
 /**
-  - `generator.recursive(genZ: gen a, genS: gen a -> gen a): gen a`
+  - `generator.oneof(gens: list (generator a)): generator a`
+*/
+function generateOneof(generators) {
+  var result = generatorBless(function (size) {
+    var idx = random(0, generators.length - 1);
+    var arb = generators[idx];
+    return arb(size);
+  });
+
+  return utils.curried2(result, arguments);
+}
+
+// Helper, essentially: log2(size + 1)
+function logsize(size) {
+  return Math.max(Math.round(Math.log(size + 1) / Math.log(2), 0));
+}
+
+/**
+  - `generator.recursive(genZ: generator a, genS: generator a -> generator a): generator a`
 */
 function generatorRecursive(genZ, genS) {
   return generatorBless(function (size) {
@@ -587,7 +511,111 @@ function generatorRecursive(genZ, genS) {
 }
 
 /**
-  - `generator.json: gen json`
+  - `generator.pair(genA: generator a, genB: generator b): generator (a, b)`
+*/
+function generatePair(genA, genB) {
+  var result = generatorBless(function (size) {
+    return [genA(size), genB(size)];
+  });
+
+  return utils.curried3(result, arguments);
+}
+
+/**
+  - `generator.tuple(gens: (generator a, generator b...): generator (a, b...)`
+*/
+function generateTuple(gens) {
+  var len = gens.length;
+  var result = generatorBless(function (size) {
+    var r = [];
+    for (var i = 0; i < len; i++) {
+      r[i] = gens[i](size);
+    }
+    return r;
+  });
+
+  return utils.curried2(result, arguments);
+}
+
+/**
+   - `generator.array(gen: generator a): generator (array a)`
+*/
+function generateArray(gen) {
+  var result = generatorBless(function (size) {
+    var arrsize = random(0, logsize(size));
+    var arr = new Array(arrsize);
+    for (var i = 0; i < arrsize; i++) {
+      arr[i] = gen(size);
+    }
+    return arr;
+  });
+
+  return utils.curried2(result, arguments);
+}
+
+/**
+   - `generator.nearray(gen: generator a): generator (array a)`
+*/
+function generateNEArray(gen) {
+  var result = generatorBless(function (size) {
+    var arrsize = random(1, Math.max(logsize(size), 1));
+    var arr = new Array(arrsize);
+    for (var i = 0; i < arrsize; i++) {
+      arr[i] = gen(size);
+    }
+    return arr;
+  });
+
+  return utils.curried2(result, arguments);
+}
+
+/**
+  - `generator.char: generator char`
+*/
+var generateChar = generatorBless(function generateChar(/* size */) {
+  return String.fromCharCode(random(0, 0xff));
+});
+
+/**
+  - `generator.string: generator string`
+*/
+var generateString = generateArray(generateChar).map(utils.charArrayToString);
+
+/**
+  - `generator.nestring: generator string`
+*/
+var generateNEString = generateNEArray(generateChar).map(utils.charArrayToString);
+
+/**
+  - `generator.asciichar: generator char`
+*/
+var generateAsciiChar = generatorBless(function generateAsciiChar(/* size */) {
+  return String.fromCharCode(random(0x20, 0x7e));
+});
+
+/**
+  - `generator.asciistring: generator string`
+*/
+var generateAsciiString = generateArray(generateAsciiChar).map(utils.charArrayToString);
+
+/**
+  - `generator.map(gen: generator a): generator (map a)`
+*/
+function generateMap(gen) {
+  var result = generatorBless(function (size) {
+    var objsize = random(0, logsize(size));
+    var obj = {};
+    for (var i = 0; i < objsize; i++) {
+      obj[generateString(size)] = gen(size);
+    }
+    return obj;
+  });
+
+  return utils.curried2(result, arguments);
+}
+
+/**
+  - `generator.json: generator json`
 */
 var generateInteger = generatorBless(function (size) {
   return random(-size, size);
@@ -1554,6 +1582,15 @@ var utils = require("./utils.js");
 
 /**
   ### Shrink functions
+
+  A shrink function, `shrink a`, is a function `a -> [a]`, returning an array of *smaller* values.
+
+  Shrink combinators are auto-curried:
+
+  ```js
+  var xs = shrink.array(shrink.nat, [1]); // ≡
+  var ys = shrink.array(shrink.nat)([1]);
+  ```
 */
 
 // Blessing: i.e adding prototype
@@ -1567,20 +1604,35 @@ function shrinkProtoIsoMap(f, g) {
 }
 /* eslint-enable no-use-before-define */
 
+/**
+  - `shrink.bless(f: a -> [a]): shrink a`
+
+      Bless function with `.isomap` property.
+
+  - `.isomap(f: a -> b, g: b -> a): shrink b`
+
+      Transform `shrink a` into `shrink b`. For example:
+
+      ```js
+      positiveIntegersShrink = nat.shrink.isomap(
+        function (x) { return x + 1; },
+        function (x) { return x - 1; });
+      ```
+*/
 function shrinkBless(shrink) {
   shrink.isomap = shrinkProtoIsoMap;
   return shrink;
 }
 
 /**
-  - `shrink.noop(x: a): array a`
+  - `shrink.noop: shrink a`
 */
 var shrinkNoop = shrinkBless(function shrinkNoop() {
   return [];
 });
 
 /**
-  - `shrink.pair(shrA: a -> array a, shrB: b -> array, x: (a, b)): array (a, b)`
+  - `shrink.pair(shrA: shrink a, shrB: shrink b): shrink (a, b)`
 */
 function shrinkPair(shrinkA, shrinkB) {
   var result = shrinkBless(function (pair) {
@@ -1637,7 +1689,7 @@ function shrinkTupleImpl(shrinks, n) {
 }
 
 /**
-  - `shrink.tuple(shrinks: (a -> array a, b -> array b...), x: (a, b...)): array (a, b...)`
+  - `shrink.tuple(shrs: (shrink a, shrink b...)): shrink (a, b...)`
 */
 function shrinkTuple(shrinks) {
   assert(shrinks.length > 0, "shrinkTuple needs > 0 values");
@@ -1668,17 +1720,17 @@ function shrinkArrayWithMinimumSize(size) {
 }
 
 /**
-  - `shrink.array(shrink: a -> array a, x: array a): array (array a)`
+  - `shrink.array(shr: shrink a): shrink (array a)`
 */
 var shrinkArray = shrinkArrayWithMinimumSize(0);
 
 /**
-  - `shrink.nearray(shrink: a -> nearray a, x:  nearray a): array (nearray a)`
+  - `shrink.nearray(shr: shrink a): shrink (nearray a)`
 */
 var shrinkNEArray = shrinkArrayWithMinimumSize(1);
 
 /**
-  - `shrink.record(shrinks: { key: a -> string... }, x: { key: a... }): array { key: a... }`
+  - `shrink.record(shrs: { key: shrink a... }): shrink { key: a... }`
 */
 function shrinkRecord(shrinksRecord) {
   var result = shrinkBless(function (record) {

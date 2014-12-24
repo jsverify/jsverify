@@ -1,5 +1,7 @@
 ## Release History
 
+- **0.5.0** &mdash; *2014-12-24* Merry Chrismas 2014!
+    - Documention cleanup
 - **0.5.0-beta.2** &mdash; *2014-12-21* &mdash; Beta 2!
     - Pair &amp; tuple related code cleanup
     - Update `CONTRIBUTING.md`

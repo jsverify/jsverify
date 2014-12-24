@@ -275,7 +275,11 @@ var xs = generator.array(shrink.nat, 1); // ≡
 var ys = generator.array(shrink.nat)(1);
 ```
 
-In purely functional approach `generator a` would be explicitly stateful computation: `(size: nat, rng: randomstate) -> (a, randomstate)`. *JSVerify* uses an implicit random number generator state, but the value generation is deterministic (tests reproduceable), if the primitives from *random* module are used.
+In purely functional approach `generator a` would be explicitly stateful computation:
+`(size: nat, rng: randomstate) -> (a, randomstate)`.
+*JSVerify* uses an implicit random number generator state,
+but the value generation is deterministic (tests reproduceable),
+if the primitives from *random* module are used.
 
 - `generator.bless(f: nat -> a): generator a`
 
@@ -412,6 +416,8 @@ Use [underscore.js](http://underscorejs.org/), [lodash](https://lodash.com/), [r
 
 ## Release History
 
+- **0.5.0** &mdash; *2014-12-24* Merry Chrismas 2014!
+    - Documention cleanup
 - **0.5.0-beta.2** &mdash; *2014-12-21* &mdash; Beta 2!
     - Pair &amp; tuple related code cleanup
     - Update `CONTRIBUTING.md`

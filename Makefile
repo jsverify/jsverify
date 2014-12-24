@@ -55,6 +55,11 @@ david :
 npm-freeze :
 	$(NPMFREEZE) check || true
 
+npm-freeze-manifest : npm-freeze-manifest.json
+
+npm-freeze-manifest.json :
+	$(NPMFREEZE) manifest
+
 $(DIST) : lib/*
 	$(BROWSERIFY) --no-detect-globals -s jsc -o $(DIST) ./lib/jsverify.js
 
