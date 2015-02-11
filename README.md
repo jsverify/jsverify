@@ -543,6 +543,7 @@ Use [underscore.js](http://underscorejs.org/), [lodash](https://lodash.com/), [r
 - [Erlang - triq](https://github.com/krestenkrab/triq)
 - [Scala - ScalaCheck](https://github.com/rickynils/scalacheck)
 - [Clojure - test.check](https://github.com/clojure/test.check)
+- [Python - Hypothesis](https://github.com/DRMacIver/hypothesis)
 
 The MIT License (MIT)
 
