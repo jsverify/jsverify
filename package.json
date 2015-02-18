@@ -1,7 +1,7 @@
 {
   "name": "jsverify",
   "description": "Property-based testing for JavaScript.",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "homepage": "http://jsverify.github.io/",
   "author": {
     "name": "Oleg Grenrus",

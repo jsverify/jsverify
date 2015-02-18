@@ -841,12 +841,12 @@ function forall() {
           if (rRecPrime === true) {
             return true;
           } else {
-            return shrinkResult(gens, x, test, size, shrinks, exc, function (r) {
+            return shrinkResult(gens, x, test, size, shrinks, exc, function (rr) {
               return {
-                counterexample: r.counterexample.concat(rRecPrime.counterexample),
-                counterexamplestr: r.counterexamplestr ,//+ "; " + rRec.counterexamplestr,
-                shrinks: r.shrinks,
-                exc: r.exc || rRecPrime.exc,
+                counterexample: rr.counterexample.concat(rRecPrime.counterexample),
+                counterexamplestr: rr.counterexamplestr ,//+ "; " + rRec.counterexamplestr,
+                shrinks: rr.shrinks,
+                exc: rr.exc || rRecPrime.exc,
               };
             });
           }
@@ -2132,7 +2132,7 @@ function replacer(key, value) {
   if (util.isUndefined(value)) {
     return '' + value;
   }
-  if (util.isNumber(value) && (isNaN(value) || !isFinite(value))) {
+  if (util.isNumber(value) && !isFinite(value)) {
     return value.toString();
   }
   if (util.isFunction(value) || util.isRegExp(value)) {
@@ -2271,23 +2271,22 @@ function objEquiv(a, b) {
     return false;
   // an identical 'prototype' property.
   if (a.prototype !== b.prototype) return false;
-  //~~~I've managed to break Object.keys through screwy arguments passing.
-  //   Converting to array solves the problem.
-  if (isArguments(a)) {
-    if (!isArguments(b)) {
-      return false;
-    }
+  // if one is a primitive, the other must be same
+  if (util.isPrimitive(a) || util.isPrimitive(b)) {
+    return a === b;
+  }
+  var aIsArgs = isArguments(a),
+      bIsArgs = isArguments(b);
+  if ((aIsArgs && !bIsArgs) || (!aIsArgs && bIsArgs))
+    return false;
+  if (aIsArgs) {
     a = pSlice.call(a);
     b = pSlice.call(b);
     return _deepEqual(a, b);
   }
-  try {
-    var ka = objectKeys(a),
-        kb = objectKeys(b),
-        key, i;
-  } catch (e) {//happens when one is a string literal and the other isn't
-    return false;
-  }
+  var ka = objectKeys(a),
+      kb = objectKeys(b),
+      key, i;
   // having the same number of owned properties (keys incorporates
   // hasOwnProperty)
   if (ka.length != kb.length)
