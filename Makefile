@@ -5,7 +5,7 @@ BINDIR=node_modules/.bin
 JSHINT=$(BINDIR)/jshint
 ESLINT=$(BINDIR)/eslint
 JSCS=$(BINDIR)/jscs
-MOCHA=$(BINDIR)/_mocha
+MOCHA=$(BINDIR)/mocha
 ISTANBUL=$(BINDIR)/istanbul
 KARMA=$(BINDIR)/karma
 BROWSERIFY=$(BINDIR)/browserify
@@ -21,13 +21,13 @@ test : jshint eslint jscs mocha istanbul david npm-freeze
 
 SRC=lib test examples helpers karma.conf.js karma.jasmine.conf.js
 
-jshint : 
+jshint :
 	$(JSHINT) $(SRC)
 
-eslint : 
+eslint :
 	$(ESLINT) $(SRC)
 
-jscs : 
+jscs :
 	$(JSCS) $(SRC)
 
 tests-bundle.js : test/*
@@ -39,10 +39,10 @@ karma : tests-bundle.js
 jasmine : $(DIST)
 	$(KARMA) start karma.jasmine.conf.js
 
-mocha : 
+mocha :
 	$(MOCHA) --reporter spec test
 
-istanbul : 
+istanbul :
 	$(ISTANBUL) cover -- $(MOCHA) --timeout 10000 test
 	$(ISTANBUL) check-coverage --statements -2 --branches -3 --functions 100 coverage/coverage.json
 
@@ -63,5 +63,5 @@ npm-freeze-manifest.json :
 $(DIST) : lib/*
 	$(BROWSERIFY) --no-detect-globals -s jsc -o $(DIST) ./lib/jsverify.js
 
-literate : 
+literate :
 	$(LJS) --no-code -o README.md lib/jsverify.js
