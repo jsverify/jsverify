@@ -3,6 +3,6 @@
     "node": true
   },
   "rules": {
-    "no-comma-dangle": 0
+    "comma-dangle": 0
   }
 }
