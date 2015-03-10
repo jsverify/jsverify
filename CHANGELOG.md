@@ -1,5 +1,6 @@
 ## Release History
 
+- **0.5.2** &mdash; *2015-04-10* &mdash; `show.def` -change
 - **0.5.1** &mdash; *2015-02-19* &mdash; Dependencies bump
     - We also work on 0.12 and iojs!
 - **0.5.0** &mdash; *2014-12-24* &mdash; Merry Chrismas 2014!
