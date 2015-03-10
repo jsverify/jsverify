@@ -1,8 +1,8 @@
 ## Release History
 
-- **0.5.1** &mdash; *2015-02-19* Dependencies bump
+- **0.5.1** &mdash; *2015-02-19* &mdash; Dependencies bump
     - We also work on 0.12 and iojs!
-- **0.5.0** &mdash; *2014-12-24* Merry Chrismas 2014!
+- **0.5.0** &mdash; *2014-12-24* &mdash; Merry Chrismas 2014!
     - Documention cleanup
 - **0.5.0-beta.2** &mdash; *2014-12-21* &mdash; Beta 2!
     - Pair &amp; tuple related code cleanup
