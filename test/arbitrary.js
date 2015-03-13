@@ -25,7 +25,7 @@ describe("primitive arbitraries", function () {
     });
 
     function falsyShowProperty(x) {
-      return !!jsc.falsy.show(x).match(/^falsy: /);
+      return jsc.falsy.show(x).match(/^falsy: /) !== null;
     }
 
     jsc.property("show returns string starting with 'falsy: '", "falsy", falsyShowProperty);
