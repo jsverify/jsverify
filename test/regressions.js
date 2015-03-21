@@ -41,34 +41,41 @@ describe("regressions", function () {
       return _.uniq(xs).length === xs.length;
     };
 
+    var setArb = set(jsc.nat);
+    var setShrink = setArb.shrink;
+
     it("generator sound", function () {
       // Property works
-      var prop = jsc.forall(set(jsc.nat), pred);
+      var prop = jsc.forall(setArb, pred);
       jsc.assert(prop);
+    });
+
+    jsc.property("shrink example", function () {
+      var value = setShrink([1, 2]).toArray();
+      return _.every(value, pred);
     });
 
     it("shrink sound", function () {
       // Also shrinks!
-      var shrink = set(jsc.nat).shrink;
-      var shrinkProp = jsc.forall(set(jsc.nat), function (xs) {
-        var shrinked = shrink(xs);
+      var shrinkProp = jsc.forall(setArb, function (xs) {
+        var shrinked = setShrink(xs).toArray();
         return _.every(shrinked, pred);
       });
       jsc.assert(shrinkProp);
     });
 
     it("array shrink, may break invariant", function () {
-      var shrink = jsc.compile("array nat").shrink;
+      var arrayShrink = jsc.compile("array nat").shrink;
 
-      var shrinked = shrink([1, 2, 3]);
+      var shrinked = arrayShrink([1, 2, 3]).toArray();
       assert(shrinked.some(function (xs) {
         return !pred(xs);
       }));
     });
 
     it("user environment works in suchthat", function () {
-      var arb = jsc.suchthat("set nat", { set: set }, function () { return true; });
-      jsc.assert(jsc.forall(arb, pred));
+      var suchThatArb = jsc.suchthat("set nat", { set: set }, function () { return true; });
+      jsc.assert(jsc.forall(suchThatArb, pred));
     });
 
     it("user environment works in forall", function () {

@@ -61,7 +61,7 @@
     "jscheck"
   ],
   "dependencies": {
-    "lazy-seq": "0.0.2",
+    "lazy-seq": "~0.1.0",
     "rc4": "~0.1.2",
     "typify-parser": "0.0.1"
   }
