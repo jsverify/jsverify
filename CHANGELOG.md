@@ -1,5 +1,8 @@
 ## Release History
 
+- **0.5.3** &mdash; *2015-04-21* &mdash; More algebra
+    - `unit` and `either` arbitraries
+    - `arbitrary.smap` to help creating compound data
 - **0.5.2** &mdash; *2015-04-10* &mdash; `show.def` -change
 - **0.5.1** &mdash; *2015-02-19* &mdash; Dependencies bump
     - We also work on 0.12 and iojs!
