@@ -243,6 +243,10 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
 - `nearray(arb: arbitrary a): arbitrary (array a)`
 
+- `unit: arbitrary ()`
+
+- `either(arbA: arbitrary a, arbB : arbitrary b): arbitrary (either a b)`
+
 - `pair(arbA: arbitrary a, arbB : arbitrary b): arbitrary (pair a b)`
 
     If not specified `a` and `b` are equal to `value()`.
@@ -308,6 +312,12 @@ if the primitives from *random* module are used.
 
 - `generator.pair(genA: generator a, genB: generator b): generator (a, b)`
 
+- `generator.either(genA: generator a, genB: generator b): generator (either a b)`
+
+- `generator.unit: generator ()
+
+    `unit` is an empty tuple, i.e. empty array in JavaScript representation. This is useful as a building block.
+
 - `generator.tuple(gens: (generator a, generator b...): generator (a, b...)`
 
 - `generator.array(gen: generator a): generator (array a)`
@@ -357,6 +367,8 @@ var ys = shrink.array(shrink.nat)([1]);
 
 - `shrink.pair(shrA: shrink a, shrB: shrink b): shrink (a, b)`
 
+- `shrink.either(shrA: shrink a, shrB: shrink b): shrink (either a b)`
+
 - `shrink.tuple(shrs: (shrink a, shrink b...)): shrink (a, b...)`
 
 - `shrink.array(shr: shrink a): shrink (array a)`
@@ -372,6 +384,8 @@ var ys = shrink.array(shrink.nat)([1]);
     Currently implemented as `JSON.stringify`.
 
 - `show.pair(showA: a -> string, showB: b -> string, x: (a, b)): string`
+
+- `show.either(showA: a -> string, showB: b -> string, e: either a b): string`
 
 - `show.tuple(shrinks: (a -> string, b -> string...), x: (a, b...)): string`
 
@@ -390,6 +404,36 @@ var ys = shrink.array(shrink.nat)([1]);
 - `random.number(min: number, max: number): number`
 
     Returns random number from `[min, max)` range.
+
+### either
+
+- `either.left(value: a): either a b`
+
+- `either.right(value: b): either a b`
+
+- `either.either(l: a -> x, r: b -> x): x`
+
+- `either.isEqual(other: either a b): bool
+
+    TODO: add `eq` optional parameter
+
+- `either.bimap(f: a -> c, g: b -> d): either c d`
+
+    ```js
+    either.bimap(compose(f, g), compose(h, i)) ≡ either.bimap(g, i).bimap(f, h);
+    ```
+
+- `either.first(f: a -> c): either c b`
+
+    ```js
+    either.first(f) ≡ either.bimap(f, utils.identity)
+    ```
+
+- `either.second(g: b -> d): either a d`
+
+    ```js
+    either.second(g) === either.bimap(utils.identity, g)
+    ```
 
 ### Utility functions
 
