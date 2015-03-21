@@ -164,6 +164,24 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 - *functions* are supported: `"bool -> bool"` is evaluated to `jsc.fn(jsc.bool())`.
 - *square brackets* are treated as a shorthand for the array type: `"[nat]"` is evaluated to `jsc.array(jsc.nat)`.
 
+### Arbitrary data
+
+- `arb.bless({...}): arbitrary a`
+
+    Bless generator, shrink, show triple with  with `.smap` property.
+
+- `.smap(f: a -> b, g: b -> a, newShow: (b -> string)?): arbitrary b`
+
+    Transform `arbitrary a` into `arbitrary b`. For example:
+
+    `g` should be a [right inverse](http://en.wikipedia.org/wiki/Surjective_function#Surjections_as_right_invertible_functions) of `f`.
+
+    ```js
+    positiveIntegersArb = nat.smap(
+      function (x) { return x + 1; },
+      function (x) { return x - 1; });
+    ```
+
 ### Primitive arbitraries
 
 - `integer: arbitrary integer`
