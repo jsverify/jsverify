@@ -8,7 +8,7 @@ var _ = require("underscore");
 describe("jsc.utils", function () {
   describe("merge", function () {
     it("≡ _.extend({}, ...", function () {
-      jsc.assert(jsc.forall("map", "map", function (x, y) {
+      jsc.assert(jsc.forall("dict", "dict", function (x, y) {
         var a = jsc.utils.merge(x, y);
         var b = _.extend({}, x, y);
         return _.isEqual(a, b);

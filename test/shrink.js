@@ -200,9 +200,9 @@ describe("shrink", function () {
     });
   });
 
-  describe("map", function () {
-    it("shrinks to smaller maps", function () {
-      checkShrink([{"": 1}], jsc.forall(jsc.map(jsc.nat()), function (m) {
+  describe("dict", function () {
+    it("shrinks to smaller dicts", function () {
+      checkShrink([{"": 1}], jsc.forall(jsc.dict(jsc.nat()), function (m) {
         return _.size(m) === 0 || _.some(m, function (value) { return value === 0; });
       }));
     });
