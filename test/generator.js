@@ -74,8 +74,8 @@ describe("jsc.generator", function () {
         });
       }
       for (var i = 0; i < 20; i++) {
-        assertPredicate(jsc.generator.map(jsc.nat().generator)(i));
-        assertPredicate(jsc.generator.map(jsc.nat().generator, i));
+        assertPredicate(jsc.generator.map(jsc.nat.generator)(i));
+        assertPredicate(jsc.generator.map(jsc.nat.generator, i));
       }
     });
   });
@@ -109,8 +109,8 @@ describe("jsc.generator", function () {
         assert(typeof x === "number" || typeof x === "string");
       }
       for (var i = 0; i < 20; i++) {
-        assertPredicate(jsc.generator.oneof([jsc.nat().generator, jsc.string().generator])(i));
-        assertPredicate(jsc.generator.oneof([jsc.nat().generator, jsc.string().generator], i));
+        assertPredicate(jsc.generator.oneof([jsc.nat().generator, jsc.string.generator])(i));
+        assertPredicate(jsc.generator.oneof([jsc.nat().generator, jsc.string.generator], i));
       }
     });
   });

@@ -131,7 +131,7 @@ describe("primitive arbitraries", function () {
 
   describe("string", function () {
     it("generates string", function () {
-      jsc.assert(jsc.forall(jsc.string(), function (x) {
+      jsc.assert(jsc.forall(jsc.string, function (x) {
         return typeof x === "string";
       }));
     });

@@ -88,7 +88,7 @@ describe("shrink", function () {
 
   describe("array", function () {
     it("shrinks to smaller arrays", function () {
-      checkShrink([[1]], jsc.forall(jsc.array(jsc.nat()), function (arr) {
+      checkShrink([[1]], jsc.forall(jsc.array(jsc.nat), function (arr) {
         return arr.length === 0 || arr[0] === 0;
       }));
     });
@@ -96,12 +96,12 @@ describe("shrink", function () {
 
   describe("string", function () {
     it("shrink of empty string is empty", function () {
-      assert(jsc.string().shrink("").length() === 0);
+      assert(jsc.string.shrink("").length() === 0);
     });
 
     it("shrinks to smaller strings", function () {
-      assert(jsc.string().shrink("foobar").toArray().indexOf("fobar") !== -1);
-      assert(jsc.string().shrink("f").toArray().indexOf("") !== -1);
+      assert(jsc.string.shrink("foobar").toArray().indexOf("fobar") !== -1);
+      assert(jsc.string.shrink("f").toArray().indexOf("") !== -1);
     });
   });
 
