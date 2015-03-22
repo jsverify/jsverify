@@ -123,6 +123,10 @@ for now in either identity or promise functor, for synchronous and promise prope
    });
    ```
 
+- `compile(desc: string, env: typeEnv?): arbitrary a`
+
+    Compile the type describiption in provided type environment, or default one.
+
 - `sampler(arb: arbitrary a, genSize: nat = 10): (sampleSize: nat?) -> a`
 
     Create a sampler for a given arbitrary with an optional size. Handy when used in
@@ -166,10 +170,6 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
 ### Arbitrary data
 
-- `arb.bless({...}): arbitrary a`
-
-    Bless generator, shrink, show triple with  with `.smap` property.
-
 - `.smap(f: a -> b, g: b -> a, newShow: (b -> string)?): arbitrary b`
 
     Transform `arbitrary a` into `arbitrary b`. For example:
@@ -181,6 +181,25 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
       function (x) { return x + 1; },
       function (x) { return x - 1; });
     ```
+
+- `bless(arb: {...}): arbitrary a`
+
+  Bless almost arbitrary structure to be proper arbitrary. *Note*: this function mutates argument.
+
+  Example:
+
+  ```js
+  var arbTokens = jsc.bless({
+    generator: function () {
+      switch (jsc.random(0, 2)) {
+        case 0: return "foo";
+        case 1: return "bar";
+        case 2: return "quux";
+      }
+    }
+    shrink: jsc.shrink.noop,
+  });
+  ```
 
 ### Primitive arbitraries
 
