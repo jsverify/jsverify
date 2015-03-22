@@ -88,7 +88,7 @@ describe("shrink", function () {
 
   describe("array", function () {
     it("shrinks to smaller arrays", function () {
-      checkShrink([[1]], jsc.forall(jsc.array(jsc.nat()), function (arr) {
+      checkShrink([[1]], jsc.forall(jsc.array(jsc.nat), function (arr) {
         return arr.length === 0 || arr[0] === 0;
       }));
     });
@@ -96,12 +96,12 @@ describe("shrink", function () {
 
   describe("string", function () {
     it("shrink of empty string is empty", function () {
-      assert(jsc.string().shrink("").length() === 0);
+      assert(jsc.string.shrink("").length() === 0);
     });
 
     it("shrinks to smaller strings", function () {
-      assert(jsc.string().shrink("foobar").toArray().indexOf("fobar") !== -1);
-      assert(jsc.string().shrink("f").toArray().indexOf("") !== -1);
+      assert(jsc.string.shrink("foobar").toArray().indexOf("fobar") !== -1);
+      assert(jsc.string.shrink("f").toArray().indexOf("") !== -1);
     });
   });
 
@@ -200,9 +200,9 @@ describe("shrink", function () {
     });
   });
 
-  describe("map", function () {
-    it("shrinks to smaller maps", function () {
-      checkShrink([{"": 1}], jsc.forall(jsc.map(jsc.nat()), function (m) {
+  describe("dict", function () {
+    it("shrinks to smaller dicts", function () {
+      checkShrink([{"": 1}], jsc.forall(jsc.dict(jsc.nat()), function (m) {
         return _.size(m) === 0 || _.some(m, function (value) { return value === 0; });
       }));
     });
@@ -255,10 +255,10 @@ describe("shrink", function () {
     });
   });
 
-  describe("isomap", function () {
+  describe("smap", function () {
     it("transforms shrinks", function () {
       var neg = function (x) { return -x; };
-      var shrink = jsc.nat().shrink.isomap(neg, neg);
+      var shrink = jsc.nat().shrink.smap(neg, neg);
 
       var shrinked = shrink(10);
       assert(shrinked.every(function (x) {
@@ -266,17 +266,17 @@ describe("shrink", function () {
       }));
     });
 
-    it("isomap ∘ isomap", function () {
+    it("smap ∘ smap", function () {
       var neg = function (n) { return -n; };
       var f = function (n) { return n + 1; };
       var g = function (n) { return n - 1; };
 
-      var shrink1 = jsc.nat().shrink.isomap(neg, neg).isomap(f, g);
+      var shrink1 = jsc.nat().shrink.smap(neg, neg).smap(f, g);
       // →: f ∘ neg
       // ← neg ∘ g
       // neg⁻¹ ≡ neg
       // f⁻¹ ≡ f
-      var shrink2 = jsc.nat().shrink.isomap(_.compose(f, neg), _.compose(neg, g));
+      var shrink2 = jsc.nat().shrink.smap(_.compose(f, neg), _.compose(neg, g));
 
       jsc.assert(jsc.forall(jsc.nat(), function (i) {
         var j = f(neg(i));

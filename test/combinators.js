@@ -21,15 +21,15 @@ describe("generator combinators", function () {
     });
   });
 
-  describe("map", function () {
+  describe("dict", function () {
     it("generates objects with properties of given type", function () {
-      jsc.assert(jsc.forall(jsc.map(jsc.integer()), function (m) {
+      jsc.assert(jsc.forall(jsc.dict(jsc.integer()), function (m) {
         return _.isObject(m) && _.every(m, _.isNumber);
       }));
     });
 
     it("generates objects with properties of values, if type omitted", function () {
-      jsc.assert(jsc.forall(jsc.map(), function (m) {
+      jsc.assert(jsc.forall(jsc.dict(), function (m) {
         return _.isObject(m);
       }));
     });

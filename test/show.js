@@ -25,7 +25,7 @@ describe("primitive show", function () {
 
   describe("string", function () {
     it("show returns string wrapped in quotes", function () {
-      jsc.assert(stringifyShowProperty(jsc.string()));
+      jsc.assert(stringifyShowProperty(jsc.string));
     });
   });
 

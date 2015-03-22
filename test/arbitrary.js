@@ -131,7 +131,7 @@ describe("primitive arbitraries", function () {
 
   describe("string", function () {
     it("generates string", function () {
-      jsc.assert(jsc.forall(jsc.string(), function (x) {
+      jsc.assert(jsc.forall(jsc.string, function (x) {
         return typeof x === "string";
       }));
     });
@@ -233,7 +233,6 @@ describe("primitive arbitraries", function () {
     it("takes two parameters for range", function () {
       var now = new Date();
       var nextHour = new Date(now.getTime() + 3600 * 1000);
-
       jsc.assert(jsc.forall(jsc.datetime(now, nextHour), function (d) {
         return now.getTime() <= d.getTime() && d.getTime() <= nextHour.getTime();
       }));
