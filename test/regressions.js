@@ -26,15 +26,10 @@ describe("regressions", function () {
   });
 
   describe("#39 - Allow new generators in the DSLs environment", function () {
-    // Use .map and .isomap!
     var set = function (arb) {
-      // Good to have this only once!
       var arrayArb = jsc.array(arb);
-      return {
-        generator: arrayArb.generator.map(_.uniq),
-        shrink: arrayArb.shrink.isomap(_.uniq, _.identity), // _.id is "forgets" uniqueness: "set → array"
-        show: arrayArb.show,
-      };
+      // _.id is "forgets" uniqueness: "set → array"
+      return arrayArb.smap(_.uniq, _.identity, arrayArb.show);
     };
 
     var pred = function (xs) {
