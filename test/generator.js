@@ -114,4 +114,14 @@ describe("jsc.generator", function () {
       }
     });
   });
+
+  jsc.property("generator.json", function () {
+    var result = true;
+    for (var i = 0; i < 10; i++) {
+      var rhs = jsc.generator.json(i);
+      var lhs = JSON.parse(JSON.stringify(rhs));
+      result = result && _.isEqual(rhs, lhs);
+    }
+    return result;
+  });
 });

@@ -96,37 +96,38 @@ describe("shrink", function () {
 
   describe("string", function () {
     it("shrink of empty string is empty", function () {
-      assert(jsc.string().shrink("").length === 0);
+      assert(jsc.string().shrink("").length() === 0);
     });
 
     it("shrinks to smaller strings", function () {
-      assert(jsc.string().shrink("foobar").indexOf("fobar") !== -1);
-      assert(jsc.string().shrink("f").indexOf("") !== -1);
+      assert(jsc.string().shrink("foobar").toArray().indexOf("fobar") !== -1);
+      assert(jsc.string().shrink("f").toArray().indexOf("") !== -1);
     });
   });
 
   describe("asciistring", function () {
     it("shrink of empty asciistring is empty", function () {
-      assert(jsc.asciistring.shrink("").length === 0);
+      assert(jsc.asciistring.shrink("").length() === 0);
     });
 
     it("shrinks to smaller asciistrings", function () {
-      assert(jsc.asciistring.shrink("foobar").indexOf("fobar") !== -1);
-      assert(jsc.asciistring.shrink("f").indexOf("") !== -1);
+      // TODO: implement lazyseq.contains
+      assert(jsc.asciistring.shrink("foobar").toArray().indexOf("fobar") !== -1);
+      assert(jsc.asciistring.shrink("f").toArray().indexOf("") !== -1);
     });
   });
 
   describe("nearray", function () {
     jsc.property("shrink of singleton nearray is empty", "nat", function (n) {
-      return jsc.nearray(jsc.nat).shrink([n]).length === 0;
+      return jsc.nearray(jsc.nat).shrink([n]).length() === 0;
     });
 
     it("shrinks to smaller nearrays", function () {
-      assert(jsc.nearray(jsc.nat).shrink([0, 0]).map(function (x) { return x.join(""); }).indexOf("0") !== -1);
-      assert(jsc.nearray(jsc.nat).shrink([0, 0, 0]).map(function (x) { return x.join(""); }).indexOf("00") !== -1);
+      assert(jsc.nearray(jsc.nat).shrink([0, 0]).map(function (x) { return x.join(""); }).toArray().indexOf("0") !== -1);
+      assert(jsc.nearray(jsc.nat).shrink([0, 0, 0]).map(function (x) { return x.join(""); }).toArray().indexOf("00") !== -1);
 
-      assert(jsc.shrink.nearray(jsc.nat.shrink)([1, 1]).map(function (x) { return x.join(""); }).indexOf("1") !== -1);
-      assert(jsc.shrink.nearray(jsc.nat.shrink, [1, 1]).map(function (x) { return x.join(""); }).indexOf("1") !== -1);
+      assert(jsc.shrink.nearray(jsc.nat.shrink)([1, 1]).map(function (x) { return x.join(""); }).toArray().indexOf("1") !== -1);
+      assert(jsc.shrink.nearray(jsc.nat.shrink, [1, 1]).map(function (x) { return x.join(""); }).toArray().indexOf("1") !== -1);
     });
   });
 
