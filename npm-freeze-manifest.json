@@ -1,5 +1,5 @@
 {
-  "version": "0.5.3",
+  "version": "0.6.0-alpha.1",
   "dependencies": {
     "browserify": {
       "version": "9.0.3",
@@ -1643,7 +1643,7 @@
           }
         },
         "espree": {
-          "version": "1.12.0",
+          "version": "1.12.2",
           "dependencies": {}
         },
         "estraverse": {
@@ -1662,12 +1662,8 @@
           "version": "3.2.7",
           "dependencies": {
             "argparse": {
-              "version": "1.0.1",
+              "version": "1.0.2",
               "dependencies": {
-                "lodash": {
-                  "version": "3.2.0",
-                  "dependencies": {}
-                },
                 "sprintf-js": {
                   "version": "1.0.2",
                   "dependencies": {}
@@ -1874,12 +1870,8 @@
           "version": "3.2.7",
           "dependencies": {
             "argparse": {
-              "version": "1.0.1",
+              "version": "1.0.2",
               "dependencies": {
-                "lodash": {
-                  "version": "3.2.0",
-                  "dependencies": {}
-                },
                 "sprintf-js": {
                   "version": "1.0.2",
                   "dependencies": {}
@@ -3055,6 +3047,10 @@
     },
     "karma-mocha": {
       "version": "0.1.10",
+      "dependencies": {}
+    },
+    "lazy-seq": {
+      "version": "0.1.0",
       "dependencies": {}
     },
     "ljs": {

@@ -2,10 +2,14 @@
 /* @flow weak */
 "use strict";
 
+var arbitraryAssert = require("./arbitraryAssert.js");
 var arbitraryBless = require("./arbitraryBless.js");
+var array = require("./array.js");
 var assert = require("assert");
 var generator = require("./generator.js");
-var primitive = require("./primitive.js");
+var pair = require("./pair.js");
+var dict = require("./dict.js");
+var json = require("./json.js");
 var show = require("./show.js");
 var shrink = require("./shrink.js");
 var utils = require("./utils.js");
@@ -29,28 +33,6 @@ function nonshrink(arb) {
   });
 }
 
-function arrayImpl(flavour) {
-  return function array(arb) {
-    arb = utils.force(arb || primitive.json);
-
-    return arbitraryBless({
-      generator: generator[flavour](arb.generator),
-      shrink: shrink[flavour](arb.shrink),
-      show: show.array(arb.show),
-    });
-  };
-}
-
-/**
-  - `array(arb: arbitrary a): arbitrary (array a)`
-*/
-var array = arrayImpl("array");
-
-/**
-  - `nearray(arb: arbitrary a): arbitrary (array a)`
-*/
-var nearray = arrayImpl("nearray");
-
 /**
   - `unit: arbitrary ()`
 */
@@ -64,8 +46,11 @@ var unit = arbitraryBless({
   - `either(arbA: arbitrary a, arbB : arbitrary b): arbitrary (either a b)`
 */
 function either(a, b) {
-  a = utils.force(a || primitive.json);
-  b = utils.force(b || primitive.json);
+  a = utils.force(a || json.json);
+  b = utils.force(b || json.json);
+
+  arbitraryAssert(a);
+  arbitraryAssert(b);
 
   return arbitraryBless({
     generator: generator.either(a.generator, b.generator),
@@ -79,15 +64,8 @@ function either(a, b) {
 
       If not specified `a` and `b` are equal to `value()`.
 */
-function pair(a, b) {
-  a = utils.force(a || primitive.json);
-  b = utils.force(b || primitive.json);
-
-  return arbitraryBless({
-    generator: generator.pair(a.generator, b.generator),
-    shrink: shrink.pair(a.shrink, b.shrink),
-    show: show.pair(a.show, b.show),
-  });
+function pairArb(a, b) {
+  return pair.pair(a || json.json, b || json.json);
 }
 
 /**
@@ -103,41 +81,34 @@ function tuple(arbs) {
 }
 
 /**
-  - `map(arb: arbitrary a): arbitrary (map a)`
+  - `dict(arb: arbitrary a): arbitrary (dict a)`
 
       Generates a JavaScript object with properties of type `A`.
 */
-function fromArray(arrayOfPairs) {
-  var res = {};
-  arrayOfPairs.forEach(function (p) {
-    res[p[0]] = p[1];
-  });
-  return res;
+function dictArb(arb) {
+  return dict.dict(arb || json.json);
 }
 
-function toArray(m) {
-  var res = [];
-  Object.keys(m).forEach(function (k) {
-    res.push([k, m[k]]);
-  });
-  return res;
+/**
+  - `array(arb: arbitrary a): arbitrary (array a)`
+*/
+function arrayArb(arb) {
+  return array.array(arb || json.json);
 }
 
-function makeMapShow(elShow) {
-  return function (m) {
-    return "{" + Object.keys(m).map(function (k) {
-      return k + ": " + elShow(m[k]);
-    }).join(", ") + "}";
-  };
+/**
+  - `nearray(arb: arbitrary a): arbitrary (array a)`
+*/
+function nearrayArb(arb) {
+  return array.nearray(arb || json.json);
 }
 
-function map(arb) {
-  arb = utils.force(arb || primitive.json);
-  var pairArbitrary = pair(primitive.string(), arb);
-  var arrayArbitrary = array(pairArbitrary);
+/**
+  - `json: arbitrary json`
 
-  return arrayArbitrary.smap(fromArray, toArray, makeMapShow(arb.show));
-}
+       JavaScript Objects: boolean, number, string, array of `json` values or object with `json` values.
+*/
+var jsonArb = json.json;
 
 /**
   - `oneof(gs : array (arbitrary a)...) : arbitrary a`
@@ -207,18 +178,36 @@ function record(spec) {
 
 module.exports = {
   nonshrink: nonshrink,
-  pair: pair,
+  pair: pairArb,
   either: either,
   unit: unit,
+  dict: dictArb,
+  json: jsonArb,
+  nearray: nearrayArb,
+  array: arrayArb,
   tuple: tuple,
-  array: array,
-  nearray: nearray,
-  map: map,
   oneof: oneof,
   record: record,
 };
 
-},{"./arbitraryBless.js":2,"./generator.js":8,"./primitive.js":10,"./show.js":12,"./shrink.js":13,"./utils.js":16,"assert":17}],2:[function(require,module,exports){
+},{"./arbitraryAssert.js":2,"./arbitraryBless.js":3,"./array.js":4,"./dict.js":5,"./generator.js":11,"./json.js":12,"./pair.js":14,"./show.js":17,"./shrink.js":18,"./utils.js":22,"assert":23}],2:[function(require,module,exports){
+"use strict";
+
+var assert = require("assert");
+
+function arbitraryAssert(arb) {
+  assert(arb !== undefined && arb !== null && typeof arb === "object", "arb should be an object");
+  assert(typeof arb.generator === "function" && typeof arb.generator.map === "function",
+    "arb.generator should be a function");
+  assert(typeof arb.shrink === "function" && typeof arb.shrink.smap === "function",
+    "arb.shrink should be a function");
+  assert(typeof arb.show === "function", "arb.show should be a function");
+  assert(typeof arb.smap === "function", "arb.smap should be a function");
+}
+
+module.exports = arbitraryAssert;
+
+},{"assert":23}],3:[function(require,module,exports){
 "use strict";
 
 var show = require("./show.js");
@@ -234,7 +223,7 @@ function arbitraryProtoSMap(f, g, newShow) {
   var arb = this;
   return arbitraryBless({
     generator: arb.generator.map(f),
-    shrink: arb.shrink.isomap(f, g),
+    shrink: arb.shrink.smap(f, g),
     show: newShow || show.def
   });
 }
@@ -264,7 +253,71 @@ function arbitraryBless(arb) {
 
 module.exports = arbitraryBless;
 
-},{"./show.js":12}],3:[function(require,module,exports){
+},{"./show.js":17}],4:[function(require,module,exports){
+"use strict";
+
+var arbitraryAssert = require("./arbitraryAssert.js");
+var arbitraryBless = require("./arbitraryBless.js");
+var generator = require("./generator.js");
+var show = require("./show.js");
+var shrink = require("./shrink.js");
+var utils = require("./utils.js");
+
+function arrayImpl(flavour) {
+  return function array(arb) {
+    arb = utils.force(arb);
+
+    arbitraryAssert(arb);
+
+    return arbitraryBless({
+      generator: generator[flavour](arb.generator),
+      shrink: shrink[flavour](arb.shrink),
+      show: show.array(arb.show),
+    });
+  };
+}
+
+var array = arrayImpl("array");
+var nearray = arrayImpl("nearray");
+
+module.exports = {
+  array: array,
+  nearray: nearray,
+};
+
+},{"./arbitraryAssert.js":2,"./arbitraryBless.js":3,"./generator.js":11,"./show.js":17,"./shrink.js":18,"./utils.js":22}],5:[function(require,module,exports){
+/* @flow weak */
+"use strict";
+
+var arbitraryAssert = require("./arbitraryAssert.js");
+var array = require("./array.js");
+var pair = require("./pair.js");
+var string = require("./string.js");
+var utils = require("./utils.js");
+
+function makeMapShow(elShow) {
+  return function (m) {
+    return "{" + Object.keys(m).map(function (k) {
+      return k + ": " + elShow(m[k]);
+    }).join(", ") + "}";
+  };
+}
+
+function dict(arb) {
+  arb = utils.force(arb);
+  arbitraryAssert(arb);
+
+  var pairArbitrary = pair.pair(string.string, arb);
+  var arrayArbitrary = array.array(pairArbitrary);
+
+  return arrayArbitrary.smap(utils.pairArrayToDict, utils.dictToPairArray, makeMapShow(arb.show));
+}
+
+module.exports = {
+  dict: dict,
+};
+
+},{"./arbitraryAssert.js":2,"./array.js":4,"./pair.js":14,"./string.js":19,"./utils.js":22}],6:[function(require,module,exports){
 "use strict";
 
 var assert = require("assert");
@@ -372,22 +425,24 @@ module.exports = {
   right: right,
 };
 
-},{"assert":17}],4:[function(require,module,exports){
+},{"assert":23}],7:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
 var arbitrary = require("./arbitrary.js");
 var fn = require("./fn.js");
 var primitive = require("./primitive.js");
+var string = require("./string.js");
 var utils = require("./utils.js");
 
-var environment = utils.merge(primitive, {
+var environment = utils.merge(primitive, string, {
   pair: arbitrary.pair,
   unit: arbitrary.unit,
   either: arbitrary.either,
+  dict: arbitrary.dict,
   array: arbitrary.array,
   nearray: arbitrary.nearray,
-  map: arbitrary.map,
+  json: arbitrary.json,
   fn: fn.fn,
   fun: fn.fn,
   nonshrink: arbitrary.nonshrink,
@@ -395,7 +450,7 @@ var environment = utils.merge(primitive, {
 
 module.exports = environment;
 
-},{"./arbitrary.js":1,"./fn.js":6,"./primitive.js":10,"./utils.js":16}],5:[function(require,module,exports){
+},{"./arbitrary.js":1,"./fn.js":9,"./primitive.js":15,"./string.js":19,"./utils.js":22}],8:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -448,12 +503,13 @@ FMap.prototype.get = function FMapGet(key) {
 
 module.exports = FMap;
 
-},{"./utils.js":16}],6:[function(require,module,exports){
+},{"./utils.js":22}],9:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
+var arbitraryBless = require("./arbitraryBless.js");
 var FMap = require("./finitemap.js");
-var primitive = require("./primitive.js");
+var json = require("./json.js");
 var shrink = require("./shrink.js");
 var utils = require("./utils.js");
 
@@ -463,9 +519,9 @@ var utils = require("./utils.js");
 */
 
 function fn(arb) {
-  arb = utils.force(arb || primitive.json);
+  arb = utils.force(arb || json.json);
 
-  return {
+  return arbitraryBless({
     generator: function (size) {
       var m = new FMap();
 
@@ -488,7 +544,7 @@ function fn(arb) {
         return "" + item[0] + ": " + arb.show(item[1]);
       }).join(", ") + "]";
     }
-  };
+  });
 }
 
 module.exports = {
@@ -496,7 +552,7 @@ module.exports = {
   fun: fn,
 };
 
-},{"./finitemap.js":5,"./primitive.js":10,"./shrink.js":13,"./utils.js":16}],7:[function(require,module,exports){
+},{"./arbitraryBless.js":3,"./finitemap.js":8,"./json.js":12,"./shrink.js":18,"./utils.js":22}],10:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -561,10 +617,11 @@ module.exports = {
   bind: bind,
 };
 
-},{}],8:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
+var assert = require("assert");
 var random = require("./random.js");
 var either = require("./either.js");
 var utils = require("./utils.js");
@@ -593,6 +650,7 @@ var utils = require("./utils.js");
 function generatorProtoMap(f) {
   /* jshint validthis:true */
   var generator = this;
+  generatorAssert(generator);
   return generatorBless(function (size) {
     return f(generator(size));
   });
@@ -601,11 +659,18 @@ function generatorProtoMap(f) {
 function generatorProtoFlatMap(f) {
   /* jshint validthis:true */
   var generator = this;
+  generatorAssert(generator);
   return generatorBless(function (size) {
     return f(generator(size))(size);
   });
 }
 /* eslint-enable no-use-before-define */
+
+function generatorAssert(generator) {
+  assert(typeof generator === "function", "generator should be a function");
+  assert(typeof generator.map === "function", "generator.map should be a function");
+  assert(typeof generator.flatmap === "function", "generator.flatmap should be a function");
+}
 
 /**
   - `generator.bless(f: nat -> a): generator a`
@@ -621,7 +686,7 @@ function generatorProtoFlatMap(f) {
         function (x) { return x + 1; });
       ```
 
-  - `.isomap(f: a -> generator b): generator b`
+  - `.flatmap(f: a -> generator b): generator b`
 
       Monadic bind for generators.
 */
@@ -660,10 +725,15 @@ function generatorCombine() {
   - `generator.oneof(gens: list (generator a)): generator a`
 */
 function generateOneof(generators) {
+  // TODO: generator
+  generators.forEach(function (gen) {
+    assert(typeof gen === "function");
+  });
+
   var result = generatorBless(function (size) {
     var idx = random(0, generators.length - 1);
-    var arb = generators[idx];
-    return arb(size);
+    var gen = generators[idx];
+    return gen(size);
   });
 
   return utils.curried2(result, arguments);
@@ -723,9 +793,9 @@ function generateEither(genA, genB) {
 
       `unit` is an empty tuple, i.e. empty array in JavaScript representation. This is useful as a building block.
 */
-function generateUnit() {
+var generateUnit = generatorBless(function () {
   return [];
-}
+});
 
 /**
   - `generator.tuple(gens: (generator a, generator b...): generator (a, b...)`
@@ -776,70 +846,22 @@ function generateNEArray(gen) {
 }
 
 /**
-  - `generator.char: generator char`
+  - `generator.dict(gen: generator a): generator (dict a)`
 */
-var generateChar = generatorBless(function generateChar(/* size */) {
-  return String.fromCharCode(random(0, 0xff));
-});
+function generateDict(gen) {
+  // Circular dependency :(
+  var string = require("./string.js");
 
-/**
-  - `generator.string: generator string`
-*/
-var generateString = generateArray(generateChar).map(utils.charArrayToString);
-
-/**
-  - `generator.nestring: generator string`
-*/
-var generateNEString = generateNEArray(generateChar).map(utils.charArrayToString);
-
-/**
-  - `generator.asciichar: generator char`
-*/
-var generateAsciiChar = generatorBless(function generateAsciiChar(/* size */) {
-  return String.fromCharCode(random(0x20, 0x7e));
-});
-
-/**
-  - `generator.asciistring: generator string`
-*/
-var generateAsciiString = generateArray(generateAsciiChar).map(utils.charArrayToString);
-
-/**
-  - `generator.map(gen: generator a): generator (map a)`
-*/
-function generateMap(gen) {
-  var result = generatorBless(function (size) {
-    var objsize = random(0, logsize(size));
-    var obj = {};
-    for (var i = 0; i < objsize; i++) {
-      obj[generateString(size)] = gen(size);
-    }
-    return obj;
-  });
+  var pairGen = generatePair(string.string.generator, gen);
+  var arrayGen = generateArray(pairGen);
+  var result = arrayGen.map(utils.pairArrayToDict);
 
   return utils.curried2(result, arguments);
 }
 
-/**
-  - `generator.json: generator json`
-*/
-var generateInteger = generatorBless(function (size) {
-  return random(-size, size);
-});
-
-var generateNumber = generatorBless(function (size) {
-  return random.number(-size, size);
-});
-
-var generateBool = generatorBless(function () {
-  return random(0, 1) === 0;
-});
-
-var generateJson = generatorRecursive(
-  generateOneof([generateInteger, generateNumber, generateBool, generateString]),
-  function (gen) {
-    return generateOneof([generateArray(gen), generateMap(gen)]);
-  });
+function generateJson(size) {
+  return require("./json.js").json.generator(size);
+}
 
 module.exports = {
   pair: generatePair,
@@ -848,12 +870,7 @@ module.exports = {
   tuple: generateTuple,
   array: generateArray,
   nearray: generateNEArray,
-  char: generateChar,
-  string: generateString,
-  nestring: generateNEString,
-  asciichar: generateAsciiChar,
-  asciistring: generateAsciiString,
-  map: generateMap,
+  dict: generateDict,
   json: generateJson,
   oneof: generateOneof,
   constant: generateConstant,
@@ -862,7 +879,38 @@ module.exports = {
   recursive: generatorRecursive,
 };
 
-},{"./either.js":3,"./random.js":11,"./utils.js":16}],9:[function(require,module,exports){
+},{"./either.js":6,"./json.js":12,"./random.js":16,"./string.js":19,"./utils.js":22,"assert":23}],12:[function(require,module,exports){
+"use strict";
+
+var arbitraryBless = require("./arbitraryBless.js");
+var generator = require("./generator.js");
+var primitive = require("./primitive.js");
+var show = require("./show.js");
+var shrink = require("./shrink.js");
+var string = require("./string.js");
+
+var generateInteger = primitive.integer.generator;
+var generateNumber = primitive.number.generator;
+var generateBool = primitive.bool.generator;
+var generateString = string.string.generator;
+
+var generateJson = generator.recursive(
+  generator.oneof([generateInteger, generateNumber, generateBool, generateString]),
+  function (gen) {
+    return generator.oneof([generator.array(gen), generator.dict(gen)]);
+  });
+
+var json = arbitraryBless({
+  generator: generateJson,
+  shrink: shrink.noop,
+  show: show.def,
+});
+
+module.exports = {
+  json: json,
+};
+
+},{"./arbitraryBless.js":3,"./generator.js":11,"./primitive.js":15,"./show.js":17,"./shrink.js":18,"./string.js":19}],13:[function(require,module,exports){
 /* @flow weak */
 /**
   # JSVerify
@@ -957,6 +1005,7 @@ module.exports = {
 */
 
 var assert = require("assert");
+var lazyseq = require("lazy-seq");
 
 var arbitrary = require("./arbitrary.js");
 var either = require("./either.js");
@@ -969,6 +1018,7 @@ var primitive = require("./primitive.js");
 var random = require("./random.js");
 var show = require("./show.js");
 var shrink = require("./shrink.js");
+var string = require("./string.js");
 var suchthat = require("./suchthat.js");
 var typify = require("./typify.js");
 var utils = require("./utils.js");
@@ -977,24 +1027,29 @@ var utils = require("./utils.js");
   ### Properties
 */
 
-function shrinkResult(gens, x, test, size, shrinks, exc, transform) {
-  var shrinked = shrink.tuple(utils.pluck(gens, "shrink"), x);
-  var shrinkP = shrinked.reduce(function (res, y) {
-    return functor.map(res, function (resPrime) {
-      if (resPrime !== true) {
-        return resPrime;
-      }
+function shrinkResult(arbs, x, test, size, shrinksN, exc, transform) {
+  assert(arbs.length === x.length, "shrinkResult: arbs and x has to be of same size");
+  assert(typeof size === "number", "shrinkResult: size should be number");
+  assert(typeof shrinksN === "number", "shrinkResult: shrinkN should be number");
 
-      return test(size, y, shrinks + 1);
+  var shrinks = utils.pluck(arbs, "shrink");
+  var shows = utils.pluck(arbs, "show");
+
+  var shrinked = shrink.tuple(shrinks, x);
+
+  var shrinkP = lazyseq.fold(shrinked, true, function (res, y) {
+    return functor.map(res, function (resPrime) {
+      var t = test(size, resPrime, shrinksN + 1);
+      return t !== true ? t : y();
     });
-  }, true);
+  });
 
   return functor.map(shrinkP, function (shrinkPPrime) {
     if (shrinkPPrime === true) {
       var res = {
         counterexample: x,
-        counterexamplestr: show.tuple(utils.pluck(gens, "show"), x),
-        shrinks: shrinks,
+        counterexamplestr: show.tuple(shows, x),
+        shrinks: shrinksN,
         exc: exc,
       };
       return transform(res);
@@ -1280,7 +1335,6 @@ var jsc = {
   fn: fn.fn,
   fun: fn.fn,
   suchthat: suchthat.suchthat,
-  value: primitive.json,
 
   // either
   left: either.left,
@@ -1304,12 +1358,16 @@ var jsc = {
 };
 
 /* primitives */
+// TODO: refactor
 var k;
 for (k in primitive) {
   jsc[k] = primitive[k];
 }
 for (k in arbitrary) {
   jsc[k] = arbitrary[k];
+}
+for (k in string) {
+  jsc[k] = string[k];
 }
 
 module.exports = jsc;
@@ -1319,10 +1377,39 @@ module.exports = jsc;
 /// plain ../related-work.md
 /// plain ../LICENSE
 
-},{"./arbitrary.js":1,"./either.js":3,"./environment.js":4,"./finitemap.js":5,"./fn.js":6,"./functor.js":7,"./generator.js":8,"./primitive.js":10,"./random.js":11,"./show.js":12,"./shrink.js":13,"./suchthat.js":14,"./typify.js":15,"./utils.js":16,"assert":17}],10:[function(require,module,exports){
+},{"./arbitrary.js":1,"./either.js":6,"./environment.js":7,"./finitemap.js":8,"./fn.js":9,"./functor.js":10,"./generator.js":11,"./primitive.js":15,"./random.js":16,"./show.js":17,"./shrink.js":18,"./string.js":19,"./suchthat.js":20,"./typify.js":21,"./utils.js":22,"assert":23,"lazy-seq":27}],14:[function(require,module,exports){
+"use strict";
+
+var arbitraryAssert = require("./arbitraryAssert.js");
+var arbitraryBless = require("./arbitraryBless.js");
+var generator = require("./generator.js");
+var show = require("./show.js");
+var shrink = require("./shrink.js");
+var utils = require("./utils.js");
+
+function pair(a, b) {
+  a = utils.force(a);
+  b = utils.force(b);
+
+  arbitraryAssert(a);
+  arbitraryAssert(b);
+
+  return arbitraryBless({
+    generator: generator.pair(a.generator, b.generator),
+    shrink: shrink.pair(a.shrink, b.shrink),
+    show: show.pair(a.show, b.show),
+  });
+}
+
+module.exports = {
+  pair: pair,
+};
+
+},{"./arbitraryAssert.js":2,"./arbitraryBless.js":3,"./generator.js":11,"./show.js":17,"./shrink.js":18,"./utils.js":22}],15:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
+var arbitraryBless = require("./arbitraryBless");
 var assert = require("assert");
 var generator = require("./generator.js");
 var random = require("./random.js");
@@ -1339,12 +1426,13 @@ function extendWithDefault(arb) {
   arb.generator = def.generator;
   arb.shrink = def.shrink;
   arb.show = def.show;
+  arb.smap = def.smap;
 }
 
 function numeric(impl) {
   return function (minsize, maxsize) {
     if (arguments.length === 2) {
-      var arb = impl(maxsize - minsize);
+      var arb = arbitraryBless(impl(maxsize - minsize));
       var to = function to(x) {
         return Math.abs(x) + minsize;
       };
@@ -1352,15 +1440,11 @@ function numeric(impl) {
         return x - minsize;
       };
 
-      return {
-        generator: arb.generator.map(to),
-        shrink: arb.shrink.isomap(to, from),
-        show: show.def,
-      };
+      return arb.smap(to, from);
     } else if (arguments.length === 1) {
-      return impl(minsize /* as minsize */);
+      return arbitraryBless(impl(minsize /* as minsize */));
     } else {
-      return impl();
+      return arbitraryBless(impl());
     }
   };
 }
@@ -1409,7 +1493,7 @@ extendWithDefault(integer);
       Natural numbers, ℕ (0, 1, 2...)
 */
 function nat(maxsize) {
-  return {
+  return arbitraryBless({
     generator: generator.bless(function (size) {
       size = maxsize || size;
       return random(0, size);
@@ -1426,7 +1510,7 @@ function nat(maxsize) {
       return arr;
     }),
     show: show.def,
-  };
+  });
 }
 
 extendWithDefault(nat);
@@ -1480,7 +1564,7 @@ var int32 = integer(0x80000000);
 
       Booleans, `true` or `false`.
 */
-var bool = {
+var bool = arbitraryBless({
   generator: generator.bless(function (/* size */) {
     var i = random(0, 1);
     return i === 0 ? false : true;
@@ -1490,7 +1574,7 @@ var bool = {
     return b === true ? [false] : [];
   }),
   show: show.def,
-};
+});
 
 /**
   - `datetime: arbitrary datetime`
@@ -1515,22 +1599,18 @@ function datetime(from, to) {
     to = fromDate(to);
     arb = number(from, to);
 
-    return {
-      generator: arb.generator.map(toDate),
-      shrink: arb.shrink.isomap(toDate, fromDate),
-      show: show.def,
-    };
+    return arb.smap(toDate, fromDate);
   } else {
     toDate = function toDate(x) {
       return new Date(x * 768000000 + datetimeConst);
     };
     arb = number;
 
-    return {
+    return arbitraryBless({
       generator: arb.generator.map(toDate),
       shrink: shrink.noop,
       show: show.def,
-    };
+    });
   }
 }
 
@@ -1544,7 +1624,7 @@ extendWithDefault(datetime);
 function elements(args) {
   assert(args.length !== 0, "elements: at least one parameter expected");
 
-  return {
+  return arbitraryBless({
     generator: generator.bless(function (/* size */) {
       var i = random(0, args.length - 1);
       return args[i];
@@ -1559,79 +1639,8 @@ function elements(args) {
       }
     }),
     show: show.def,
-  };
+  });
 }
-
-/**
-  - `char: arbitrary char`
-
-      Single character
-*/
-
-var char = {
-  generator: generator.char,
-  shrink: shrink.noop,
-  show: show.def,
-};
-
-/**
-  - `asciichar: arbitrary char`
-
-      Single ascii character (0x20-0x7e inclusive, no DEL)
-*/
-var asciichar = {
-  generator: generator.asciichar,
-  shrink: shrink.noop,
-  show: show.def,
-};
-
-/**
-  - `string: arbitrary string`
-*/
-function string() {
-  return {
-    generator: generator.string,
-    shrink: shrink.array(char.shrink).isomap(utils.charArrayToString, utils.stringToCharArray),
-    show: show.def,
-  };
-}
-
-extendWithDefault(string);
-
-/**
-  - `notEmptyString: arbitrary string`
-
-      Generates strings which are not empty.
-*/
-var nestring = {
-  generator: generator.nestring,
-  shrink: shrink.nearray(asciichar.shrink).isomap(utils.charArrayToString, utils.stringToCharArray),
-  show: show.def,
-};
-
-/**
-  - `asciistring: arbitrary string`
-*/
-var asciistring = {
-  generator: generator.asciistring,
-  shrink: shrink.array(asciichar.shrink).isomap(utils.charArrayToString, utils.stringToCharArray),
-  show: show.def,
-};
-
-/**
-  - `json: arbitrary json`
-
-       JavaScript Objects: boolean, number, string, array of `json` values or object with `json` values.
-
-  - `value: arbitrary json`
-*/
-var json = {
-  generator: generator.json,
-  shrink: shrink.noop,
-  show: function (v) {
-    return JSON.stringify(v);
-  },
-};
 
 /**
   - `falsy: arbitrary *`
@@ -1657,11 +1666,11 @@ falsy.show = function (v) {
       Returns an unshrinkable arbitrary that yields the given object.
 */
 function constant(x) {
-  return {
+  return arbitraryBless({
     generator: generator.constant(x),
     shrink: shrink.noop,
     show: show.def
-  };
+  });
 }
 
 module.exports = {
@@ -1674,20 +1683,14 @@ module.exports = {
   uint16: uint16,
   uint32: uint32,
   number: number,
-  json: json,
-  char: char,
-  string: string,
-  asciichar: asciichar,
-  asciistring: asciistring,
   elements: elements,
   bool: bool,
   falsy: falsy,
   constant: constant,
-  nestring: nestring,
   datetime: datetime,
 };
 
-},{"./generator.js":8,"./random.js":11,"./show.js":12,"./shrink.js":13,"./utils.js":16,"assert":17}],11:[function(require,module,exports){
+},{"./arbitraryBless":3,"./generator.js":11,"./random.js":16,"./show.js":17,"./shrink.js":18,"./utils.js":22,"assert":23}],16:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -1727,7 +1730,7 @@ randomInteger.setStateString = rc4.setStateString.bind(rc4);
 
 module.exports = randomInteger;
 
-},{"rc4":21}],12:[function(require,module,exports){
+},{"rc4":28}],17:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -1810,12 +1813,13 @@ module.exports = {
   array: showArray,
 };
 
-},{"./utils.js":16}],13:[function(require,module,exports){
+},{"./utils.js":22}],18:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
 var assert = require("assert");
 var either = require("./either.js");
+var lazyseq = require("lazy-seq");
 var utils = require("./utils.js");
 
 /**
@@ -1845,20 +1849,20 @@ function shrinkProtoIsoMap(f, g) {
 /**
   - `shrink.bless(f: a -> [a]): shrink a`
 
-      Bless function with `.isomap` property.
+      Bless function with `.smap` property.
 
-  - `.isomap(f: a -> b, g: b -> a): shrink b`
+  - `.smap(f: a -> b, g: b -> a): shrink b`
 
       Transform `shrink a` into `shrink b`. For example:
 
       ```js
-      positiveIntegersShrink = nat.shrink.isomap(
+      positiveIntegersShrink = nat.shrink.smap(
         function (x) { return x + 1; },
         function (x) { return x - 1; });
       ```
 */
 function shrinkBless(shrink) {
-  shrink.isomap = shrinkProtoIsoMap;
+  shrink.smap = shrinkProtoIsoMap;
   return shrink;
 }
 
@@ -1886,11 +1890,16 @@ function shrinkPair(shrinkA, shrinkB) {
       return [ap, b];
     });
 
-    var pairB = shrinkedB.map(function (bp) {
-      return [a, bp];
-    });
+    if (Array.isArray(pairA)) {
+      pairA = lazyseq.fromArray(pairA);
+    }
 
-    return pairA.concat(pairB);
+    return pairA.append(function () {
+      var pairB = shrinkedB.map(function (bp) {
+        return [a, bp];
+      });
+      return pairB;
+    });
   });
 
   return utils.curried3(result, arguments);
@@ -1937,11 +1946,11 @@ function fromHList(h) {
 
 function shrinkTupleImpl(shrinks, n) {
   if (n + 1 === shrinks.length) {
-    return shrinks[n].isomap(toSingleton, fromSingleton);
+    return shrinks[n].smap(toSingleton, fromSingleton);
   } else {
     var shrinkA = shrinks[0];
     var shrinkB = shrinkTupleImpl(shrinks, n + 1);
-    return shrinkPair(shrinkA, shrinkB).isomap(toHList, fromHList);
+    return shrinkPair(shrinkA, shrinkB).smap(toHList, fromHList);
   }
 }
 
@@ -1957,16 +1966,16 @@ function shrinkTuple(shrinks) {
 function shrinkArrayWithMinimumSize(size) {
   function shrinkArrayImpl(shrink) {
     var result = shrinkBless(function (arr) {
+      assert(Array.isArray(arr), "shrinkArrayImpl() expects array, got: " + arr);
       if (arr.length <= size) {
-        return [];
+        return lazyseq.nil;
       } else {
         var x = arr[0];
         var xs = arr.slice(1);
 
-        return [xs].concat(
-          shrink(x).map(function (xp) { return [xp].concat(xs); }),
-          shrinkArrayImpl(shrink, xs).map(function (xsp) { return [x].concat(xsp); })
-        );
+        return lazyseq.cons(xs, lazyseq.nil)
+          .append(shrink(x).map(function (xp) { return [xp].concat(xs); }))
+          .append(shrinkArrayImpl(shrink, xs).map(function (xsp) { return [x].concat(xsp); }));
       }
     });
 
@@ -2020,7 +2029,65 @@ module.exports = {
   bless: shrinkBless,
 };
 
-},{"./either.js":3,"./utils.js":16,"assert":17}],14:[function(require,module,exports){
+},{"./either.js":6,"./utils.js":22,"assert":23,"lazy-seq":27}],19:[function(require,module,exports){
+"use strict";
+
+var array = require("./array.js");
+var primitive = require("./primitive.js");
+var utils = require("./utils.js");
+
+/**
+  ### String arbitraries
+*/
+
+function fromCode(code) {
+  return String.fromCharCode(code);
+}
+
+function toCode(c) {
+  return c.charCodeAt(0);
+}
+
+/**
+  - `char: arbitrary char` &mdash; Single character
+*/
+var char = primitive.nat(0xff).smap(fromCode, toCode);
+
+/**
+  - `asciichar: arbitrary char` &mdash; Single ascii character (0x20-0x7e inclusive, no DEL)
+*/
+var asciichar = primitive.integer(0x20, 0x7e).smap(fromCode, toCode);
+
+/**
+  - `string: arbitrary string`
+*/
+var string = array.array(char).smap(utils.charArrayToString, utils.stringToCharArray);
+
+/**
+  - `nestring: arbitrary string` &mdash; Generates strings which are not empty.
+*/
+var nestring = array.nearray(char).smap(utils.charArrayToString, utils.stringToCharArray);
+
+/**
+  - `asciistring: arbitrary string`
+*/
+var asciistring = array.array(asciichar).smap(utils.charArrayToString, utils.stringToCharArray);
+
+/**
+  - `asciinestring: arbitrary string`
+*/
+var asciinestring = array.nearray(asciichar).smap(utils.charArrayToString, utils.stringToCharArray);
+
+module.exports = {
+  char: char,
+  asciichar: asciichar,
+  string: string,
+  nestring: nestring,
+  asciistring: asciistring,
+  asciinestring: asciinestring,
+};
+
+},{"./array.js":4,"./primitive.js":15,"./utils.js":22}],20:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -2074,7 +2141,7 @@ module.exports = {
   suchthat: suchthat,
 };
 
-},{"./environment.js":4,"./generator.js":8,"./shrink.js":13,"./typify.js":15,"./utils.js":16}],15:[function(require,module,exports){
+},{"./environment.js":7,"./generator.js":11,"./shrink.js":18,"./typify.js":21,"./utils.js":22}],21:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -2095,6 +2162,7 @@ module.exports = {
 */
 
 var arbitrary = require("./arbitrary.js");
+var array = require("./array.js");
 var fn = require("./fn.js");
 var typifyParser = require("typify-parser");
 
@@ -2125,7 +2193,7 @@ function compileFunction(env, type) {
 
 function compileBrackets(env, type) {
   var arg = compileType(env, type.arg);
-  return arbitrary.array(arg);
+  return array.array(arg);
 }
 
 function compileDisjunction(env, type) {
@@ -2170,7 +2238,7 @@ module.exports = {
   parseTypify: parseTypify,
 };
 
-},{"./arbitrary.js":1,"./fn.js":6,"typify-parser":22}],16:[function(require,module,exports){
+},{"./arbitrary.js":1,"./array.js":4,"./fn.js":9,"typify-parser":29}],22:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -2245,18 +2313,22 @@ function force(arb) {
 }
 
 /**
-  - `utils.merge(x: obj, y: obj): obj`
+  - `utils.merge(x... : obj): obj`
 
     Merge two objects, a bit like `_.extend({}, x, y)`.
 */
-function merge(x, y) {
+function merge() {
   var res = {};
-  Object.keys(x).forEach(function (k) {
-    res[k] = x[k];
-  });
-  Object.keys(y).forEach(function (k) {
-    res[k] = y[k];
-  });
+
+  for (var i = 0; i < arguments.length; i++) {
+    var arg = arguments[i];
+    var keys = Object.keys(arg);
+    for (var j = 0; j < keys.length; j++) {
+      var key = keys[j];
+      res[key] = arg[key];
+    }
+  }
+
   return res;
 }
 
@@ -2286,6 +2358,22 @@ function stringToCharArray(str) {
   return str.split("");
 }
 
+function pairArrayToDict(arrayOfPairs) {
+  var res = {};
+  arrayOfPairs.forEach(function (p) {
+    res[p[0]] = p[1];
+  });
+  return res;
+}
+
+function dictToPairArray(m) {
+  var res = [];
+  Object.keys(m).forEach(function (k) {
+    res.push([k, m[k]]);
+  });
+  return res;
+}
+
 module.exports = {
   isArray: isArray,
   isObject: isObject,
@@ -2299,9 +2387,11 @@ module.exports = {
   curried3: curried3,
   charArrayToString: charArrayToString,
   stringToCharArray: stringToCharArray,
+  pairArrayToDict: pairArrayToDict,
+  dictToPairArray: dictToPairArray,
 };
 
-},{}],17:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
@@ -2662,7 +2752,7 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":20}],18:[function(require,module,exports){
+},{"util/":26}],24:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -2687,14 +2777,14 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],19:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],20:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -3282,7 +3372,367 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-},{"./support/isBuffer":19,"inherits":18}],21:[function(require,module,exports){
+},{"./support/isBuffer":25,"inherits":24}],27:[function(require,module,exports){
+/**
+  # lazy-seq
+
+  > Lazy sequences
+
+  [![Build Status](https://secure.travis-ci.org/phadej/lazy-seq.svg?branch=master)](http://travis-ci.org/phadej/lazy-seq)
+  [![NPM version](https://badge.fury.io/js/lazy-seq.svg)](http://badge.fury.io/js/lazy-seq)
+  [![Dependency Status](https://david-dm.org/phadej/lazy-seq.svg)](https://david-dm.org/phadej/lazy-seq)
+  [![devDependency Status](https://david-dm.org/phadej/lazy-seq/dev-status.svg)](https://david-dm.org/phadej/lazy-seq#info=devDependencies)
+  [![Code Climate](https://img.shields.io/codeclimate/github/phadej/lazy-seq.svg)](https://codeclimate.com/github/phadej/lazy-seq)
+
+  ## Lazy?
+
+  The list structure could be defined as
+
+  ```hs
+  data Seq a = Nil | Cons a (Seq a)
+  ```
+
+  The `Cons` constuctor takes two arguments, so there are four different laziness variants:
+
+  ```hs
+  Cons (Strict a) (Strict (Seq a)) -- 1. fully strict
+  Cons (Lazy a)   (Strict (Seq a)) -- 2. lazy values
+  Cons (Strict a) (Lazy (Seq a))   -- 3. lazy structure
+  Cons (Lazy   a) (Lazy (Seq a))   -- 4. fully lazy
+  ```
+
+  This module implements the third variant: lazy structure, but strict values.
+
+  ## Example
+
+  ```js
+  var ones = lazyseq.cons(1, function () { return ones; });
+  console.log(ones === ones.tail()); // true!
+  ```
+
+  ## Why?
+
+  This package is originally made to optimise shrink operations in [jsverify](http://jsverify.github.io/), a property-based testing library.
+
+  ## API
+*/
+
+"use strict";
+
+var assert = require("assert");
+
+/**
+  - *nil : Seq a* &mdash; Empty sequence.
+
+  - *cons : (head : a, tail : Array a | Seq a | () → Array a | () → Seq a) → Seq a* : Cons a value to the front of a sequence (list or thunk).
+*/
+var nil = {};
+
+/**
+  - *.isNil : Boolean* &mdash; Constant time check, whether the sequence is empty.
+*/
+nil.isNil = true;
+
+/**
+  - *.toString : () → String* &mdash; String representation. Doesn't force the tail.
+*/
+nil.toString = function () {
+  return "nil";
+};
+
+/**
+  - *.length : () → Nat* &mdash; Return the length of the sequene. Forces the structure.
+*/
+nil.length = function () {
+  return 0;
+};
+
+/**
+  - *.toArray : () → Array a* &mdash; Convert the sequence to JavaScript array.
+*/
+nil.toArray = function nilToArray() {
+  return [];
+};
+
+/**
+  - *.fold : (z : b, f : (a, () → b) → b) → b* &mdash; Fold from right.
+
+      ```hs
+      fold nil x f        = x
+      fold (cons h t) x f = f x (fold t x f)
+      ```
+*/
+nil.fold = function nilFold(x /*, f */) {
+  return x;
+};
+
+/**
+  - *.head : () → a* &mdash;  Extract the first element of a sequence, which must be non-empty.
+*/
+nil.head = function nilHead() {
+  throw new Error("nil.head");
+};
+
+/**
+  - *.tail : () → Seq a* &mdash; Return the tail of the sequence.
+
+      ```hs
+      tail nil        = nil
+      tail (cons h t) = t
+      ```
+*/
+nil.tail = function nilTail() {
+  return nil;
+};
+
+/**
+  - *.nth : (n : Nat) → a* &mdash; Return nth value of the sequence.
+*/
+nil.nth = function nilNth(n) {
+  assert(typeof n === "number");
+  throw new Error("Can't get " + n + "th value of the nil");
+};
+
+/**
+  - *.take : (n : Nat) → Seq a* &mdash; Take `n` first elements of the sequence.
+*/
+nil.take = function (n) {
+  assert(typeof n === "number");
+  return nil;
+};
+
+/**
+  - *.drop : (n : Nat) → Seq a* &mdash; Drop `n` first elements of the sequence.
+*/
+nil.drop = function (n) {
+  assert(typeof n === "number");
+  return nil;
+};
+
+/**
+  - *.map : (f : a → b) : Seq b* &mdash; The sequence obtained by applying `f` to each element of the original sequence.
+*/
+nil.map = function (f) {
+  assert(typeof f === "function");
+  return nil;
+};
+
+/**
+  - *.append : (ys : Seq a | Array a) : Seq a* &mdash; Append `ys` sequence.
+*/
+nil.append = function (seq) {
+  if (typeof seq === "function") {
+    seq = seq();
+  }
+
+  if (Array.isArray(seq)) {
+    /* eslint-disable no-use-before-define */
+    return fromArray(seq);
+    /* eslint-enable no-use-before-define */
+  } else {
+    return seq;
+  }
+};
+
+// Default cons values are with strict semantics
+function Cons(head, tail) {
+  this.headValue = head;
+  this.tailValue = tail;
+}
+
+Cons.prototype.isNil = false;
+
+Cons.prototype.toString = function () {
+  return "Cons(" + this.headValue + ", " + this.tailValue + ")";
+};
+
+Cons.prototype.length = function () {
+  return 1 + this.tail().length();
+};
+
+Cons.prototype.toArray = function () {
+  var ptr = this;
+  var acc = [];
+  while (ptr !== nil) {
+    acc.push(ptr.headValue);
+    ptr = ptr.tail();
+  }
+  return acc;
+};
+
+Cons.prototype.fold = function consFold(x, f) {
+  var self = this;
+  return f(this.headValue, function () {
+    return self.tail().fold(x, f);
+  });
+};
+
+Cons.prototype.head = function consHead() {
+  return this.headValue;
+};
+
+Cons.prototype.tail = function consTail() {
+  return this.tailValue;
+};
+
+// But when cons is created, it's overloaded with lazy ones
+
+// Force tail to whnf.
+function lazyConsForce() {
+  /* jshint validthis:true */
+  var val = this.tailFn();
+  /* eslint-disable no-use-before-define */
+  this.tailValue = Array.isArray(val) ? fromArray(val) : val;
+  /* eslint-enable no-use-before-define */
+
+  delete this.tail;
+  delete this.force;
+
+  return this;
+}
+
+function lazyConsTail() {
+  /* jshint validthis:true */
+  this.force();
+  return this.tailValue;
+}
+
+function delay(head, tail) {
+  assert(typeof tail === "function");
+
+  head.tailFn = tail;
+  head.tail = lazyConsTail;
+
+  head.force = lazyConsForce;
+  return head;
+}
+
+function cons(head, tail) {
+  if (typeof tail === "function") {
+    return delay(new Cons(head), tail);
+  } else if (Array.isArray(tail)) {
+    return delay(cons(head), function () {
+      /* eslint-disable no-use-before-define */
+      return fromArray(tail);
+      /* eslint-enable no-use-before-define */
+    });
+  } else {
+    return new Cons(head, tail);
+  }
+}
+
+// Rest of the functions. They might use cons
+
+Cons.prototype.nth = function consNth(n) {
+  assert(typeof n === "number");
+  return n === 0 ? this.headValue : this.tail().nth(n - 1);
+};
+
+Cons.prototype.take = function consTake(n) {
+  assert(typeof n === "number");
+  var that = this;
+  return n === 0 ? nil : cons(this.headValue, function () {
+    return that.tail().take(n - 1);
+  });
+};
+
+Cons.prototype.drop = function consDrop(n) {
+  assert(typeof n === "number");
+  return n === 0 ? this : this.tail().drop(n - 1);
+};
+
+Cons.prototype.map = function consMap(f) {
+  assert(typeof f === "function");
+  var that = this;
+  return cons(f(that.headValue), function () {
+    return that.tail().map(f);
+  });
+};
+
+Cons.prototype.append = function consAppend(seq) {
+  // Short circuit decidable: (++ []) ≡ id
+  if (seq === nil || (Array.isArray(seq) && seq.length === 0)) {
+    return this;
+  }
+  var that = this;
+  return cons(that.headValue, function () {
+    return that.tail().append(seq);
+  });
+};
+
+// Constructors
+/**
+  - *fromArray: (arr : Array a) → Seq a* &mdash; Convert a JavaScript array into lazy sequence.
+*/
+function fromArrayIter(arr, n) {
+  if (n < arr.length) {
+    return cons(arr[n], function () {
+      return fromArrayIter(arr, n + 1);
+    });
+  } else {
+    return nil;
+  }
+}
+
+function fromArray(arr) {
+  assert(Array.isArray(arr));
+  return fromArrayIter(arr, 0);
+}
+
+/**
+  - *append : (xs... : Array a | Seq a | () → Array a | () → Seq a) → Seq a* : Append one sequence-like to another.
+*/
+function append() {
+  var acc = nil;
+  for (var i = 0; i < arguments.length; i++) {
+    acc = acc.append(arguments[i]);
+  }
+  return acc;
+}
+
+/**
+  - *iterate : (x : a, f : a → a) → Seq a* &mdash; Create an infinite sequence of repeated applications of `f` to `x`: *x, f(x), f(f(x))&hellip;*.
+*/
+function iterate(x, f) {
+  return cons(x, function () {
+    return iterate(f(x), f);
+  });
+}
+
+/**
+  - *fold : (seq : Seq a | Array a, z : b, f : (a, () → b) → b) : b* &mdash; polymorphic version of fold. Works with arrays too.
+*/
+function listFold(list, z, f, n) {
+  if (n < list.length) {
+    return f(list[n], function () {
+      return listFold(list, z, f, n + 1);
+    });
+  } else {
+    return z;
+  }
+}
+
+function fold(list, z, f) {
+  if (Array.isArray(list)) {
+    return listFold(list, z, f, 0);
+  } else {
+    return list.fold(z, f);
+  }
+}
+
+module.exports = {
+  nil: nil,
+  cons: cons,
+  append: append,
+  fromArray: fromArray,
+  iterate: iterate,
+  fold: fold,
+};
+
+/// plain CHANGELOG.md
+/// plain CONTRIBUTING.md
+
+},{"assert":23}],28:[function(require,module,exports){
 "use strict";
 
 // Based on RC4 algorithm, as described in
@@ -3478,7 +3928,7 @@ RC4.RC4small = RC4small;
 
 module.exports = RC4;
 
-},{}],22:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 /**
   # typify type parser
 
@@ -3864,5 +4314,5 @@ function parse(input) {
 
 module.exports = parse;
 
-},{}]},{},[9])(9)
+},{}]},{},[13])(13)
 });

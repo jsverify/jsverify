@@ -221,28 +221,6 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
     Random element of `args` array.
 
-- `char: arbitrary char`
-
-    Single character
-
-- `asciichar: arbitrary char`
-
-    Single ascii character (0x20-0x7e inclusive, no DEL)
-
-- `string: arbitrary string`
-
-- `notEmptyString: arbitrary string`
-
-    Generates strings which are not empty.
-
-- `asciistring: arbitrary string`
-
-- `json: arbitrary json`
-
-     JavaScript Objects: boolean, number, string, array of `json` values or object with `json` values.
-
-- `value: arbitrary json`
-
 - `falsy: arbitrary *`
 
     Generates falsy values: `false`, `null`, `undefined`, `""`, `0`, and `NaN`.
@@ -257,10 +235,6 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
     Non shrinkable version of arbitrary `arb`.
 
-- `array(arb: arbitrary a): arbitrary (array a)`
-
-- `nearray(arb: arbitrary a): arbitrary (array a)`
-
 - `unit: arbitrary ()`
 
 - `either(arbA: arbitrary a, arbB : arbitrary b): arbitrary (either a b)`
@@ -271,9 +245,17 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
 - `tuple(arbs: (arbitrary a, arbitrary b...)): arbitrary (a, b...)`
 
-- `map(arb: arbitrary a): arbitrary (map a)`
+- `dict(arb: arbitrary a): arbitrary (dict a)`
 
     Generates a JavaScript object with properties of type `A`.
+
+- `array(arb: arbitrary a): arbitrary (array a)`
+
+- `nearray(arb: arbitrary a): arbitrary (array a)`
+
+- `json: arbitrary json`
+
+     JavaScript Objects: boolean, number, string, array of `json` values or object with `json` values.
 
 - `oneof(gs : array (arbitrary a)...) : arbitrary a`
 
@@ -316,7 +298,7 @@ if the primitives from *random* module are used.
       function (x) { return x + 1; });
     ```
 
-- `.isomap(f: a -> generator b): generator b`
+- `.flatmap(f: a -> generator b): generator b`
 
     Monadic bind for generators.
 
@@ -342,19 +324,7 @@ if the primitives from *random* module are used.
 
 - `generator.nearray(gen: generator a): generator (array a)`
 
-- `generator.char: generator char`
-
-- `generator.string: generator string`
-
-- `generator.nestring: generator string`
-
-- `generator.asciichar: generator char`
-
-- `generator.asciistring: generator string`
-
-- `generator.map(gen: generator a): generator (map a)`
-
-- `generator.json: generator json`
+- `generator.dict(gen: generator a): generator (dict a)`
 
 ### Shrink functions
 
@@ -369,14 +339,14 @@ var ys = shrink.array(shrink.nat)([1]);
 
 - `shrink.bless(f: a -> [a]): shrink a`
 
-    Bless function with `.isomap` property.
+    Bless function with `.smap` property.
 
-- `.isomap(f: a -> b, g: b -> a): shrink b`
+- `.smap(f: a -> b, g: b -> a): shrink b`
 
     Transform `shrink a` into `shrink b`. For example:
 
     ```js
-    positiveIntegersShrink = nat.shrink.isomap(
+    positiveIntegersShrink = nat.shrink.smap(
       function (x) { return x + 1; },
       function (x) { return x - 1; });
     ```
@@ -468,7 +438,7 @@ Use [underscore.js](http://underscorejs.org/), [lodash](https://lodash.com/), [r
 
     Evaluate `x` as nullary function, if it is one.
 
-- `utils.merge(x: obj, y: obj): obj`
+- `utils.merge(x... : obj): obj`
 
   Merge two objects, a bit like `_.extend({}, x, y)`.
 
@@ -480,6 +450,13 @@ Use [underscore.js](http://underscorejs.org/), [lodash](https://lodash.com/), [r
 
 ## Release History
 
+- **0.6.0-alpha.1** &mdash; *2015-04-22* &mdash; Preview
+    - Using lazy sequences for shrink results
+    - *Breaking changes:*
+         - `jsc.map` renamed to `jsc.dict`
+         - `jsc.value` removed, use `jsc.json`
+         - `jsc.string()` removed, use `jsc.string`
+         - `shrink.isomap` renamed to `shrink.smap`
 - **0.5.3** &mdash; *2015-04-21* &mdash; More algebra
     - `unit` and `either` arbitraries
     - `arbitrary.smap` to help creating compound data

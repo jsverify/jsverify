@@ -1,5 +1,12 @@
 ## Release History
 
+- **0.6.0-alpha.1** &mdash; *2015-04-22* &mdash; Preview
+    - Using lazy sequences for shrink results
+    - *Breaking changes:*
+         - `jsc.map` renamed to `jsc.dict`
+         - `jsc.value` removed, use `jsc.json`
+         - `jsc.string()` removed, use `jsc.string`
+         - `shrink.isomap` renamed to `shrink.smap`
 - **0.5.3** &mdash; *2015-04-21* &mdash; More algebra
     - `unit` and `either` arbitraries
     - `arbitrary.smap` to help creating compound data
