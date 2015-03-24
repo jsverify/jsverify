@@ -468,6 +468,7 @@ Use [underscore.js](http://underscorejs.org/), [lodash](https://lodash.com/), [r
 
 ## Release History
 
+- **0.6.0-alpha.3** &mdash; *2015-04-24* &mdash; promise shrink fixed
 - **0.6.0-alpha.2** &mdash; *2015-04-24* &mdash; jsc.bless
     - Added `jsc.bless`
 - **0.6.0-alpha.1** &mdash; *2015-04-22* &mdash; Preview

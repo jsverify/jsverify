@@ -1,5 +1,5 @@
 {
-  "version": "0.6.0-alpha.2",
+  "version": "0.6.0-alpha.3",
   "dependencies": {
     "browserify": {
       "version": "9.0.3",
