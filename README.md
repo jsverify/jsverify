@@ -197,7 +197,6 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
         case 2: return "quux";
       }
     }
-    shrink: jsc.shrink.noop,
   });
   ```
 
@@ -469,6 +468,8 @@ Use [underscore.js](http://underscorejs.org/), [lodash](https://lodash.com/), [r
 
 ## Release History
 
+- **0.6.0-alpha.2** &mdash; *2015-04-24* &mdash; jsc.bless
+    - Added `jsc.bless`
 - **0.6.0-alpha.1** &mdash; *2015-04-22* &mdash; Preview
     - Using lazy sequences for shrink results
     - *Breaking changes:*

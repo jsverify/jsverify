@@ -190,7 +190,7 @@ module.exports = {
   record: record,
 };
 
-},{"./arbitraryAssert.js":2,"./arbitraryBless.js":3,"./array.js":4,"./dict.js":5,"./generator.js":11,"./json.js":12,"./pair.js":14,"./show.js":17,"./shrink.js":18,"./utils.js":22,"assert":23}],2:[function(require,module,exports){
+},{"./arbitraryAssert.js":2,"./arbitraryBless.js":3,"./array.js":4,"./dict.js":6,"./generator.js":12,"./json.js":13,"./pair.js":15,"./show.js":18,"./shrink.js":19,"./utils.js":23,"assert":24}],2:[function(require,module,exports){
 "use strict";
 
 var assert = require("assert");
@@ -207,7 +207,7 @@ function arbitraryAssert(arb) {
 
 module.exports = arbitraryAssert;
 
-},{"assert":23}],3:[function(require,module,exports){
+},{"assert":24}],3:[function(require,module,exports){
 "use strict";
 
 var show = require("./show.js");
@@ -230,10 +230,6 @@ function arbitraryProtoSMap(f, g, newShow) {
 /* eslint-enable no-use-before-define */
 
 /**
-  - `arb.bless({...}): arbitrary a`
-
-      Bless generator, shrink, show triple with  with `.smap` property.
-
   - `.smap(f: a -> b, g: b -> a, newShow: (b -> string)?): arbitrary b`
 
       Transform `arbitrary a` into `arbitrary b`. For example:
@@ -253,7 +249,7 @@ function arbitraryBless(arb) {
 
 module.exports = arbitraryBless;
 
-},{"./show.js":17}],4:[function(require,module,exports){
+},{"./show.js":18}],4:[function(require,module,exports){
 "use strict";
 
 var arbitraryAssert = require("./arbitraryAssert.js");
@@ -285,7 +281,59 @@ module.exports = {
   nearray: nearray,
 };
 
-},{"./arbitraryAssert.js":2,"./arbitraryBless.js":3,"./generator.js":11,"./show.js":17,"./shrink.js":18,"./utils.js":22}],5:[function(require,module,exports){
+},{"./arbitraryAssert.js":2,"./arbitraryBless.js":3,"./generator.js":12,"./show.js":18,"./shrink.js":19,"./utils.js":23}],5:[function(require,module,exports){
+"use strict";
+
+var assert = require("assert");
+
+var arbitraryBless = require("./arbitraryBless.js");
+var generator = require("./generator.js");
+var show = require("./show.js");
+var shrink = require("./shrink.js");
+
+/**
+  - `bless(arb: {...}): arbitrary a`
+
+    Bless almost arbitrary structure to be proper arbitrary. *Note*: this function mutates argument.
+
+    Example:
+
+    ```js
+    var arbTokens = jsc.bless({
+      generator: function () {
+        switch (jsc.random(0, 2)) {
+          case 0: return "foo";
+          case 1: return "bar";
+          case 2: return "quux";
+        }
+      }
+    });
+    ```
+*/
+function bless(arb) {
+  assert(arb !== null && typeof arb === "object", "bless: arb should be an object");
+  assert(typeof arb.generator === "function", "bless: arb.generator should be a function");
+
+  // default shrink
+  if (typeof arb.shrink !== "function") {
+    arb.shrink = shrink.noop;
+  }
+
+  // default show
+  if (typeof arb.show !== "function") {
+    arb.show = show.def;
+  }
+
+  generator.bless(arb.generator);
+  shrink.bless(arb.shrink);
+
+  arbitraryBless(arb);
+  return arb;
+}
+
+module.exports = bless;
+
+},{"./arbitraryBless.js":3,"./generator.js":12,"./show.js":18,"./shrink.js":19,"assert":24}],6:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -317,7 +365,7 @@ module.exports = {
   dict: dict,
 };
 
-},{"./arbitraryAssert.js":2,"./array.js":4,"./pair.js":14,"./string.js":19,"./utils.js":22}],6:[function(require,module,exports){
+},{"./arbitraryAssert.js":2,"./array.js":4,"./pair.js":15,"./string.js":20,"./utils.js":23}],7:[function(require,module,exports){
 "use strict";
 
 var assert = require("assert");
@@ -425,7 +473,7 @@ module.exports = {
   right: right,
 };
 
-},{"assert":23}],7:[function(require,module,exports){
+},{"assert":24}],8:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -450,7 +498,7 @@ var environment = utils.merge(primitive, string, {
 
 module.exports = environment;
 
-},{"./arbitrary.js":1,"./fn.js":9,"./primitive.js":15,"./string.js":19,"./utils.js":22}],8:[function(require,module,exports){
+},{"./arbitrary.js":1,"./fn.js":10,"./primitive.js":16,"./string.js":20,"./utils.js":23}],9:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -503,7 +551,7 @@ FMap.prototype.get = function FMapGet(key) {
 
 module.exports = FMap;
 
-},{"./utils.js":22}],9:[function(require,module,exports){
+},{"./utils.js":23}],10:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -552,7 +600,7 @@ module.exports = {
   fun: fn,
 };
 
-},{"./arbitraryBless.js":3,"./finitemap.js":8,"./json.js":12,"./shrink.js":18,"./utils.js":22}],10:[function(require,module,exports){
+},{"./arbitraryBless.js":3,"./finitemap.js":9,"./json.js":13,"./shrink.js":19,"./utils.js":23}],11:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -617,7 +665,7 @@ module.exports = {
   bind: bind,
 };
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -668,8 +716,8 @@ function generatorProtoFlatMap(f) {
 
 function generatorAssert(generator) {
   assert(typeof generator === "function", "generator should be a function");
-  assert(typeof generator.map === "function", "generator.map should be a function");
-  assert(typeof generator.flatmap === "function", "generator.flatmap should be a function");
+  assert(generator.map === generatorProtoMap, "generator.map should be a function");
+  assert(generator.flatmap === generatorProtoFlatMap, "generator.flatmap should be a function");
 }
 
 /**
@@ -879,7 +927,7 @@ module.exports = {
   recursive: generatorRecursive,
 };
 
-},{"./either.js":6,"./json.js":12,"./random.js":16,"./string.js":19,"./utils.js":22,"assert":23}],12:[function(require,module,exports){
+},{"./either.js":7,"./json.js":13,"./random.js":17,"./string.js":20,"./utils.js":23,"assert":24}],13:[function(require,module,exports){
 "use strict";
 
 var arbitraryBless = require("./arbitraryBless.js");
@@ -910,7 +958,7 @@ module.exports = {
   json: json,
 };
 
-},{"./arbitraryBless.js":3,"./generator.js":11,"./primitive.js":15,"./show.js":17,"./shrink.js":18,"./string.js":19}],13:[function(require,module,exports){
+},{"./arbitraryBless.js":3,"./generator.js":12,"./primitive.js":16,"./show.js":18,"./shrink.js":19,"./string.js":20}],14:[function(require,module,exports){
 /* @flow weak */
 /**
   # JSVerify
@@ -1008,6 +1056,7 @@ var assert = require("assert");
 var lazyseq = require("lazy-seq");
 
 var arbitrary = require("./arbitrary.js");
+var bless = require("./bless.js");
 var either = require("./either.js");
 var environment = require("./environment.js");
 var FMap = require("./finitemap.js");
@@ -1266,6 +1315,16 @@ function bddProperty(name) {
 }
 
 /**
+  - `compile(desc: string, env: typeEnv?): arbitrary a`
+
+      Compile the type describiption in provided type environment, or default one.
+*/
+function compile(str, env) {
+  env = env ? utils.merge(environment, env) : environment;
+  return typify.parseTypify(env, str);
+}
+
+/**
   - `sampler(arb: arbitrary a, genSize: nat = 10): (sampleSize: nat?) -> a`
 
       Create a sampler for a given arbitrary with an optional size. Handy when used in
@@ -1313,6 +1372,7 @@ function sampler(arb, size) {
 
 /// include ./typify.js
 /// include ./arbitraryBless.js
+/// include ./bless.js
 /// include ./primitive.js
 /// include ./arbitrary.js
 /// include ./fn.js
@@ -1341,10 +1401,10 @@ var jsc = {
   right: either.right,
 
   // compile
-  compile: function (str, env) {
-    env = env ? utils.merge(environment, env) : environment;
-    return typify.parseTypify(env, str);
-  },
+  compile: compile,
+
+  // bless
+  bless: bless,
 
   // internal utility lib
   random: random,
@@ -1377,7 +1437,7 @@ module.exports = jsc;
 /// plain ../related-work.md
 /// plain ../LICENSE
 
-},{"./arbitrary.js":1,"./either.js":6,"./environment.js":7,"./finitemap.js":8,"./fn.js":9,"./functor.js":10,"./generator.js":11,"./primitive.js":15,"./random.js":16,"./show.js":17,"./shrink.js":18,"./string.js":19,"./suchthat.js":20,"./typify.js":21,"./utils.js":22,"assert":23,"lazy-seq":27}],14:[function(require,module,exports){
+},{"./arbitrary.js":1,"./bless.js":5,"./either.js":7,"./environment.js":8,"./finitemap.js":9,"./fn.js":10,"./functor.js":11,"./generator.js":12,"./primitive.js":16,"./random.js":17,"./show.js":18,"./shrink.js":19,"./string.js":20,"./suchthat.js":21,"./typify.js":22,"./utils.js":23,"assert":24,"lazy-seq":28}],15:[function(require,module,exports){
 "use strict";
 
 var arbitraryAssert = require("./arbitraryAssert.js");
@@ -1405,7 +1465,7 @@ module.exports = {
   pair: pair,
 };
 
-},{"./arbitraryAssert.js":2,"./arbitraryBless.js":3,"./generator.js":11,"./show.js":17,"./shrink.js":18,"./utils.js":22}],15:[function(require,module,exports){
+},{"./arbitraryAssert.js":2,"./arbitraryBless.js":3,"./generator.js":12,"./show.js":18,"./shrink.js":19,"./utils.js":23}],16:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -1690,7 +1750,7 @@ module.exports = {
   datetime: datetime,
 };
 
-},{"./arbitraryBless":3,"./generator.js":11,"./random.js":16,"./show.js":17,"./shrink.js":18,"./utils.js":22,"assert":23}],16:[function(require,module,exports){
+},{"./arbitraryBless":3,"./generator.js":12,"./random.js":17,"./show.js":18,"./shrink.js":19,"./utils.js":23,"assert":24}],17:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -1730,7 +1790,7 @@ randomInteger.setStateString = rc4.setStateString.bind(rc4);
 
 module.exports = randomInteger;
 
-},{"rc4":28}],17:[function(require,module,exports){
+},{"rc4":29}],18:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -1813,7 +1873,7 @@ module.exports = {
   array: showArray,
 };
 
-},{"./utils.js":22}],18:[function(require,module,exports){
+},{"./utils.js":23}],19:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -2029,7 +2089,7 @@ module.exports = {
   bless: shrinkBless,
 };
 
-},{"./either.js":6,"./utils.js":22,"assert":23,"lazy-seq":27}],19:[function(require,module,exports){
+},{"./either.js":7,"./utils.js":23,"assert":24,"lazy-seq":28}],20:[function(require,module,exports){
 "use strict";
 
 var array = require("./array.js");
@@ -2087,7 +2147,7 @@ module.exports = {
   asciinestring: asciinestring,
 };
 
-},{"./array.js":4,"./primitive.js":15,"./utils.js":22}],20:[function(require,module,exports){
+},{"./array.js":4,"./primitive.js":16,"./utils.js":23}],21:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -2141,7 +2201,7 @@ module.exports = {
   suchthat: suchthat,
 };
 
-},{"./environment.js":7,"./generator.js":11,"./shrink.js":18,"./typify.js":21,"./utils.js":22}],21:[function(require,module,exports){
+},{"./environment.js":8,"./generator.js":12,"./shrink.js":19,"./typify.js":22,"./utils.js":23}],22:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -2238,7 +2298,7 @@ module.exports = {
   parseTypify: parseTypify,
 };
 
-},{"./arbitrary.js":1,"./array.js":4,"./fn.js":9,"typify-parser":29}],22:[function(require,module,exports){
+},{"./arbitrary.js":1,"./array.js":4,"./fn.js":10,"typify-parser":30}],23:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -2391,7 +2451,7 @@ module.exports = {
   dictToPairArray: dictToPairArray,
 };
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
@@ -2752,7 +2812,7 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":26}],24:[function(require,module,exports){
+},{"util/":27}],25:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -2777,14 +2837,14 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -3372,7 +3432,7 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-},{"./support/isBuffer":25,"inherits":24}],27:[function(require,module,exports){
+},{"./support/isBuffer":26,"inherits":25}],28:[function(require,module,exports){
 /**
   # lazy-seq
 
@@ -3732,7 +3792,7 @@ module.exports = {
 /// plain CHANGELOG.md
 /// plain CONTRIBUTING.md
 
-},{"assert":23}],28:[function(require,module,exports){
+},{"assert":24}],29:[function(require,module,exports){
 "use strict";
 
 // Based on RC4 algorithm, as described in
@@ -3928,7 +3988,7 @@ RC4.RC4small = RC4small;
 
 module.exports = RC4;
 
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 /**
   # typify type parser
 
@@ -4314,5 +4374,5 @@ function parse(input) {
 
 module.exports = parse;
 
-},{}]},{},[13])(13)
+},{}]},{},[14])(14)
 });
