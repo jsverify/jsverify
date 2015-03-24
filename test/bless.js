@@ -17,7 +17,11 @@ describe("jsc.bless", function () {
     show: jsc.show.def,
   });
 
-  jsc.property("a", "a", { a: arbA}, function (x) {
+  var arbC = jsc.bless({
+    generator: function () { return []; },
+  });
+
+  jsc.property("a", "a", { a: arbA }, function (x) {
     return _.isEqual(x, []);
   });
 
@@ -25,11 +29,19 @@ describe("jsc.bless", function () {
     return arbA.show([]) === "[]";
   });
 
-  jsc.property("b", "b", { b: arbA}, function (x) {
+  jsc.property("b", "b", { b: arbB }, function (x) {
     return _.isEqual(x, []);
   });
 
   jsc.property("b - show", function () {
     return arbB.show([]) === "[]";
+  });
+
+  jsc.property("c", "c", { c: arbC }, function (x) {
+    return _.isEqual(x, []);
+  });
+
+  jsc.property("c - show", function () {
+    return arbC.show([]) === "[]";
   });
 });
