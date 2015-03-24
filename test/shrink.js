@@ -59,10 +59,12 @@ describe("shrink", function () {
   });
 
   describe("bool", function () {
-    it("shrinks to false", function () {
-      checkShrink([false], jsc.forall(jsc.bool, function (b) {
-        return b !== b;
-      }));
+    it("true shrinks to false", function () {
+      return _.isEqual(jsc.bool.shrink(true), [false]);
+    });
+
+    it("false is non-shrinkable", function () {
+      return _.isEqual(jsc.bool.shrink(false), []);
     });
   });
 
@@ -91,6 +93,28 @@ describe("shrink", function () {
       checkShrink([[1]], jsc.forall(jsc.array(jsc.nat), function (arr) {
         return arr.length === 0 || arr[0] === 0;
       }));
+    });
+
+    describe("bool", function () {
+      var shrink = jsc.array(jsc.bool).shrink;
+
+      function check(from, to) {
+        return function () {
+          var actual = _.chain(shrink(from).toArray()).sort().uniq(_.isEqual).value();
+          var expected = _.chain(to).sort().uniq(_.isEqual).value();
+          return _.isEqual(actual, expected);
+        };
+      }
+
+      jsc.property("[false] -> [[]]", check([false], [[]]));
+      jsc.property("[true] -> [[], [false]]", check([true], [[false], []]));
+      jsc.property("[false, false] -> [[], [false]]", check([true], [[false], []]));
+      jsc.property("[false, true] -> [[false], [true], [false, false]]",
+        check([false, true], [[true], [false], [false, false]]));
+      jsc.property("[true, false] -> [[false], [true], [false, false]]",
+        check([true, false], [[true], [false], [false, false]]));
+      jsc.property("[true, true] -> [[true], [true, false], [false, true]]",
+        check([true, true], [[true], [true, false], [false, true]]));
     });
   });
 
