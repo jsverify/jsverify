@@ -62,3 +62,4 @@ function promiseSpec(library, delay) {
 
 promiseSpec("q", function (q) { return q.delay(1); });
 promiseSpec("when", function (when) { return when.resolve().delay(1); });
+promiseSpec("bluebird", function (Bluebird) { return Bluebird.resolve().delay(1); });
