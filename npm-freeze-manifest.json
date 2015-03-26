@@ -1,6 +1,10 @@
 {
-  "version": "0.6.0-alpha.3",
+  "version": "0.6.0-alpha.4",
   "dependencies": {
+    "bluebird": {
+      "version": "2.9.14",
+      "dependencies": {}
+    },
     "browserify": {
       "version": "9.0.3",
       "dependencies": {
@@ -1655,7 +1659,7 @@
           "dependencies": {}
         },
         "globals": {
-          "version": "6.3.0",
+          "version": "6.4.0",
           "dependencies": {}
         },
         "js-yaml": {
@@ -1759,7 +1763,7 @@
       "dependencies": {}
     },
     "istanbul": {
-      "version": "0.3.10",
+      "version": "0.3.11",
       "dependencies": {
         "abbrev": {
           "version": "1.0.5",
@@ -2027,18 +2031,18 @@
                   "dependencies": {}
                 },
                 "lodash.keys": {
-                  "version": "3.0.4",
+                  "version": "3.0.5",
                   "dependencies": {
                     "lodash.isarguments": {
-                      "version": "3.0.0",
+                      "version": "3.0.1",
                       "dependencies": {}
                     },
                     "lodash.isarray": {
-                      "version": "3.0.0",
+                      "version": "3.0.1",
                       "dependencies": {}
                     },
                     "lodash.isnative": {
-                      "version": "3.0.0",
+                      "version": "3.0.1",
                       "dependencies": {}
                     }
                   }
@@ -2053,7 +2057,7 @@
                   "dependencies": {}
                 },
                 "lodash._isiterateecall": {
-                  "version": "3.0.4",
+                  "version": "3.0.5",
                   "dependencies": {}
                 }
               }
@@ -3147,7 +3151,7 @@
       }
     },
     "lodash": {
-      "version": "3.5.0",
+      "version": "3.6.0",
       "dependencies": {}
     },
     "mocha": {

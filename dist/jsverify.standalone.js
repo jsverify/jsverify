@@ -1301,14 +1301,16 @@ function bddProperty(name) {
   var args = Array.prototype.slice.call(arguments, 1);
   if (args.length === 1) {
     it(name, function () {
-      if (args[0]() !== true) {
-        throw new Error(name + " doesn't hold");
-      }
+      return functor.map(args[0](), function (result) {
+        if (result !== true) {
+          throw new Error(name + " doesn't hold");
+        }
+      });
     });
   } else {
     var prop = forall.apply(undefined, args);
     it(name, function () {
-      checkThrow(prop);
+      return checkThrow(prop);
     });
   }
   /* global it: false */

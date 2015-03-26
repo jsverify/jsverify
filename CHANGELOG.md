@@ -1,5 +1,8 @@
 ## Release History
 
+- **0.6.0-alpha.4** &mdash; *2015-04-26* &mdash; Fix issue #87
+    - jsc.property didn't fail with asynchronous properties
+    - thanks @Ezku for reporting
 - **0.6.0-alpha.3** &mdash; *2015-04-24* &mdash; promise shrink fixed
 - **0.6.0-alpha.2** &mdash; *2015-04-24* &mdash; jsc.bless
     - Added `jsc.bless`
