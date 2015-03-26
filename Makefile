@@ -42,6 +42,7 @@ jasmine : $(DIST)
 
 mocha :
 	$(MOCHA) --reporter spec test
+	$(MOCHA) fail >/dev/null || test $$? -eq 12  # There are 12 "should fail" fixtures
 
 istanbul :
 	$(ISTANBUL) cover -- $(IMOCHA) --timeout 10000 test
