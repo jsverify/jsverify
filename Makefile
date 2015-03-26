@@ -32,7 +32,7 @@ jscs :
 	$(JSCS) $(SRC)
 
 tests-bundle.js : test/*
-	$(BROWSERIFY) -r underscore -r lodash -r q -r when -o tests-bundle.js test/*.js
+	$(BROWSERIFY) -r underscore -r lodash -r q -r when -r bluebird -o tests-bundle.js test/*.js
 
 karma : tests-bundle.js
 	$(KARMA) start
