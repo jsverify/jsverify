@@ -19,8 +19,8 @@ function promiseSpec(library, delay) {
       });
     });
 
-    jsc.property("foo", jsc.constant('bar'), function () {
-      return Promise.resolve(false).delay(10)
+    jsc.property("foo", jsc.constant("bar"), function () {
+      return library.resolve(false).delay(10);
     });
   });
 }

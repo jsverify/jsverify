@@ -20,7 +20,7 @@ all : test
 
 test : jshint eslint jscs mocha istanbul david npm-freeze
 
-SRC=lib test examples helpers karma.conf.js karma.jasmine.conf.js
+SRC=lib test fail examples helpers karma.conf.js karma.jasmine.conf.js
 
 jshint :
 	$(JSHINT) $(SRC)
