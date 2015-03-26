@@ -7,6 +7,7 @@ dist/
 examples/
 node_modules/
 test/
+fail/
 helpers/
 spec/
 coverage/
