@@ -1,5 +1,7 @@
 ## Release History
 
+- **NEXT** &mdash; *2015-mm-dd*; &hellip;
+    - Documentation improvements
 - **0.6.0-alpha.4** &mdash; *2015-04-26* &mdash; Fix issue #87
     - jsc.property didn't fail with asynchronous properties
     - thanks @Ezku for reporting

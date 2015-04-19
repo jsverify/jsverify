@@ -283,6 +283,20 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
     Generates a javascript object with given record spec.
 
+### String arbitraries
+
+- `char: arbitrary char` &mdash; Single character
+
+- `asciichar: arbitrary char` &mdash; Single ascii character (0x20-0x7e inclusive, no DEL)
+
+- `string: arbitrary string`
+
+- `nestring: arbitrary string` &mdash; Generates strings which are not empty.
+
+- `asciistring: arbitrary string`
+
+- `asciinestring: arbitrary string`
+
 - `fn(arb: arbitrary a): arbitrary (b -> a)`
 - `fun(arb: arbitrary a): arbitrary (b -> a)`
 
@@ -468,6 +482,8 @@ Use [underscore.js](http://underscorejs.org/), [lodash](https://lodash.com/), [r
 
 ## Release History
 
+- **NEXT** &mdash; *2015-mm-dd*; &hellip;
+    - Documentation improvements
 - **0.6.0-alpha.4** &mdash; *2015-04-26* &mdash; Fix issue #87
     - jsc.property didn't fail with asynchronous properties
     - thanks @Ezku for reporting
