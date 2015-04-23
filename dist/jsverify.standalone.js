@@ -1377,6 +1377,7 @@ function sampler(arb, size) {
 /// include ./bless.js
 /// include ./primitive.js
 /// include ./arbitrary.js
+/// include ./string.js
 /// include ./fn.js
 /// include ./generator.js
 /// include ./shrink.js
@@ -3596,6 +3597,13 @@ nil.append = function (seq) {
   }
 };
 
+/**
+  - *.filter : (p : a -> bool) : Seq a* &mdash; filter using `p` predicate.
+*/
+nil.filter = function () {
+  return nil;
+};
+
 // Default cons values are with strict semantics
 function Cons(head, tail) {
   this.headValue = head;
@@ -3720,6 +3728,18 @@ Cons.prototype.append = function consAppend(seq) {
   return cons(that.headValue, function () {
     return that.tail().append(seq);
   });
+};
+
+Cons.prototype.filter = function consFilter(p) {
+  assert(typeof p === "function");
+  var that = this;
+  if (p(that.headValue)) {
+    return cons(that.headValue, function () {
+      return that.tail().filter(p);
+    });
+  } else {
+    return that.tail().filter(p);
+  }
 };
 
 // Constructors

@@ -1,7 +1,8 @@
 ## Release History
 
-- **NEXT** &mdash; *2015-mm-dd*; &hellip;
+- **0.6.0-alpha.5** &mdash; *2015-04-23*; &hellip;
     - Documentation improvements
+    - Fix issue #99 (`suchthat` shrink)
 - **0.6.0-alpha.4** &mdash; *2015-04-26* &mdash; Fix issue #87
     - jsc.property didn't fail with asynchronous properties
     - thanks @Ezku for reporting
