@@ -7,20 +7,27 @@ var assert = require("assert");
 var _ = require("underscore");
 var chai = require("chai");
 
-function checkShrink(mincase, property, tries) {
+function checkShrinkPredicate(p, property, tries, wasShrinked) {
   tries = tries || 20;
-  var wasShrinked = false;
+  wasShrinked = !!wasShrinked;
 
   for (var i = 0; i < tries; i++) {
     var r = jsc.check(property, { quiet: true });
     assert(r !== true, "property should not hold");
-    if (mincase !== undefined) {
-      assert.deepEqual(r.counterexample, mincase);
-    }
+    assert(p(r.counterexample));
     wasShrinked = wasShrinked || r.shrinks > 0;
   }
 
   assert(wasShrinked, "should be shrinked");
+}
+
+function checkShrink(mincase, property, tries) {
+  function p(x) {
+    // TODO: Try to remember why we need this case
+    if (mincase === undefined) { return true; }
+    return _.isEqual(x, mincase);
+  }
+  return checkShrinkPredicate(p, property, tries);
 }
 
 describe("shrink", function () {
@@ -344,6 +351,24 @@ describe("shrink", function () {
       });
 
       checkShrink([1, 1], property2);
+    });
+  });
+
+  describe("issue #99", function () {
+    it("shrinks a pair so predicate is true for all shrinked values still", function () {
+      var smallAndBigPair = jsc.suchthat(jsc.pair(jsc.nat(), jsc.nat()), function (pair) {
+        return pair[0] <= pair[1];
+      });
+
+      // shrinked value is [[x,x]] for some x : nat.
+      // We'd like to shrink back to [0, 0], but it's impossible with current shrink implementation for pair.
+      function p(x) {
+        return x[0][0] === x[0][1];
+      }
+
+      checkShrinkPredicate(p, jsc.forall(smallAndBigPair, function (pair) {
+        return pair[0] < pair[1];
+      }), 100, true);
     });
   });
 });
