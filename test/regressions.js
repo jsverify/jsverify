@@ -81,4 +81,11 @@ describe("regressions", function () {
       jsc.assert(jsc.forall(jsc.compile("set nat", { set: set }), pred));
     });
   });
+
+  describe("issue #98", function () {
+    jsc.property("should fail", function () {
+      var n = jsc.int32.generator(100);
+      return typeof n === "number";
+    });
+  });
 });
