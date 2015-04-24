@@ -279,7 +279,7 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
     Randomly uses one of the given arbitraries.
 
-- `record(spec: { key: arbitrary a... }): arbitrary { key: a... }`
+- `record(spec: { key: arbitrary a... }, userenv: env?): arbitrary { key: a... }`
 
     Generates a javascript object with given record spec.
 
