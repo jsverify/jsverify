@@ -98,9 +98,15 @@ for now in either identity or promise functor, for synchronous and promise prope
     Options:
     - `opts.tests` - test count to run, default 100
     - `opts.size`  - maximum size of generated values, default 5
-
     - `opts.quiet` - do not `console.log`
     - `opts.rngState` - state string for the rng
+
+    The `result` is `true` if check succeeds, otherwise it's an object with various fields:
+    - `counterexample` - an input for which property fails.
+    - `tests` - number of tests run before failing case is found
+    - `shrinks` - number of shrinks performed
+    - `exc` - an optional exception thrown by property function
+    - `rngState` - random number generator's state before execution of the property
 
 - `assert(prop: property, opts: checkoptions?) : void`
 
@@ -165,8 +171,11 @@ var bool_fn_applied_thrice = jsc.forall(jsc.fn(jsc.bool()), jsc.bool(), check);
 The DSL is based on a subset of language recognized by [typify-parser](https://github.com/phadej/typify-parser):
 - *identifiers* are fetched from the predefined environment.
 - *applications* are applied as one could expect: `"array bool"` is evaluated to `jsc.array(jsc.bool)`.
-- *functions* are supported: `"bool -> bool"` is evaluated to `jsc.fn(jsc.bool())`.
+- *functions* are supported: `"bool -> bool"` is evaluated to `jsc.fn(jsc.bool)`.
 - *square brackets* are treated as a shorthand for the array type: `"[nat]"` is evaluated to `jsc.array(jsc.nat)`.
+- *union*: `"bool | nat"` is evaulated to `jsc.oneof(jsc.bool, jsc.nat)`.
+    - **Note** `oneof` cannot be shrinked, because the union is untagged, we don't know which shrink to use.
+- *anonymous records*: `"{ b: bool, n: nat}"` is evaluated to `jsc.record({ n: jsc.bool, n: jsc.nat })`.
 
 ### Arbitrary data
 
