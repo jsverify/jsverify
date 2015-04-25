@@ -1,6 +1,9 @@
 ## Release History
 
-- **0.6.0-alpha.5** &mdash; *2015-04-23*; &hellip;
+- **0.6.0-alpha.6** &mdash; *2015-04-25*; &mdash; Fix issues #98
+    - Documentation imporovements
+    - Fix issue [#98](https://github.com/jsverify/jsverify/issues/98) - error while generating `int32` values
+- **0.6.0-alpha.5** &mdash; *2015-04-23*; &mdash; Fix issue #99
     - Documentation improvements
     - Fix issue #99 (`suchthat` shrink)
 - **0.6.0-alpha.4** &mdash; *2015-04-26* &mdash; Fix issue #87

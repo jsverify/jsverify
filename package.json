@@ -1,7 +1,7 @@
 {
   "name": "jsverify",
   "description": "Property-based testing for JavaScript.",
-  "version": "0.6.0-alpha.5",
+  "version": "0.6.0-alpha.6",
   "homepage": "http://jsverify.github.io/",
   "author": {
     "name": "Oleg Grenrus",
@@ -33,7 +33,7 @@
     "browserify": "^9.0.3",
     "chai": "^2.0.0",
     "david": "^6.0.1",
-    "eslint": "^0.19.0",
+    "eslint": "^0.20.0",
     "esprima": "^2.2.0",
     "istanbul": "~0.3.0",
     "jscs": "^1.6.2",
