@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "bluebird": "^2.9.14",
-    "browserify": "^9.0.3",
+    "browserify": "^10.0.0",
     "chai": "^2.0.0",
     "david": "^6.0.1",
     "eslint": "^0.20.0",
