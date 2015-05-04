@@ -483,6 +483,14 @@ Use [underscore.js](http://underscorejs.org/), [lodash](https://lodash.com/), [r
 
   Merge two objects, a bit like `_.extend({}, x, y)`.
 
+## FAQ
+
+### Q: Why do all the examples import the library as jsc instead of jsv?
+
+Does JSC originate with [JSCheck](http://www.jscheck.org/)?
+
+**A:** Yes
+
 ## Contributing
 
 - `README.md` is generated from the source with [ljs](https://github.com/phadej/ljs)
