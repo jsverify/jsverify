@@ -309,7 +309,7 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
     Generates a javascript object with given record spec.
 
-### String arbitraries
+### Arbitrary strings
 
 - `char: arbitrary char` &mdash; Single character
 
@@ -323,8 +323,27 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
 - `asciinestring: arbitrary string`
 
+### Arbitrary functions
+
 - `fn(arb: arbitrary a): arbitrary (b -> a)`
 - `fun(arb: arbitrary a): arbitrary (b -> a)`
+
+### Small arbitraries
+
+- `generator.small(gen: generator a): generator a`
+- `small(arb: arbitrary a): arbitrary a`
+
+Create a generator (abitrary) which will generate smaller values, i.e. generator's `size` parameter is decreased logarithmically.
+
+```js
+jsc.property("small array of small natural numbers", "small (array nat)", function (arr) {
+  return Array.isArray(arr);
+});
+
+jsc.property("small array of normal natural numbers", "(small array) nat", function (arr) {
+  return Array.isArray(arr);
+});
+```
 
 ### Generator functions
 
