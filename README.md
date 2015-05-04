@@ -183,13 +183,30 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
     Transform `arbitrary a` into `arbitrary b`. For example:
 
-    `g` should be a [right inverse](http://en.wikipedia.org/wiki/Surjective_function#Surjections_as_right_invertible_functions) of `f`.
+    `g` should be a [right inverse](http://en.wikipedia.org/wiki/Surjective_function#Surjections_as_right_invertible_functions) of `f`, but doesn't need to be complete inverse.
+    i.e. i.e. `f` doesn't need to be invertible, only surjective.
 
     ```js
-    positiveIntegersArb = nat.smap(
+    var positiveIntegersArb = nat.smap(
       function (x) { return x + 1; },
       function (x) { return x - 1; });
     ```
+
+    ```js
+    var setNatArb =  jsc.array(jsc.nat).smap(_.uniq, _.identity);
+    ```
+
+    Right inverse means that *f(g(y)) = y* for all *y* in *Y*. Here *Y* is a type of **arrays of unique natural numbers**. For them
+    ```js
+    _.uniq(_.identity(y)) = _.uniq(y) = y
+    ```
+
+    Opposite: *g(f(x))* for all *x* in *X*, doesn't need to hold. *X* is **arrays of natural numbers**:
+    ```js
+    _.identity(_uniq([0, 0])) = [0]] != [0, 0]
+    ```
+
+    We need an inverse for shrinking, and there right inverse is enough. We can always *pull back* `smap`ped value and shrink the preimage, and *map* or *push forward* shrinked preimages again.
 
 - `bless(arb: {...}): arbitrary a`
 
@@ -485,11 +502,17 @@ Use [underscore.js](http://underscorejs.org/), [lodash](https://lodash.com/), [r
 
 ## FAQ
 
-### Q: Why do all the examples import the library as jsc instead of jsv?
+### Why do all the examples import the library as jsc instead of jsv?
 
 Does JSC originate with [JSCheck](http://www.jscheck.org/)?
 
 **A:** Yes
+
+### smap requires an inverse function, which isn't always practical. Is this complexity related to shrinking?
+
+**A:** Yes. We don't want to give an easy-to-use interface which forgets
+shrinking altogether. Note, that *right* inverse is enough, which is most
+likely easy to write, even *complete* inverse doesn't exist.
 
 ## Contributing
 
