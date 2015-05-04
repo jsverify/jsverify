@@ -305,9 +305,15 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
     Randomly uses one of the given arbitraries.
 
+### Arbitrary records
+
 - `record(spec: { key: arbitrary a... }, userenv: env?): arbitrary { key: a... }`
 
     Generates a javascript object with given record spec.
+
+- `generator.record(gen: { key: generator a... }): generator { key: a... }`
+
+- `shrink.record(shrs: { key: shrink a... }): shrink { key: a... }`
 
 ### Arbitrary strings
 
@@ -440,8 +446,6 @@ var ys = shrink.array(shrink.nat)([1]);
 
 - `shrink.nearray(shr: shrink a): shrink (nearray a)`
 
-- `shrink.record(shrs: { key: shrink a... }): shrink { key: a... }`
-
 ### Show functions
 
 - `show.def(x : a): string`
@@ -541,10 +545,18 @@ likely easy to write, even *complete* inverse doesn't exist.
 
 ## Release History
 
-- **0.6.0-alpha.6** &mdash; *2015-04-25*; &mdash; Fix issues #98
+- **0.6.0-beta.1** &mdash; *2015-05-04* &mdash; Beta!
+    - FAQ section
+    - Improved `smap` documentation
+    - `flatmap` is also `flatMap`
+    - Fix function arbitrary
+    - `small` arbitraries
+    - `jsc.generator.record`
+    - Thanks to @peterjoel for reporting issues
+- **0.6.0-alpha.6** &mdash; *2015-04-25* &mdash; Fix issues #98
     - Documentation imporovements
     - Fix issue [#98](https://github.com/jsverify/jsverify/issues/98) - error while generating `int32` values
-- **0.6.0-alpha.5** &mdash; *2015-04-23*; &mdash; Fix issue #99
+- **0.6.0-alpha.5** &mdash; *2015-04-23* &mdash; Fix issue #99
     - Documentation improvements
     - Fix issue #99 (`suchthat` shrink)
 - **0.6.0-alpha.4** &mdash; *2015-04-26* &mdash; Fix issue #87
