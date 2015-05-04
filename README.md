@@ -358,7 +358,7 @@ if the primitives from *random* module are used.
 
 - `.flatmap(f: a -> generator b): generator b`
 
-    Monadic bind for generators.
+    Monadic bind for generators. Also `flatMap` version is supported.
 
 - `generator.constant(x: a): generator a`
 

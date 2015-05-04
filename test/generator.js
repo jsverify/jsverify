@@ -101,6 +101,17 @@ describe("jsc.generator", function () {
         assert(typeof value === "number" || typeof value === "string");
       }
     });
+
+    it("flatMap version", function () {
+      var gen = jsc.bool.generator.flatMap(function (b) {
+        return b ? jsc.string.generator : jsc.number.generator;
+      });
+
+      for (var i = 0; i < 100; i++) {
+        var value = gen(i);
+        assert(typeof value === "number" || typeof value === "string");
+      }
+    });
   });
 
   describe("oneof", function () {
