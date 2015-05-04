@@ -83,9 +83,19 @@ describe("regressions", function () {
   });
 
   describe("issue #98", function () {
-    jsc.property("should fail", function () {
+    jsc.property("shouldn't fail", function () {
       var n = jsc.int32.generator(100);
       return typeof n === "number";
+    });
+  });
+
+  describe("#107: fn smap", function () {
+    jsc.property("shouldn't fail", function () {
+      var arb = jsc.fn(jsc.integer()).smap(function (v) { return { data: v }; }, function (v) { return v.data; });
+      var prop = jsc.forall(arb, function (x) {
+        return typeof x.data === "function";
+      });
+      return jsc.check(prop);
     });
   });
 });
