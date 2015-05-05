@@ -2,9 +2,10 @@ sudo: false
 language: node_js
 node_js:
   - "0.12"
-  - "0.11"
   - "0.10"
   - "iojs"
+  - "iojs-2.0.0"
+  - "iojs-1.8.1"
 branches:
   only:
     - master
