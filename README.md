@@ -175,7 +175,7 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 - *square brackets* are treated as a shorthand for the array type: `"[nat]"` is evaluated to `jsc.array(jsc.nat)`.
 - *union*: `"bool | nat"` is evaulated to `jsc.oneof(jsc.bool, jsc.nat)`.
     - **Note** `oneof` cannot be shrinked, because the union is untagged, we don't know which shrink to use.
-- *anonymous records*: `"{ b: bool, n: nat}"` is evaluated to `jsc.record({ n: jsc.bool, n: jsc.nat })`.
+- *anonymous records*: `"{ b: bool; n: nat}"` is evaluated to `jsc.record({ n: jsc.bool, n: jsc.nat })`.
 
 ### Arbitrary data
 
