@@ -65,7 +65,7 @@ Errorneous case is found with first try.
 
 Check [jasmineHelpers.js](helpers/jasmineHelpers.js) and [jasmineHelpers2.js](helpers/jasmineHelpers2.js) for jasmine 1.3 and 2.0 respectively.
 
-## API
+## API Reference
 
 > _Testing shows the presence, not the absence of bugs._
 >
@@ -79,7 +79,19 @@ only test it to hold for numerous (randomly generated) values.
 
 Types and function signatures are written in [Coq](http://coq.inria.fr/)/[Haskell](http://www.haskell.org/haskellwiki/Haskell) influented style:
 C# -style `List<T> filter(List<T> v, Func<T, bool> predicate)` is represented by
-`filter (v : array T) (predicate : T -> bool) : array T` in our style.
+`filter(v: array T, predicate: T -> bool): array T` in our style.
+
+Methods and objects live in `jsc` object, e.g. `shrink.bless` method is used by
+```js
+var jsc = require("jsverify");
+var foo = jsc.shrink.bless(...);
+```
+
+Methods starting with `.dot` are prototype methods:
+```js
+var arb = jsc.nat;
+var arb2 = jsc.nat.smap(f, g);
+```
 
 `jsverify` can operate with both synchronous and asynchronous-promise properties.
 Generally every property can be wrapped inside [functor](http://learnyouahaskell.com/functors-applicative-functors-and-monoids),
@@ -160,6 +172,17 @@ for now in either identity or promise functor, for synchronous and promise prope
 - `arbitrary a` is a triple of generator, shrink and show functions.
     - `{ generator: nat -> a, shrink : a -> array a, show: a -> string }`
 
+### Blessing
+
+We chose to respresent generators and shrinks by functions, yet we would
+like to have additional methods on them. Thus we *bless* objects with
+additional properties.
+
+Usually you don't need to bless anything explicitly, as all combinators
+return blessed values.
+
+See [perldoc for bless](http://perldoc.perl.org/functions/bless.html).
+
 ### DSL for input parameters
 
 There is a small DSL to help with `forall`. For example the two definitions below are equivalent:
@@ -212,7 +235,7 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
   Bless almost arbitrary structure to be proper arbitrary. *Note*: this function mutates argument.
 
-  Example:
+  #### Example:
 
   ```js
   var arbTokens = jsc.bless({
@@ -358,8 +381,8 @@ A generator function, `generator a`, is a function `(size: nat) -> a`, which gen
 Generator combinators are auto-curried:
 
 ```js
-var xs = generator.array(shrink.nat, 1); // ≡
-var ys = generator.array(shrink.nat)(1);
+var xs = jsc.generator.array(jsc.nat.generator, 1); // ≡
+var ys = jsc.generator.array(jsc.nat.generator)(1);
 ```
 
 In purely functional approach `generator a` would be explicitly stateful computation:
@@ -401,7 +424,7 @@ if the primitives from *random* module are used.
 
     `unit` is an empty tuple, i.e. empty array in JavaScript representation. This is useful as a building block.
 
-- `generator.tuple(gens: (generator a, generator b...): generator (a, b...)`
+- `generator.tuple(gens: (generator a, generator b...)): generator (a, b...)`
 
 - `generator.array(gen: generator a): generator (array a)`
 
@@ -416,8 +439,8 @@ A shrink function, `shrink a`, is a function `a -> [a]`, returning an array of *
 Shrink combinators are auto-curried:
 
 ```js
-var xs = shrink.array(shrink.nat, [1]); // ≡
-var ys = shrink.array(shrink.nat)([1]);
+var xs = jsc.shrink.array(jsc.nat.shrink, [1]); // ≡
+var ys = jsc.shrink.array(jsc.nat.shrink)([1]);
 ```
 
 - `shrink.bless(f: a -> [a]): shrink a`
