@@ -33,7 +33,7 @@
     "browserify": "^10.0.0",
     "chai": "^2.0.0",
     "david": "^6.0.1",
-    "eslint": "^0.20.0",
+    "eslint": "^0.21.2",
     "esprima": "^2.2.0",
     "istanbul": "~0.3.0",
     "jscs": "^1.6.2",
