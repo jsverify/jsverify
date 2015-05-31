@@ -98,4 +98,11 @@ describe("regressions", function () {
       return jsc.check(prop);
     });
   });
+
+  describe("#113", function () {
+    it("should not throw exception", function () {
+      var arb = jsc.tuple([jsc.bool, jsc.array(jsc.bool), jsc.bool]);
+      arb.shrink([true, [true, true], true]);
+    });
+  });
 });
