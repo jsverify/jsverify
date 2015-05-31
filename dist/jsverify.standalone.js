@@ -293,8 +293,8 @@ var show = require("./show.js");
 var shrink = require("./shrink.js");
 var utils = require("./utils.js");
 
-function arrayImpl(flavour) {
-  return function array(arb) {
+function makeArray(flavour) {
+  return function arrayImpl(arb) {
     arb = utils.force(arb);
 
     arbitraryAssert(arb);
@@ -307,8 +307,8 @@ function arrayImpl(flavour) {
   };
 }
 
-var array = arrayImpl("array");
-var nearray = arrayImpl("nearray");
+var array = makeArray("array");
+var nearray = makeArray("nearray");
 
 module.exports = {
   array: array,
@@ -330,7 +330,7 @@ var shrink = require("./shrink.js");
 
     Bless almost arbitrary structure to be proper arbitrary. *Note*: this function mutates argument.
 
-    Example:
+    #### Example:
 
     ```js
     var arbTokens = jsc.bless({
@@ -721,8 +721,8 @@ var utils = require("./utils.js");
   Generator combinators are auto-curried:
 
   ```js
-  var xs = generator.array(shrink.nat, 1); // ≡
-  var ys = generator.array(shrink.nat)(1);
+  var xs = jsc.generator.array(jsc.nat.generator, 1); // ≡
+  var ys = jsc.generator.array(jsc.nat.generator)(1);
   ```
 
   In purely functional approach `generator a` would be explicitly stateful computation:
@@ -887,7 +887,7 @@ var generateUnit = generatorBless(function () {
 });
 
 /**
-  - `generator.tuple(gens: (generator a, generator b...): generator (a, b...)`
+  - `generator.tuple(gens: (generator a, generator b...)): generator (a, b...)`
 */
 function generateTuple(gens) {
   var len = gens.length;
@@ -1072,7 +1072,7 @@ module.exports = {
 
   Check [jasmineHelpers.js](helpers/jasmineHelpers.js) and [jasmineHelpers2.js](helpers/jasmineHelpers2.js) for jasmine 1.3 and 2.0 respectively.
 
-  ## API
+  ## API Reference
 
   > _Testing shows the presence, not the absence of bugs._
   >
@@ -1086,7 +1086,19 @@ module.exports = {
 
   Types and function signatures are written in [Coq](http://coq.inria.fr/)/[Haskell](http://www.haskell.org/haskellwiki/Haskell) influented style:
   C# -style `List<T> filter(List<T> v, Func<T, bool> predicate)` is represented by
-  `filter (v : array T) (predicate : T -> bool) : array T` in our style.
+  `filter(v: array T, predicate: T -> bool): array T` in our style.
+
+  Methods and objects live in `jsc` object, e.g. `shrink.bless` method is used by
+  ```js
+  var jsc = require("jsverify");
+  var foo = jsc.shrink.bless(...);
+  ```
+
+  Methods starting with `.dot` are prototype methods:
+  ```js
+  var arb = jsc.nat;
+  var arb2 = jsc.nat.smap(f, g);
+  ```
 
   `jsverify` can operate with both synchronous and asynchronous-promise properties.
   Generally every property can be wrapped inside [functor](http://learnyouahaskell.com/functors-applicative-functors-and-monoids),
@@ -1146,7 +1158,7 @@ function shrinkResult(arbs, x, test, size, shrinksN, exc, transform) {
 }
 
 function isArbitrary(arb) {
-  return typeof arb === "object" &&
+  return (typeof arb === "object" || typeof arb === "function") &&
     typeof arb.generator === "function" &&
     typeof arb.shrink === "function" &&
     typeof arb.show === "function";
@@ -1164,6 +1176,7 @@ function forall() {
   var env;
 
   var lastgen = gens[gens.length - 1];
+
   if (!isArbitrary(lastgen) && typeof lastgen !== "string") {
     env = utils.merge(environment, lastgen);
     gens = gens.slice(0, -1);
@@ -1413,6 +1426,17 @@ function sampler(arb, size) {
   - `shrink` is a function `a -> [a]`, returning *smaller* values.
   - `arbitrary a` is a triple of generator, shrink and show functions.
       - `{ generator: nat -> a, shrink : a -> array a, show: a -> string }`
+
+  ### Blessing
+
+  We chose to respresent generators and shrinks by functions, yet we would
+  like to have additional methods on them. Thus we *bless* objects with
+  additional properties.
+
+  Usually you don't need to bless anything explicitly, as all combinators
+  return blessed values.
+
+  See [perldoc for bless](http://perldoc.perl.org/functions/bless.html).
 */
 
 /// include ./typify.js
@@ -1565,6 +1589,8 @@ var integer = numeric(function integer(maxsize) {
       return random(-size, size);
     }),
     shrink: shrink.bless(function (i) {
+      assert(typeof i === "number", "integer.shrink have to be a number");
+
       i = Math.abs(i);
       if (i === 0) {
         return [];
@@ -1601,6 +1627,8 @@ function nat(maxsize) {
       return random(0, size);
     }),
     shrink: shrink.bless(function (i) {
+      assert(typeof i === "number", "nat.shrink have to be a number");
+
       var arr = [];
       var j = utils.div2(i);
       var k = Math.max(j, 1);
@@ -1631,6 +1659,8 @@ var number = numeric(function number(maxsize) {
       return random.number(-size, size);
     }),
     shrink: shrink.bless(function (x) {
+      assert(typeof x === "number", "number.shrink have to be a number");
+
       if (Math.abs(x) > 1e-6) {
         return [0, x / 2, -x / 2];
       } else {
@@ -1673,6 +1703,7 @@ var bool = arbitraryBless({
   }),
 
   shrink: shrink.bless(function (b) {
+    assert(b === true || b === false, "bool.shrink excepts true or false");
     return b === true ? [false] : [];
   }),
   show: show.def,
@@ -1691,10 +1722,10 @@ function datetime(from, to) {
   var arb;
 
   if (arguments.length === 2) {
-    toDate = function toDate(x) {
+    toDate = function toDateFn(x) {
       return new Date(x);
     };
-    fromDate = function fromDate(x) {
+    fromDate = function fromDateFn(x) {
       return x.getTime();
     };
     from = fromDate(from);
@@ -1703,7 +1734,7 @@ function datetime(from, to) {
 
     return arb.smap(toDate, fromDate);
   } else {
-    toDate = function toDate(x) {
+    toDate = function toDateFn(x) {
       return new Date(x * 768000000 + datetimeConst);
     };
     arb = number;
@@ -1841,7 +1872,7 @@ var utils = require("./utils.js");
 var shrink = require("./shrink.js");
 
 /**
-  `generator.record(gen: { key: generator a... }): generator { key: a... }`
+  - `generator.record(gen: { key: generator a... }): generator { key: a... }`
 */
 function generatorRecord(spec) {
   var keys = Object.keys(spec);
@@ -2037,8 +2068,8 @@ var utils = require("./utils.js");
   Shrink combinators are auto-curried:
 
   ```js
-  var xs = shrink.array(shrink.nat, [1]); // ≡
-  var ys = shrink.array(shrink.nat)([1]);
+  var xs = jsc.shrink.array(jsc.nat.shrink, [1]); // ≡
+  var ys = jsc.shrink.array(jsc.nat.shrink)([1]);
   ```
 */
 
@@ -2131,7 +2162,27 @@ function shrinkEither(shrinkA, shrinkB) {
   return utils.curried3(result, arguments);
 }
 
-// a → Vec a 1
+// We represent non-empty linked list as
+// singl x = [x]
+// cons h t = [h, t]
+function fromLinkedList(ll) {
+  assert(ll.length === 1 || ll.length === 2, "linked list must be either [] or [x, linkedlist]");
+  if (ll.length === 1) {
+    return [ll[0]];
+  } else {
+    return [ll[0]].concat(fromLinkedList(ll[1]));
+  }
+}
+
+function toLinkedList(arr) {
+  assert(Array.isArray(arr) && arr.length > 0, "toLinkedList expects non-empty array");
+  if (arr.length === 1) {
+    return [arr[0]];
+  } else {
+    return [arr[0], toLinkedList(arr.slice(1))];
+  }
+}
+
 function toSingleton(x) {
   return [x];
 }
@@ -2141,23 +2192,13 @@ function fromSingleton(a) {
   return a[0];
 }
 
-// a × HList b → HList (a ∷ b)
-function toHList(p) {
-  return [p[0]].concat(p[1]);
-}
-
-// HList (a ∷ b) → a × HList b
-function fromHList(h) {
-  return [h[0], h.slice(1)];
-}
-
-function shrinkTupleImpl(shrinks, n) {
-  if (n + 1 === shrinks.length) {
-    return shrinks[n].smap(toSingleton, fromSingleton);
+function flattenShrink(shrinksLL) {
+  if (shrinksLL.length === 1) {
+    return shrinksLL[0].smap(toSingleton, fromSingleton);
   } else {
-    var shrinkA = shrinks[0];
-    var shrinkB = shrinkTupleImpl(shrinks, n + 1);
-    return shrinkPair(shrinkA, shrinkB).smap(toHList, fromHList);
+    var head = shrinksLL[0];
+    var tail = shrinksLL[1];
+    return shrinkPair(head, flattenShrink(tail));
   }
 }
 
@@ -2166,7 +2207,13 @@ function shrinkTupleImpl(shrinks, n) {
 */
 function shrinkTuple(shrinks) {
   assert(shrinks.length > 0, "shrinkTuple needs > 0 values");
-  var result = shrinkTupleImpl(shrinks, 0);
+  var shrinksLL = toLinkedList(shrinks);
+  var shrink = flattenShrink(shrinksLL);
+  var result = function (tuple) {
+    var ll = toLinkedList(tuple);
+    return shrink(ll).map(fromLinkedList);
+  };
+
   return utils.curried2(result, arguments);
 }
 
@@ -2456,7 +2503,7 @@ function compileRecord(env, type) {
   return record.arbitrary(spec);
 }
 
-compileType = function compileType(env, type) {
+compileType = function compileTypeFn(env, type) {
   switch (type.type) {
     case "ident": return compileIdent(env, type);
     case "application": return compileApplication(env, type);
@@ -2469,7 +2516,7 @@ compileType = function compileType(env, type) {
   }
 };
 
-compileTypeArray = function compileTypeArray(env, types) {
+compileTypeArray = function compileTypeArrayFn(env, types) {
   return types.map(function (type) {
     return compileType(env, type);
   });

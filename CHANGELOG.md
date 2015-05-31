@@ -1,5 +1,7 @@
 ## Release History
 
+- **0.6.0-beta.2** &mdash; *2015-05-31* &mdash; Beta!
+    - Fix issue [#113](https://github.com/jsverify/jsverify/issues/113) - Shrink of tuple with arrays failed.
 - **0.6.0-beta.1** &mdash; *2015-05-04* &mdash; Beta!
     - FAQ section
     - Improved `smap` documentation
