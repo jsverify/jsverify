@@ -109,7 +109,7 @@ for now in either identity or promise functor, for synchronous and promise prope
 
     Options:
     - `opts.tests` - test count to run, default 100
-    - `opts.size`  - maximum size of generated values, default 5
+    - `opts.size`  - maximum size of generated values, default 50
     - `opts.quiet` - do not `console.log`
     - `opts.rngState` - state string for the rng
 
