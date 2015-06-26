@@ -1,4 +1,4 @@
-.PHONY : all test jshint eslint jscs karma mocha istanbul npm-freeze david dist literate
+.PHONY : all test test-travis jshint eslint jscs karma mocha istanbul npm-freeze david dist literate
 
 BINDIR=node_modules/.bin
 
@@ -19,6 +19,8 @@ DIST=dist/jsverify.standalone.js
 all : test
 
 test : jshint eslint jscs mocha istanbul david npm-freeze
+
+test-travis : test test-readme
 
 SRC=lib test fail examples helpers karma.conf.js karma.jasmine.conf.js
 
@@ -66,5 +68,10 @@ npm-freeze-manifest.json :
 $(DIST) : lib/*
 	$(BROWSERIFY) --no-detect-globals -s jsc -o $(DIST) ./lib/jsverify.js
 
-literate :
+literate : README.md
+
+README.md :
 	$(LJS) --no-code -o README.md lib/jsverify.js
+
+test-literate : literate
+	git diff --exit-code || echo "README.md is generated file, run 'make README.md'" && false
