@@ -1,4 +1,4 @@
-.PHONY : all test test-travis jshint eslint jscs karma mocha istanbul npm-freeze david dist literate
+.PHONY : all test test-travis jshint eslint jscs karma mocha istanbul npm-freeze david dist literate README.md
 
 BINDIR=node_modules/.bin
 
@@ -73,5 +73,5 @@ literate : README.md
 README.md :
 	$(LJS) --no-code -o README.md lib/jsverify.js
 
-test-literate : literate
-	git diff --exit-code || echo "README.md is generated file, run 'make README.md'" && false
+test-readme : literate
+	git diff --exit-code || (echo "README.md is generated file, run 'make README.md'" && false)
