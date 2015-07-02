@@ -420,7 +420,7 @@ if the primitives from *random* module are used.
 
 - `generator.either(genA: generator a, genB: generator b): generator (either a b)`
 
-- `generator.unit: generator ()
+- `generator.unit: generator ()`
 
     `unit` is an empty tuple, i.e. empty array in JavaScript representation. This is useful as a building block.
 
@@ -505,7 +505,7 @@ var ys = jsc.shrink.array(jsc.nat.shrink)([1]);
 
 - `either.either(l: a -> x, r: b -> x): x`
 
-- `either.isEqual(other: either a b): bool
+- `either.isEqual(other: either a b): bool`
 
     TODO: add `eq` optional parameter
 
