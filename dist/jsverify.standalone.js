@@ -442,7 +442,7 @@ Right.prototype.either = function righteither(l, r) {
 };
 
 /**
-  - `either.isEqual(other: either a b): bool
+  - `either.isEqual(other: either a b): bool`
 
       TODO: add `eq` optional parameter
 */
@@ -878,7 +878,7 @@ function generateEither(genA, genB) {
   return utils.curried3(result, arguments);
 }
 /**
-  - `generator.unit: generator ()
+  - `generator.unit: generator ()`
 
       `unit` is an empty tuple, i.e. empty array in JavaScript representation. This is useful as a building block.
 */
@@ -2450,7 +2450,7 @@ module.exports = {
   - *square brackets* are treated as a shorthand for the array type: `"[nat]"` is evaluated to `jsc.array(jsc.nat)`.
   - *union*: `"bool | nat"` is evaulated to `jsc.oneof(jsc.bool, jsc.nat)`.
       - **Note** `oneof` cannot be shrinked, because the union is untagged, we don't know which shrink to use.
-  - *anonymous records*: `"{ b: bool, n: nat}"` is evaluated to `jsc.record({ n: jsc.bool, n: jsc.nat })`.
+  - *anonymous records*: `"{ b: bool; n: nat}"` is evaluated to `jsc.record({ n: jsc.bool, n: jsc.nat })`.
 */
 
 var arbitrary = require("./arbitrary.js");
@@ -2586,6 +2586,80 @@ function isEqual(a, b) {
   return false;
 }
 
+/**
+  - `utils.isApproxEqual(x: a, y: b, opts: obj): bool`
+
+      Tests whether two objects are approximately and optimistically equal.
+      Returns `false` only if they are distinguisable not equal.
+      This function works with cyclic data.
+
+      Takes optional 'opts' parameter with properties:
+
+      - `fnEqual` - whether all functions are considered equal (default: yes)
+      - `depth` - how deep to recurse until treating as equal (default: 5)
+*/
+function isApproxEqual(x, y, opts) {
+  opts = opts || {};
+  var fnEqual = opts.fnEqual === false ? false : true;
+  var depth = opts.depth || 5; // totally arbitrary
+
+  // state contains pairs we checked (or are still checking, but assume equal!)
+  var state = [];
+
+  function loop(a, b, n) {
+    // trivial check
+    if (a === b) {
+      return true;
+    }
+
+    // depth check
+    if (n >= depth) {
+      return true;
+    }
+
+    var i;
+
+    // check if pair already occured
+    for (i = 0; i < state.length; i++) {
+      if (state[i][0] === a && state[i][1] === b) {
+        return true;
+      }
+    }
+
+    // add to state
+    state.push([a, b]);
+
+    if (typeof a === "function" && typeof b === "function") {
+      return fnEqual;
+    }
+
+    if (isArray(a) && isArray(b) && a.length === b.length) {
+      for (i = 0; i < a.length; i++) {
+        if (!loop(a[i], b[i], n + 1)) {
+          return false;
+        }
+      }
+      return true;
+    } else if (isObject(a) && isObject(b) && !isArray(a) && !isArray(b)) {
+      var akeys = Object.keys(a);
+      var bkeys = Object.keys(b);
+      if (!loop(akeys, bkeys, n + 1)) {
+        return false;
+      }
+
+      for (i = 0; i < akeys.length; i++) {
+        if (!loop(a[akeys[i]], b[akeys[i]], n + 1)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    return false;
+  }
+  return loop(x, y, 0);
+}
+
 function identity(x) {
   return x;
 }
@@ -2679,6 +2753,7 @@ module.exports = {
   isArray: isArray,
   isObject: isObject,
   isEqual: isEqual,
+  isApproxEqual: isApproxEqual,
   identity: identity,
   pluck: pluck,
   force: force,

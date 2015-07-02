@@ -538,6 +538,17 @@ Use [underscore.js](http://underscorejs.org/), [lodash](https://lodash.com/), [r
 
     Equality test for `json` objects.
 
+- `utils.isApproxEqual(x: a, y: b, opts: obj): bool`
+
+    Tests whether two objects are approximately and optimistically equal.
+    Returns `false` only if they are distinguisable not equal.
+    This function works with cyclic data.
+
+    Takes optional 'opts' parameter with properties:
+
+    - `fnEqual` - whether all functions are considered equal (default: yes)
+    - `depth` - how deep to recurse until treating as equal (default: 5)
+
 - `utils.force(x: a | () -> a) : a`
 
     Evaluate `x` as nullary function, if it is one.
@@ -568,6 +579,8 @@ likely easy to write, even *complete* inverse doesn't exist.
 
 ## Release History
 
+- **0.6.0** &mdash; *2015-06-19* &mdash; Minor but major release!
+    - added `jsc.utils.isApproxEqual`
 - **0.6.0-beta.2** &mdash; *2015-05-31* &mdash; Beta!
     - Fix issue [#113](https://github.com/jsverify/jsverify/issues/113) - Shrink of tuple with arrays failed.
 - **0.6.0-beta.1** &mdash; *2015-05-04* &mdash; Beta!
@@ -734,7 +747,7 @@ likely easy to write, even *complete* inverse doesn't exist.
 
 The MIT License (MIT)
 
-Copyright (c) 2013, 2014 Oleg Grenrus
+Copyright (c) 2013-2015 Oleg Grenrus
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
