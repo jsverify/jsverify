@@ -52,9 +52,21 @@ describe("primitive arbitraries", function () {
       }));
     });
 
+    it("with maxsize == 0, generates integers: abs(_) ≤  maxsize", function () {
+      jsc.assert(jsc.forall(jsc.integer(0), function (i) {
+        return Math.round(i) === i && Math.abs(i) <= 0;
+      }));
+    });
+
     it("with min & max, generates integers: min ≤ _ ≤ max", function () {
       jsc.assert(jsc.forall(jsc.integer(2, 5), function (i) {
         return Math.round(i) === i && i >= 2 && i <= 5;
+      }));
+    });
+
+    it("with min == 0 & max, generates integers: min ≤ _ ≤ max", function () {
+      jsc.assert(jsc.forall(jsc.integer(0, 5), function (i) {
+        return Math.round(i) === i && i >= 0 && i <= 5;
       }));
     });
   });
@@ -63,6 +75,18 @@ describe("primitive arbitraries", function () {
     it("generates non-negative integers", function () {
       jsc.assert(jsc.forall(jsc.nat(), function (n) {
         return Math.round(n) === n && n >= 0;
+      }));
+    });
+
+    it("with maxsize, generates numbers: _ <= maxsize", function () {
+      jsc.assert(jsc.forall(jsc.nat(5), function (i) {
+        return typeof i === "number" && Math.abs(i) <= 5;
+      }));
+    });
+
+    it("with maxsize == 0, generates numbers: _ == maxsize", function () {
+      jsc.assert(jsc.forall(jsc.nat(0), function (i) {
+        return typeof i === "number" && Math.abs(i) === 0;
       }));
     });
   });
@@ -92,9 +116,21 @@ describe("primitive arbitraries", function () {
       }));
     });
 
+    it("with maxsize == 0, generates numbers: abs(_) == maxsize", function () {
+      jsc.assert(jsc.forall(jsc.number(0), function (i) {
+        return typeof i === "number" && Math.abs(i) === 0;
+      }));
+    });
+
     it("with min & max, generates numbers: min ≤ _ < max", function () {
       jsc.assert(jsc.forall(jsc.number(2.2, 5.5), function (i) {
         return typeof i === "number" && i >= 2.2 && i < 5.5;
+      }));
+    });
+
+    it("with min == 0 & max, generates numbers: min ≤ _ < max", function () {
+      jsc.assert(jsc.forall(jsc.number(0, 5.5), function (i) {
+        return typeof i === "number" && i >= 0 && i < 5.5;
       }));
     });
   });
