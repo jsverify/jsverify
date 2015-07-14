@@ -1585,7 +1585,7 @@ function numeric(impl) {
 var integer = numeric(function integer(maxsize) {
   return {
     generator: generator.bless(function (size) {
-      size = typeof maxsize !== "undefined" ? maxsize : size;
+      size = maxsize === undefined ? size : maxsize;
       return random(-size, size);
     }),
     shrink: shrink.bless(function (i) {
@@ -1623,7 +1623,7 @@ extendWithDefault(integer);
 function nat(maxsize) {
   return arbitraryBless({
     generator: generator.bless(function (size) {
-      size = typeof maxsize !== "undefined" ? maxsize : size;
+      size = maxsize === undefined ? size : maxsize;
       return random(0, size);
     }),
     shrink: shrink.bless(function (i) {
@@ -1655,7 +1655,7 @@ extendWithDefault(nat);
 var number = numeric(function number(maxsize) {
   return {
     generator: generator.bless(function (size) {
-      size = typeof maxsize !== "undefined" ? maxsize : size;
+      size = maxsize === undefined ? size : maxsize;
       return random.number(-size, size);
     }),
     shrink: shrink.bless(function (x) {
