@@ -52,8 +52,10 @@ describe("primitive arbitraries", function () {
       });
     });
 
-    jsc.property("with maxsize == 0, generates integers: abs(_) ≤ max", jsc.integer(0), function (i) {
-      return i === 0;
+    jsc.property("with maxsize == 0, generates integers: abs(_) ≤ max", function () {
+      return jsc.forall(jsc.integer(0), function (i) {
+        return i === 0;
+      });
     });
 
     jsc.property("with min & max, generates integers: min ≤ _ ≤ max", "integer", "integer", function (n, m) {
