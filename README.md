@@ -579,6 +579,10 @@ likely easy to write, even *complete* inverse doesn't exist.
 
 ## Release History
 
+- **0.6.1** &mdash; *2015-07-13* &mdash; Bug fixes
+    - Print stacktrace of catched exceptions
+    - `maxsize = 0` for numeric generators works
+    - Issue with non-parametric jsc.property returning property.
 - **0.6.0** &mdash; *2015-06-19* &mdash; Minor but major release!
     - added `jsc.utils.isApproxEqual`
 - **0.6.0-beta.2** &mdash; *2015-05-31* &mdash; Beta!

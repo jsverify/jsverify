@@ -1232,7 +1232,12 @@ function formatFailedCase(r, state) {
   msg += "rngState: " + (r.rngState || state) + "; ";
   msg += "Counterexample: " + r.counterexamplestr + "; ";
   if (r.exc) {
-    msg += "Exception: " + (r.exc instanceof Error ? r.exc.message : r.exc);
+    if (r.exc instanceof Error) {
+      msg += "Exception: " + r.exc.message;
+      msg += "\nStack trace: " + r.exc.stack;
+    } else {
+      msg += "Exception: " + r.exc;
+    }
   }
   return msg;
 }
@@ -1358,7 +1363,9 @@ function bddProperty(name) {
   if (args.length === 1) {
     it(name, function () {
       return functor.map(args[0](), function (result) {
-        if (result !== true) {
+        if (typeof result === "function") {
+          return checkThrow(result);
+        } else if (result !== true) {
           throw new Error(name + " doesn't hold");
         }
       });
