@@ -105,4 +105,14 @@ describe("regressions", function () {
       arb.shrink([true, [true, true], true]);
     });
   });
+
+  describe("#112", function () {
+    it("should support large test counts", function () {
+      var prop = jsc.forall("nat", function (n) {
+        return n === n;
+      });
+
+      jsc.assert(prop, { tests: 30000 });
+    });
+  });
 });
