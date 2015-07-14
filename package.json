@@ -59,6 +59,7 @@
   "dependencies": {
     "lazy-seq": "~0.2.0",
     "rc4": "~0.1.5",
+    "trampa": "^1.0.0",
     "typify-parser": "0.0.1"
   }
 }

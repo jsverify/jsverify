@@ -112,7 +112,7 @@ describe("regressions", function () {
         return n === n;
       });
 
-      jsc.assert(prop, { tests: 30000 });
+      jsc.assert(prop, { tests: 100000 });
     });
   });
 });
