@@ -1,5 +1,6 @@
 ## Release History
 
+- **0.6.2** &madsh; *2015-07-13* &mdash; Trampolines
 - **0.6.1** &mdash; *2015-07-13* &mdash; Bug fixes
     - Print stacktrace of catched exceptions
     - `maxsize = 0` for numeric generators works

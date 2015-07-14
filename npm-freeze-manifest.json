@@ -1,5 +1,5 @@
 {
-  "version": "0.6.1",
+  "version": "0.6.2",
   "dependencies": {
     "bluebird": {
       "version": "2.9.33",
@@ -3801,6 +3801,10 @@
     },
     "rc4": {
       "version": "0.1.5",
+      "dependencies": {}
+    },
+    "trampa": {
+      "version": "1.0.0",
       "dependencies": {}
     },
     "typify-parser": {
