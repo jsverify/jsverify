@@ -116,6 +116,17 @@ describe("regressions", function () {
     });
   });
 
+  describe("#123", function () {
+    it("objects with re-ordered keys are jsc.utils.isEqual", function () {
+      var x = { a: 1, b: 2 };
+      var y = { b: 2, a: 1 };
+
+      assert(_.isEqual(x, y), "lodash");
+      assert(jsc.utils.isEqual(x, y), "jsc");
+      assert(jsc.utils.isApproxEqual(x, y), "isApprox");
+    });
+  });
+
   describe("#124", function () {
     var identity = function (x) { return x; };
 
