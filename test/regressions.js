@@ -115,4 +115,23 @@ describe("regressions", function () {
       jsc.assert(prop, { tests: 100000 });
     });
   });
+
+  describe("#124", function () {
+    var identity = function (x) { return x; };
+
+    it("tuple arbitrary should have shrink blessed", function () {
+      var arb = jsc.tuple([jsc.nat, jsc.bool]);
+
+      assert.equal(typeof arb.shrink, "function");
+      assert.equal(typeof arb.shrink.smap, "function");
+    });
+
+    it("smap tuple should work", function () {
+      var arb = jsc.tuple([jsc.nat, jsc.bool]).smap(identity, identity);
+
+      jsc.assert(jsc.forall(arb, function (t) {
+        return t.length === 2 && typeof t[1] === "boolean";
+      }));
+    });
+  });
 });
