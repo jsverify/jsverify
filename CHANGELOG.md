@@ -1,5 +1,8 @@
 ## Release History
 
+- **0.6.3** &mdash; *2015-07-27* &mdash; Bug fixes
+    - `jsc.utils.isEqual` doesn't care about key ordering [#123](https://github.com/jsverify/jsverify/issues/123)
+    - tuple's shrink is blessed [#124](https://github.com/jsverify/jsverify/issues/124)
 - **0.6.2** &madsh; *2015-07-13* &mdash; Trampolines
 - **0.6.1** &mdash; *2015-07-13* &mdash; Bug fixes
     - Print stacktrace of catched exceptions

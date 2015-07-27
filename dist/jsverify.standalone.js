@@ -2247,10 +2247,10 @@ function shrinkTuple(shrinks) {
   assert(shrinks.length > 0, "shrinkTuple needs > 0 values");
   var shrinksLL = toLinkedList(shrinks);
   var shrink = flattenShrink(shrinksLL);
-  var result = function (tuple) {
+  var result = shrinkBless(function (tuple) {
     var ll = toLinkedList(tuple);
     return shrink(ll).map(fromLinkedList);
-  };
+  });
 
   return utils.curried2(result, arguments);
 }
@@ -2589,6 +2589,13 @@ function isObject(o) {
   Use [underscore.js](http://underscorejs.org/), [lodash](https://lodash.com/), [ramda](http://ramda.github.io/ramdocs/docs/), [lazy.js](http://danieltao.com/lazy.js/) or some other utility belt.
 */
 
+/* Simple sort */
+function sort(arr) {
+  var res = arr.slice();
+  res.sort();
+  return res;
+}
+
 /**
   - `utils.isEqual(x: json, y: json): bool`
 
@@ -2609,7 +2616,7 @@ function isEqual(a, b) {
   } else if (isObject(a) && isObject(b) && !isArray(a) && !isArray(b)) {
     var akeys = Object.keys(a);
     var bkeys = Object.keys(b);
-    if (!isEqual(akeys, bkeys)) {
+    if (!isEqual(sort(akeys), sort(bkeys))) {
       return false;
     }
 
@@ -2681,7 +2688,7 @@ function isApproxEqual(x, y, opts) {
     } else if (isObject(a) && isObject(b) && !isArray(a) && !isArray(b)) {
       var akeys = Object.keys(a);
       var bkeys = Object.keys(b);
-      if (!loop(akeys, bkeys, n + 1)) {
+      if (!loop(sort(akeys), sort(bkeys), n + 1)) {
         return false;
       }
 
@@ -4583,6 +4590,7 @@ function lex(input) {
       case "\ud835\udfd9": return { type: "unit" };
       case "true": return { type: "bool", value: true };
       case "false": return { type: "bool", value: false };
+      case "rec": return { type: "rec" };
       case "&": return { type: "&" };
       case "\u2227": return { type: "&" };
       case "|": return { type: "|" };
@@ -4649,6 +4657,8 @@ var openParenParser = makePunctParser("(");
 var closeParenParser = makePunctParser(")");
 var openBracketParser = makePunctParser("[");
 var closeBracketParser = makePunctParser("]");
+var recKeywordParser = makePunctParser("rec");
+var arrowParser = makePunctParser("->");
 
 function nameParser(state) {
   if (state.pos >= state.len) {
@@ -4664,6 +4674,18 @@ function nameParser(state) {
   return token.value;
 }
 
+function recursiveParser(state) {
+  recKeywordParser(state);
+  var name = nameParser(state);
+  arrowParser(state);
+  var value = typeParser(state); // eslint-disable-line no-use-before-define
+  return {
+    type: "recursive",
+    name: name,
+    arg: value,
+  };
+}
+
 function recordParser(state) {
   openCurlyParser(state);
 
@@ -4675,11 +4697,11 @@ function recordParser(state) {
 
   var fields = {};
 
-  while (true) {
+  while (true) { // eslint-disable-line no-constant-condition
     // read
     var name = nameParser(state);
     colonParser(state);
-    var value = typeParser(state);
+    var value = typeParser(state); // eslint-disable-line no-use-before-define
 
     // assign to fields
     fields[name] = value;
@@ -4718,13 +4740,14 @@ function postfix(parser, postfixToken, constructor) {
   };
 }
 
-var optionalParser = postfix(terminalParser, "?", "optional");
+// this ties the knot
+var optionalParser = postfix(terminalParser, "?", "optional"); // eslint-disable-line no-use-before-define
 
 function applicationParser(state) {
   var rator = optionalParser(state);
   var rands = [];
 
-  while (true) {
+  while (true) { // eslint-disable-line no-constant-condition
     var pos = state.pos;
     // XXX: we shouldn't use exceptions for this
     try {
@@ -4750,7 +4773,7 @@ function applicationParser(state) {
 function separatedBy(parser, separator, constructor) {
   return function (state) {
     var list = [parser(state)];
-    while (true) {
+    while (true) { // eslint-disable-line no-constant-condition
       // separator
       var token = state.tokens[state.pos];
       if (token && token.type === separator) {
@@ -4858,6 +4881,8 @@ function terminalParser(state) {
       return parenthesesParser(state);
     case "[":
       return bracketParser(state);
+    case "rec":
+      return recursiveParser(state);
     default:
       throw new SyntaxError("Expecting terminal, " + token.type + " found");
   }
