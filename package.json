@@ -57,7 +57,7 @@
     "jscheck"
   ],
   "dependencies": {
-    "lazy-seq": "~0.2.0",
+    "lazy-seq": "^1.0.0",
     "rc4": "~0.1.5",
     "trampa": "^1.0.0",
     "typify-parser": "^1.0.0"
