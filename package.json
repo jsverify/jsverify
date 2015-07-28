@@ -31,7 +31,7 @@
     "eslint": ">=0.23.0 <1.0.0",
     "esprima": "^2.2.0",
     "istanbul": "~0.3.0",
-    "jscs": "^1.6.2",
+    "jscs": "^2.0.0",
     "jshint": "^2.7.0",
     "karma": "^0.13.3",
     "karma-chrome-launcher": "^0.2.0",
@@ -57,7 +57,7 @@
     "jscheck"
   ],
   "dependencies": {
-    "lazy-seq": "~0.2.0",
+    "lazy-seq": "^1.0.0",
     "rc4": "~0.1.5",
     "trampa": "^1.0.0",
     "typify-parser": "^1.0.0"
