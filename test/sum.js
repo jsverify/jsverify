@@ -13,6 +13,14 @@ describe("sum", function () {
     });
   });
 
+  jsc.property("generates either like, dsl", "bool | nat", function (s) {
+    return s.fold(function (idx, len, val) {
+      return len === 2 && (
+        (idx === 0 && typeof val === "boolean") ||
+        (idx === 1 && typeof val === "number"));
+    });
+  });
+
   describe("shrink", function () {
     var arb = jsc.sum([jsc.bool, jsc.nat, jsc.string]);
     jsc.property("preserves idx and len", arb, function (e) {
