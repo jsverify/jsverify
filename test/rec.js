@@ -26,7 +26,7 @@ function fromArray(arr) {
 }
 
 function arrayArb(elArb) {
-  return jsc.compile("rec list -> unit | el list", { el: elArb }).smap(toArray, fromArray);
+  return jsc.compile("rec list -> unit | (el & list)", { el: elArb }).smap(toArray, fromArray);
 }
 
 describe("rec", function () {
@@ -40,5 +40,22 @@ describe("rec", function () {
     assert.throws(function () {
       jsc.compile("rec x -> x");
     });
+  });
+
+  it("prohibits recursive types without base case, 2", function () {
+    assert.throws(function () {
+      jsc.compile("rec x -> x | x");
+    });
+  });
+
+  it("generates non-empty lists too", function () {
+    var sampler = jsc.sampler(arrayArb(jsc.compile("nat")));
+    var nonEmpty = false;
+    for (var i = 0; i < 100; i++) {
+      var arr = sampler();
+      assert(Array.isArray(arr) && arr.every(function (n) { return typeof n === "number"; }));
+      nonEmpty = nonEmpty || arr.length !== 0;
+    }
+    assert(nonEmpty, "arrayArb should generate non-empty arrays too");
   });
 });
