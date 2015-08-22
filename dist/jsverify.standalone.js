@@ -25,7 +25,9 @@ var api = {
     nearray: arbitrary.nearray,
     array: arbitrary.array,
     tuple: arbitrary.tuple,
+    sum: arbitrary.sum,
     oneof: arbitrary.oneof,
+    recursive: arbitrary.recursive,
   },
   generator: {
     small: small.generator,
@@ -37,6 +39,7 @@ var api = {
 };
 
 // Re-export stuff from internal modules
+/* eslint-disable guard-for-in */
 var k;
 for (k in primitive) {
   api.arbitrary[k] = primitive[k];
@@ -135,6 +138,17 @@ function tuple(arbs) {
 }
 
 /**
+  - `sum(arbs: (arbitrary a, arbitrary b...)): arbitrary (a | b ...)
+*/
+function sum(arbs) {
+  arbs = arbs.map(utils.force);
+  return arbitraryBless({
+    generator: generator.sum(utils.pluck(arbs, "generator")),
+    shrink: shrink.sum(utils.pluck(arbs, "shrink")),
+    show: show.sum(utils.pluck(arbs, "show")),
+  });
+}
+/**
   - `dict(arb: arbitrary a): arbitrary (dict a)`
 
       Generates a JavaScript object with properties of type `A`.
@@ -194,6 +208,25 @@ function oneof() {
   });
 }
 
+function recursive(arbZ, arbS) {
+  var genZ = arbZ.generator;
+  var genS = function (recGen) {
+    var recArb = arbitraryBless({
+      generator: recGen,
+      shrink: shrink.noop,
+      show: show.def,
+    });
+    return arbS(recArb).generator;
+  };
+
+  var gen = generator.recursive(genZ, genS);
+  return arbitraryBless({
+    generator: gen,
+    shrink: shrink.noop,
+    show: show.def,
+  });
+}
+
 module.exports = {
   nonshrink: nonshrink,
   pair: pairArb,
@@ -204,10 +237,12 @@ module.exports = {
   nearray: nearrayArb,
   array: arrayArb,
   tuple: tuple,
+  sum: sum,
   oneof: oneof,
+  recursive: recursive,
 };
 
-},{"./arbitraryAssert.js":3,"./arbitraryBless.js":4,"./array.js":5,"./dict.js":7,"./generator.js":13,"./json.js":14,"./pair.js":16,"./show.js":21,"./shrink.js":22,"./utils.js":27,"assert":28}],3:[function(require,module,exports){
+},{"./arbitraryAssert.js":3,"./arbitraryBless.js":4,"./array.js":5,"./dict.js":7,"./generator.js":13,"./json.js":14,"./pair.js":16,"./show.js":21,"./shrink.js":22,"./utils.js":28,"assert":29}],3:[function(require,module,exports){
 "use strict";
 
 var assert = require("assert");
@@ -224,7 +259,7 @@ function arbitraryAssert(arb) {
 
 module.exports = arbitraryAssert;
 
-},{"assert":28}],4:[function(require,module,exports){
+},{"assert":29}],4:[function(require,module,exports){
 "use strict";
 
 var show = require("./show.js");
@@ -237,11 +272,11 @@ var show = require("./show.js");
 /* eslint-disable no-use-before-define */
 function arbitraryProtoSMap(f, g, newShow) {
   /* jshint validthis:true */
-  var arb = this;
+  var arb = this; // eslint-disable-line no-invalid-this
   return arbitraryBless({
     generator: arb.generator.map(f),
     shrink: arb.shrink.smap(f, g),
-    show: newShow || show.def
+    show: newShow || show.def,
   });
 }
 /* eslint-enable no-use-before-define */
@@ -315,7 +350,7 @@ module.exports = {
   nearray: nearray,
 };
 
-},{"./arbitraryAssert.js":3,"./arbitraryBless.js":4,"./generator.js":13,"./show.js":21,"./shrink.js":22,"./utils.js":27}],6:[function(require,module,exports){
+},{"./arbitraryAssert.js":3,"./arbitraryBless.js":4,"./generator.js":13,"./show.js":21,"./shrink.js":22,"./utils.js":28}],6:[function(require,module,exports){
 "use strict";
 
 var assert = require("assert");
@@ -367,7 +402,7 @@ function bless(arb) {
 
 module.exports = bless;
 
-},{"./arbitraryBless.js":4,"./generator.js":13,"./show.js":21,"./shrink.js":22,"assert":28}],7:[function(require,module,exports){
+},{"./arbitraryBless.js":4,"./generator.js":13,"./show.js":21,"./shrink.js":22,"assert":29}],7:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -399,7 +434,7 @@ module.exports = {
   dict: dict,
 };
 
-},{"./arbitraryAssert.js":3,"./array.js":5,"./pair.js":16,"./string.js":24,"./utils.js":27}],8:[function(require,module,exports){
+},{"./arbitraryAssert.js":3,"./array.js":5,"./pair.js":16,"./string.js":24,"./utils.js":28}],8:[function(require,module,exports){
 "use strict";
 
 var assert = require("assert");
@@ -507,7 +542,7 @@ module.exports = {
   right: right,
 };
 
-},{"assert":28}],9:[function(require,module,exports){
+},{"assert":29}],9:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -534,7 +569,7 @@ var environment = utils.merge(primitive, string, {
 
 module.exports = environment;
 
-},{"./arbitrary.js":2,"./fn.js":11,"./primitive.js":17,"./small.js":23,"./string.js":24,"./utils.js":27}],10:[function(require,module,exports){
+},{"./arbitrary.js":2,"./fn.js":11,"./primitive.js":17,"./small.js":23,"./string.js":24,"./utils.js":28}],10:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -587,7 +622,7 @@ FMap.prototype.get = function FMapGet(key) {
 
 module.exports = FMap;
 
-},{"./utils.js":27}],11:[function(require,module,exports){
+},{"./utils.js":28}],11:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -630,7 +665,7 @@ function fn(arb) {
       return "[" + f.internalMap.data.map(function (item) {
         return "" + item[0] + ": " + arb.show(item[1]);
       }).join(", ") + "]";
-    }
+    },
   });
 }
 
@@ -639,7 +674,7 @@ module.exports = {
   fun: fn,
 };
 
-},{"./arbitraryBless.js":4,"./finitemap.js":10,"./generator.js":13,"./json.js":14,"./shrink.js":22,"./utils.js":27}],12:[function(require,module,exports){
+},{"./arbitraryBless.js":4,"./finitemap.js":10,"./generator.js":13,"./json.js":14,"./shrink.js":22,"./utils.js":28}],12:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -733,13 +768,14 @@ module.exports = {
   run: run,
 };
 
-},{"trampa":34}],13:[function(require,module,exports){
+},{"trampa":35}],13:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
 var assert = require("assert");
-var random = require("./random.js");
 var either = require("./either.js");
+var random = require("./random.js");
+var sum = require("./sum.js");
 var utils = require("./utils.js");
 
 /**
@@ -765,7 +801,7 @@ var utils = require("./utils.js");
 /* eslint-disable no-use-before-define */
 function generatorProtoMap(f) {
   /* jshint validthis:true */
-  var generator = this;
+  var generator = this; // eslint-disable-line no-invalid-this
   generatorAssert(generator);
   return generatorBless(function (size) {
     return f(generator(size));
@@ -774,7 +810,7 @@ function generatorProtoMap(f) {
 
 function generatorProtoFlatMap(f) {
   /* jshint validthis:true */
-  var generator = this;
+  var generator = this; // eslint-disable-line no-invalid-this
   generatorAssert(generator);
   return generatorBless(function (size) {
     return f(generator(size))(size);
@@ -901,6 +937,7 @@ function generateEither(genA, genB) {
     switch (n) {
       case 0: return either.left(genA(size));
       case 1: return either.right(genB(size));
+      // no default
     }
   });
 
@@ -926,6 +963,19 @@ function generateTuple(gens) {
       r[i] = gens[i](size);
     }
     return r;
+  });
+
+  return utils.curried2(result, arguments);
+}
+
+/**
+  - `generator.sum(gens: (generator a, generator b...)): generator (a | b...)`
+*/
+function generateSum(gens) {
+  var len = gens.length;
+  var result = generatorBless(function (size) {
+    var idx = random(0, len - 1);
+    return sum.addend(idx, len, gens[idx](size));
   });
 
   return utils.curried2(result, arguments);
@@ -986,6 +1036,7 @@ module.exports = {
   either: generateEither,
   unit: generateUnit,
   tuple: generateTuple,
+  sum: generateSum,
   array: generateArray,
   nearray: generateNEArray,
   dict: generateDict,
@@ -997,8 +1048,10 @@ module.exports = {
   recursive: generatorRecursive,
 };
 
-},{"./either.js":8,"./json.js":14,"./random.js":18,"./string.js":24,"./utils.js":27,"assert":28}],14:[function(require,module,exports){
+},{"./either.js":8,"./json.js":14,"./random.js":18,"./string.js":24,"./sum.js":26,"./utils.js":28,"assert":29}],14:[function(require,module,exports){
 "use strict";
+
+var assert = require("assert");
 
 var arbitraryBless = require("./arbitraryBless.js");
 var generator = require("./generator.js");
@@ -1006,6 +1059,7 @@ var primitive = require("./primitive.js");
 var show = require("./show.js");
 var shrink = require("./shrink.js");
 var string = require("./string.js");
+var utils = require("./utils.js");
 
 var generateInteger = primitive.integer.generator;
 var generateNumber = primitive.number.generator;
@@ -1018,9 +1072,39 @@ var generateJson = generator.recursive(
     return generator.oneof([generator.array(gen), generator.dict(gen)]);
   });
 
+// Forward declaration
+var shrinkDictJson;
+var shrinkJson;
+
+function shrinkRecJson(json) {
+  if (Array.isArray(json)) {
+    return shrink.array(shrinkJson, json);
+  } else {
+    return shrinkDictJson(json);
+  }
+}
+
+shrinkJson = shrink.bless(function (json) {
+  assert(typeof json !== "function");
+
+  switch (typeof json) {
+    case "boolean": return primitive.bool.shrink(json);
+    case "number": return primitive.number.shrink(json);
+    case "string": return string.string.shrink(json);
+    default: return shrinkRecJson(json);
+  }
+});
+
+shrinkDictJson = (function () {
+  var pairShrink = shrink.pair(string.string.shrink, shrinkJson);
+  var arrayShrink = shrink.array(pairShrink);
+
+  return arrayShrink.smap(utils.pairArrayToDict, utils.dictToPairArray);
+}());
+
 var json = arbitraryBless({
   generator: generateJson,
-  shrink: shrink.noop,
+  shrink: shrinkJson,
   show: show.def,
 });
 
@@ -1028,7 +1112,7 @@ module.exports = {
   json: json,
 };
 
-},{"./arbitraryBless.js":4,"./generator.js":13,"./primitive.js":17,"./show.js":21,"./shrink.js":22,"./string.js":24}],15:[function(require,module,exports){
+},{"./arbitraryBless.js":4,"./generator.js":13,"./primitive.js":17,"./show.js":21,"./shrink.js":22,"./string.js":24,"./utils.js":28,"assert":29}],15:[function(require,module,exports){
 /* @flow weak */
 /**
   # JSVerify
@@ -1062,7 +1146,7 @@ module.exports = {
   // OK, passed 100 tests
   ```
 */
-  "use strict";
+"use strict";
 
 /**
   ## Documentation
@@ -1147,6 +1231,7 @@ var random = require("./random.js");
 var show = require("./show.js");
 var shrink = require("./shrink.js");
 var suchthat = require("./suchthat.js");
+var sum = require("./sum.js");
 var typify = require("./typify.js");
 var utils = require("./utils.js");
 
@@ -1213,6 +1298,8 @@ function forall() {
     env = environment;
   }
 
+  assert(gens.length > 0, "forall requires at least single generator");
+
   // Map typify-dsl to hard generators
   gens = gens.map(function (g) {
     g = typeof g === "string" ? typify.parseTypify(env, g) : g;
@@ -1225,8 +1312,9 @@ function forall() {
     assert(Array.isArray(x), "generators results should be always tuple");
 
     return functor.bind(property, x, function (r, exc) {
-      if (r === true) { return true; }
-      if (typeof r === "function") {
+      if (r === true) {
+        return true;
+      } else if (typeof r === "function") {
         var rRec = r(size);
 
         return functor.map(rRec, function (rRecPrime) {
@@ -1236,16 +1324,16 @@ function forall() {
             return shrinkResult(gens, x, test, size, shrinks, exc, function (rr) {
               return {
                 counterexample: rr.counterexample.concat(rRecPrime.counterexample),
-                counterexamplestr: rr.counterexamplestr ,//+ "; " + rRec.counterexamplestr,
+                counterexamplestr: rr.counterexamplestr ,// + "; " + rRec.counterexamplestr,
                 shrinks: rr.shrinks,
                 exc: rr.exc || rRecPrime.exc,
               };
             });
           }
         });
+      } else {
+        return shrinkResult(gens, x, test, size, shrinks, exc || r, utils.identity);
       }
-
-      return shrinkResult(gens, x, test, size, shrinks, exc, utils.identity);
     });
   }
 
@@ -1265,7 +1353,7 @@ function formatFailedCase(r, state) {
       msg += "Exception: " + r.exc.message;
       msg += "\nStack trace: " + r.exc.stack;
     } else {
-      msg += "Exception: " + r.exc;
+      msg += "Error: " + r.exc;
     }
   }
   return msg;
@@ -1511,6 +1599,9 @@ var jsc = {
   left: either.left,
   right: either.right,
 
+  // sum
+  addend: sum.addend,
+
   // compile
   compile: compile,
 
@@ -1528,10 +1619,11 @@ var jsc = {
 };
 
 /* primitives */
-var k;
-for (k in api.arbitrary) {
+/* eslint-disable guard-for-in */
+for (var k in api.arbitrary) {
   jsc[k] = api.arbitrary[k];
 }
+/* eslint-enable guard-for-in */
 
 module.exports = jsc;
 
@@ -1541,7 +1633,7 @@ module.exports = jsc;
 /// plain ../related-work.md
 /// plain ../LICENSE
 
-},{"./api.js":1,"./either.js":8,"./environment.js":9,"./finitemap.js":10,"./fn.js":11,"./functor.js":12,"./random.js":18,"./show.js":21,"./shrink.js":22,"./suchthat.js":25,"./typify.js":26,"./utils.js":27,"assert":28,"lazy-seq":32}],16:[function(require,module,exports){
+},{"./api.js":1,"./either.js":8,"./environment.js":9,"./finitemap.js":10,"./fn.js":11,"./functor.js":12,"./random.js":18,"./show.js":21,"./shrink.js":22,"./suchthat.js":25,"./sum.js":26,"./typify.js":27,"./utils.js":28,"assert":29,"lazy-seq":33}],16:[function(require,module,exports){
 "use strict";
 
 var arbitraryAssert = require("./arbitraryAssert.js");
@@ -1569,7 +1661,7 @@ module.exports = {
   pair: pair,
 };
 
-},{"./arbitraryAssert.js":3,"./arbitraryBless.js":4,"./generator.js":13,"./show.js":21,"./shrink.js":22,"./utils.js":27}],17:[function(require,module,exports){
+},{"./arbitraryAssert.js":3,"./arbitraryBless.js":4,"./generator.js":13,"./show.js":21,"./shrink.js":22,"./utils.js":28}],17:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -1737,7 +1829,7 @@ var int32 = integer(-0x80000000, 0x7fffffff);
 var bool = arbitraryBless({
   generator: generator.bless(function (/* size */) {
     var i = random(0, 1);
-    return i === 0 ? false : true;
+    return i === 1;
   }),
 
   shrink: shrink.bless(function (b) {
@@ -1840,7 +1932,7 @@ function constant(x) {
   return arbitraryBless({
     generator: generator.constant(x),
     shrink: shrink.noop,
-    show: show.def
+    show: show.def,
   });
 }
 
@@ -1861,7 +1953,7 @@ module.exports = {
   datetime: datetime,
 };
 
-},{"./arbitraryBless":4,"./generator.js":13,"./random.js":18,"./show.js":21,"./shrink.js":22,"./utils.js":27,"assert":28}],18:[function(require,module,exports){
+},{"./arbitraryBless":4,"./generator.js":13,"./random.js":18,"./show.js":21,"./shrink.js":22,"./utils.js":28,"assert":29}],18:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -1901,7 +1993,7 @@ randomInteger.setStateString = rc4.setStateString.bind(rc4);
 
 module.exports = randomInteger;
 
-},{"rc4":33}],19:[function(require,module,exports){
+},{"rc4":34}],19:[function(require,module,exports){
 "use strict";
 
 var arbitraryBless = require("./arbitraryBless.js");
@@ -1967,7 +2059,7 @@ function arbitraryRecord(spec) {
       return "{" + Object.keys(m).map(function (k) {
         return k + ": " + showSpec[k](m[k]);
       }).join(", ") + "}";
-    }
+    },
   });
 }
 
@@ -1977,7 +2069,7 @@ module.exports = {
   shrink: shrinkRecord,
 };
 
-},{"./arbitraryBless.js":4,"./generator.js":13,"./shrink.js":22,"./utils.js":27}],20:[function(require,module,exports){
+},{"./arbitraryBless.js":4,"./generator.js":13,"./shrink.js":22,"./utils.js":28}],20:[function(require,module,exports){
 "use strict";
 
 var environment = require("./environment.js");
@@ -2006,7 +2098,8 @@ function recordWithEnv(spec, userenv) {
 
 module.exports = recordWithEnv;
 
-},{"./environment.js":9,"./record.js":19,"./typify.js":26,"./utils.js":27}],21:[function(require,module,exports){
+},{"./environment.js":9,"./record.js":19,"./typify.js":27,"./utils.js":28}],21:[function(require,module,exports){
+
 /* @flow weak */
 "use strict";
 
@@ -2071,6 +2164,19 @@ function showTuple(shows) {
 }
 
 /**
+  - `show.sum(shrinks: (a -> string, b -> string...), x: (a | b ...)): string`
+*/
+function showSum(shows) {
+  var result = function (sum) {
+    return sum.fold(function (idx, n, value) {
+      return "Sum(" + idx + "/" + n + ": " + shows[idx](value) + ")";
+    });
+  };
+
+  return utils.curried2(result, arguments);
+}
+
+/**
   - `show.array(shrink: a -> string, x: array a): string`
 */
 function showArray(show) {
@@ -2086,16 +2192,18 @@ module.exports = {
   pair: showPair,
   either: showEither,
   tuple: showTuple,
+  sum: showSum,
   array: showArray,
 };
 
-},{"./utils.js":27}],22:[function(require,module,exports){
+},{"./utils.js":28}],22:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
 var assert = require("assert");
 var either = require("./either.js");
 var lazyseq = require("lazy-seq");
+var sum = require("./sum.js");
 var utils = require("./utils.js");
 
 /**
@@ -2115,7 +2223,7 @@ var utils = require("./utils.js");
 /* eslint-disable no-use-before-define */
 function shrinkProtoIsoMap(f, g) {
   /* jshint validthis:true */
-  var shrink = this;
+  var shrink = this; // eslint-disable-line no-invalid-this
   return shrinkBless(function (value) {
     return shrink(g(value)).map(f);
   });
@@ -2248,8 +2356,26 @@ function shrinkTuple(shrinks) {
   var shrinksLL = toLinkedList(shrinks);
   var shrink = flattenShrink(shrinksLL);
   var result = shrinkBless(function (tuple) {
+    assert(tuple.length === shrinks.length, "shrinkTuple: not-matching params");
     var ll = toLinkedList(tuple);
     return shrink(ll).map(fromLinkedList);
+  });
+
+  return utils.curried2(result, arguments);
+}
+
+/**
+  - `shrink.sum(shrs: (shrink a, shrink b...)): shrink (a | b...)`
+*/
+function shrinkSum(shrinks) {
+  assert(shrinks.length > 0, "shrinkTuple needs > 0 values");
+  var result = shrinkBless(function (s) {
+    return s.fold(function (idx, len, value) {
+      assert(len === shrinks.length, "shrinkSum: not-matching params");
+      return shrinks[idx](value).map(function (shrinked) {
+        return sum.addend(idx, len, shrinked);
+      });
+    });
   });
 
   return utils.curried2(result, arguments);
@@ -2292,12 +2418,13 @@ module.exports = {
   pair: shrinkPair,
   either: shrinkEither,
   tuple: shrinkTuple,
+  sum: shrinkSum,
   array: shrinkArray,
   nearray: shrinkNEArray,
   bless: shrinkBless,
 };
 
-},{"./either.js":8,"./utils.js":27,"assert":28,"lazy-seq":32}],23:[function(require,module,exports){
+},{"./either.js":8,"./sum.js":26,"./utils.js":28,"assert":29,"lazy-seq":33}],23:[function(require,module,exports){
 "use strict";
 
 var generator = require("./generator.js");
@@ -2356,7 +2483,7 @@ module.exports = {
   arbitrary: smallArbitrary,
 };
 
-},{"./arbitraryAssert.js":3,"./arbitraryBless.js":4,"./generator.js":13,"./utils.js":27}],24:[function(require,module,exports){
+},{"./arbitraryAssert.js":3,"./arbitraryBless.js":4,"./generator.js":13,"./utils.js":28}],24:[function(require,module,exports){
 "use strict";
 
 var array = require("./array.js");
@@ -2414,7 +2541,7 @@ module.exports = {
   asciinestring: asciinestring,
 };
 
-},{"./array.js":5,"./primitive.js":17,"./utils.js":27}],25:[function(require,module,exports){
+},{"./array.js":5,"./primitive.js":17,"./utils.js":28}],25:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -2468,7 +2595,44 @@ module.exports = {
   suchthat: suchthat,
 };
 
-},{"./environment.js":9,"./generator.js":13,"./shrink.js":22,"./typify.js":26,"./utils.js":27}],26:[function(require,module,exports){
+},{"./environment.js":9,"./generator.js":13,"./shrink.js":22,"./typify.js":27,"./utils.js":28}],26:[function(require,module,exports){
+"use strict";
+
+var assert = require("assert");
+
+/**
+  ### sum (n-ary either)
+
+  See: [Wikipedia](https://en.wikipedia.org/wiki/Tagged_union)
+*/
+
+function Addend(idx, len, value) {
+  assert(len > 0, "Addend: 0 < len"); // empty sum is void - cannot create such
+  assert(idx >= 0 && idx < len, "Addend: 0 <= idx < len");
+  this.idx = idx;
+  this.len = len;
+  this.value = value;
+}
+
+/**
+  - `sum.addend(idx: nat, n: nat, value: a): sum (... a ...)`
+*/
+function addend(idx, len, value) {
+  return new Addend(idx, len, value);
+}
+
+/**
+  - `.fold(f: (idx: nat, n: nat, value: a) -> b): b`
+*/
+Addend.prototype.fold = function (f) {
+  return f(this.idx, this.len, this.value);
+};
+
+module.exports = {
+  addend: addend,
+};
+
+},{"assert":29}],27:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -2486,16 +2650,20 @@ module.exports = {
   - *applications* are applied as one could expect: `"array bool"` is evaluated to `jsc.array(jsc.bool)`.
   - *functions* are supported: `"bool -> bool"` is evaluated to `jsc.fn(jsc.bool)`.
   - *square brackets* are treated as a shorthand for the array type: `"[nat]"` is evaluated to `jsc.array(jsc.nat)`.
-  - *union*: `"bool | nat"` is evaulated to `jsc.oneof(jsc.bool, jsc.nat)`.
+  - *union*: `"bool | nat"` is evaluated to `jsc.sum(jsc.bool, jsc.nat)`.
       - **Note** `oneof` cannot be shrinked, because the union is untagged, we don't know which shrink to use.
-  - *anonymous records*: `"{ b: bool; n: nat}"` is evaluated to `jsc.record({ n: jsc.bool, n: jsc.nat })`.
+  - *conjunction*: `"bool & nat"` is evaluated to `jsc.tuple(jsc.bool, jsc.nat)`.
+  - *anonymous records*: `"{ b: bool; n: nat }"` is evaluated to `jsc.record({ n: jsc.bool, n: jsc.nat })`.
+  - *EXPRIMENTAL: recursive types*: `"rec list -> unit | (nat & list)"`.
 */
 
 var arbitrary = require("./arbitrary.js");
+var assert = require("assert");
 var record = require("./record.js");
 var array = require("./array.js");
 var fn = require("./fn.js");
 var typifyParser = require("typify-parser");
+var utils = require("./utils.js");
 
 // Forward declarations
 var compileType;
@@ -2529,7 +2697,12 @@ function compileBrackets(env, type) {
 
 function compileDisjunction(env, type) {
   var args = compileTypeArray(env, type.args);
-  return arbitrary.oneof(args);
+  return arbitrary.sum(args);
+}
+
+function compileConjunction(env, type) {
+  var args = compileTypeArray(env, type.args);
+  return arbitrary.tuple(args);
 }
 
 function compileRecord(env, type) {
@@ -2541,6 +2714,35 @@ function compileRecord(env, type) {
   return record.arbitrary(spec);
 }
 
+function compileRecursive(env, type) {
+  assert(type.arg.type === "disjunction", "recursive type's argument should be disjunction");
+
+  // bound variable
+  var name = type.name;
+
+  var par = utils.partition(type.arg.args, function (t) {
+    return typifyParser.freeVars(t).indexOf(name) === -1;
+  });
+
+  var terminal = par[0];
+
+  if (terminal.length === 0) {
+    throw new Error("Recursive type without non-recursive branch");
+  }
+
+  var terminalArb = compileType(env, {
+    type: "disjunction",
+    args: terminal,
+  });
+
+  return arbitrary.recursive(terminalArb, function (arb) {
+    var arbEnv = {};
+    arbEnv[name] = arb;
+    var newEnv = utils.merge(env, arbEnv);
+    return compileType(newEnv, type.arg);
+  });
+}
+
 compileType = function compileTypeFn(env, type) {
   switch (type.type) {
     case "ident": return compileIdent(env, type);
@@ -2548,8 +2750,10 @@ compileType = function compileTypeFn(env, type) {
     case "function": return compileFunction(env, type);
     case "brackets": return compileBrackets(env, type);
     case "disjunction": return compileDisjunction(env, type);
+    case "conjunction": return compileConjunction(env, type);
     case "record": return compileRecord(env, type);
     case "number": return type.value;
+    case "recursive": return compileRecursive(env, type);
     default: throw new Error("Unsupported typify ast type: " + type.type);
   }
 };
@@ -2569,7 +2773,7 @@ module.exports = {
   parseTypify: parseTypify,
 };
 
-},{"./arbitrary.js":2,"./array.js":5,"./fn.js":11,"./record.js":19,"typify-parser":35}],27:[function(require,module,exports){
+},{"./arbitrary.js":2,"./array.js":5,"./fn.js":11,"./record.js":19,"./utils.js":28,"assert":29,"typify-parser":36}],28:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -2645,7 +2849,7 @@ function isEqual(a, b) {
 */
 function isApproxEqual(x, y, opts) {
   opts = opts || {};
-  var fnEqual = opts.fnEqual === false ? false : true;
+  var fnEqual = opts.fnEqual !== false;
   var depth = opts.depth || 5; // totally arbitrary
 
   // state contains pairs we checked (or are still checking, but assume equal!)
@@ -2794,6 +2998,22 @@ function dictToPairArray(m) {
   return res;
 }
 
+function partition(arr, pred) {
+  var truthy = [];
+  var falsy = [];
+
+  for (var i = 0; i < arr.length; i++) {
+    var x = arr[i];
+    if (pred(x)) {
+      truthy.push(x);
+    } else {
+      falsy.push(x);
+    }
+  }
+
+  return [truthy, falsy];
+}
+
 module.exports = {
   isArray: isArray,
   isObject: isObject,
@@ -2811,9 +3031,10 @@ module.exports = {
   stringToCharArray: stringToCharArray,
   pairArrayToDict: pairArrayToDict,
   dictToPairArray: dictToPairArray,
+  partition: partition,
 };
 
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
@@ -3174,7 +3395,7 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":31}],29:[function(require,module,exports){
+},{"util/":32}],30:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -3199,14 +3420,14 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -3794,7 +4015,7 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-},{"./support/isBuffer":30,"inherits":29}],32:[function(require,module,exports){
+},{"./support/isBuffer":31,"inherits":30}],33:[function(require,module,exports){
 /**
   # lazy-seq
 
@@ -3963,6 +4184,34 @@ nil.filter = function () {
   return nil;
 };
 
+/**
+  - *.every : (p = identity: a -> b) : b | true &mdash; return first falsy value in the sequence, true otherwise. *N.B.* behaves slightly differently from `Array::every`.
+*/
+nil.every = function () {
+  return true;
+};
+
+/**
+  - *.some : (p = identity: a -> b) : b | false &mdash; return first truthy value in the sequence, false otherwise. *N.B.* behaves slightly differently from `Array::some`.
+*/
+nil.some = function () {
+  return false;
+};
+
+/**
+  - *.contains : (x : a) : bool &mdash; Returns `true` if `x` is in the sequence.
+*/
+nil.contains = function () {
+  return false;
+};
+
+/**
+  - *.containsNot : (x : a) : bool &mdash; Returns `true` if `x` is not in the sequence.
+*/
+nil.containsNot = function () {
+  return true;
+};
+
 // Default cons values are with strict semantics
 function Cons(head, tail) {
   this.headValue = head;
@@ -4101,6 +4350,48 @@ Cons.prototype.filter = function consFilter(p) {
   }
 };
 
+Cons.prototype.every = function consEvery(p) {
+  p = p || function (x) { return x; };
+  assert(typeof p === "function");
+  var that = this;
+  var pHead = p(that.headValue);
+  if (!pHead) {
+    return pHead;
+  } else {
+    return that.tail().every(p);
+  }
+};
+
+Cons.prototype.some = function consSome(p) {
+  p = p || function (x) { return x; };
+  assert(typeof p === "function");
+  var that = this;
+  var pHead = p(that.headValue);
+  if (pHead) {
+    return pHead;
+  } else {
+    return that.tail().some(p);
+  }
+};
+
+Cons.prototype.contains = function consContains(x) {
+  var that = this;
+  if (x === that.headValue) {
+    return true;
+  } else {
+    return that.tail().contains(x);
+  }
+};
+
+Cons.prototype.containsNot = function consContainsNot(x) {
+  var that = this;
+  if (x === that.headValue) {
+    return false;
+  } else {
+    return that.tail().containsNot(x);
+  }
+};
+
 // Constructors
 /**
   - *fromArray: (arr : Array a) → Seq a* &mdash; Convert a JavaScript array into lazy sequence.
@@ -4118,6 +4409,13 @@ function fromArrayIter(arr, n) {
 function fromArray(arr) {
   assert(Array.isArray(arr));
   return fromArrayIter(arr, 0);
+}
+
+/**
+  - *singleton: (x : a) → Seq a* &mdash; Create a singleton sequence.
+*/
+function singleton(x) {
+  return fromArray([x]);
 }
 
 /**
@@ -4166,6 +4464,7 @@ module.exports = {
   cons: cons,
   append: append,
   fromArray: fromArray,
+  singleton: singleton,
   iterate: iterate,
   fold: fold,
 };
@@ -4173,7 +4472,7 @@ module.exports = {
 /// plain CHANGELOG.md
 /// plain CONTRIBUTING.md
 
-},{"assert":28}],33:[function(require,module,exports){
+},{"assert":29}],34:[function(require,module,exports){
 "use strict";
 
 // Based on RC4 algorithm, as described in
@@ -4379,7 +4678,7 @@ RC4.RC4small = RC4small;
 
 module.exports = RC4;
 
-},{}],34:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 "use strict";
 
 /**
@@ -4504,7 +4803,7 @@ module.exports = {
 - **1.0.0** &mdash; *2015-07-14* &mdash; Initial release
 */
 
-},{"assert":28}],35:[function(require,module,exports){
+},{"assert":29}],36:[function(require,module,exports){
 /**
   # typify type parser
 
@@ -4547,6 +4846,19 @@ module.exports = {
       "value": "quux"
     }
   }
+  ```
+
+  ## Synopsis
+
+  ```js
+  var parser = require("typify-parser");
+
+  // Example from above
+  var t = parser("(foo, bar 42) -> quux");
+
+  // Free vars
+  p.freeVars(t);                             // ['bar', 'foo', 'quux']
+  p.freeVars(p("rec list -> () | a & list")) // ['a']
   ```
 */
 "use strict";
@@ -4905,6 +5217,70 @@ function parse(input) {
   }
   return res;
 }
+
+function recordFreeVars(fields) {
+  var res = [];
+  for (var k in fields) {
+    var t = fields[k];
+    res = res.concat(freeVarsImpl(t)); // eslint-disable-line no-use-before-define
+  }
+  return res;
+}
+
+function concatFreeVars(ts) {
+  var res = [];
+  for (var i = 0; i < ts.length; i++) {
+    var t = ts[i];
+    res = res.concat(freeVarsImpl(t)); // eslint-disable-line no-use-before-define
+  }
+  return res;
+}
+
+function freeVarsImpl(t) {
+  switch (t.type) {
+    case "false":
+    case "true":
+    case "unit":
+    case "string":
+    case "number":
+    case "bool":
+      return [];
+    case "ident": return [t.value];
+    case "record": return recordFreeVars(t.fields);
+    case "named": return freeVarsImpl(t.arg);
+    case "conjunction": return concatFreeVars(t.args);
+    case "disjunction": return concatFreeVars(t.args);
+    case "product": return concatFreeVars(t.args);
+    case "recursive": return freeVarsImpl(t.arg).filter(function (n) {
+      return n !== t.name;
+    });
+    case "optional": return freeVarsImpl(t.arg);
+    case "brackets": return freeVarsImpl(t.arg);
+    case "variadic": return freeVarsImpl(t.arg);
+    case "application": return freeVarsImpl(t.callee).concat(concatFreeVars(t.args));
+    case "function": return freeVarsImpl(t.arg).concat(freeVarsImpl(t.result));
+    //default: throw new Error("Unknown type " + t.type);
+  }
+}
+
+function uniq(arr) {
+  var res = [];
+  for (var i = 0; i < arr.length; i++) {
+    var x = arr[i];
+    if (res.indexOf(x) === -1) {
+      res.push(x);
+    }
+  }
+  return res;
+}
+
+function freeVars(t) {
+  var fvs = freeVarsImpl(t);
+  fvs.sort();
+  return uniq(fvs);
+}
+
+parse.freeVars = freeVars;
 
 module.exports = parse;
 

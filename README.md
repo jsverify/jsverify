@@ -196,9 +196,11 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 - *applications* are applied as one could expect: `"array bool"` is evaluated to `jsc.array(jsc.bool)`.
 - *functions* are supported: `"bool -> bool"` is evaluated to `jsc.fn(jsc.bool)`.
 - *square brackets* are treated as a shorthand for the array type: `"[nat]"` is evaluated to `jsc.array(jsc.nat)`.
-- *union*: `"bool | nat"` is evaulated to `jsc.oneof(jsc.bool, jsc.nat)`.
+- *union*: `"bool | nat"` is evaluated to `jsc.sum(jsc.bool, jsc.nat)`.
     - **Note** `oneof` cannot be shrinked, because the union is untagged, we don't know which shrink to use.
-- *anonymous records*: `"{ b: bool; n: nat}"` is evaluated to `jsc.record({ n: jsc.bool, n: jsc.nat })`.
+- *conjunction*: `"bool & nat"` is evaluated to `jsc.tuple(jsc.bool, jsc.nat)`.
+- *anonymous records*: `"{ b: bool; n: nat }"` is evaluated to `jsc.record({ n: jsc.bool, n: jsc.nat })`.
+- *EXPRIMENTAL: recursive types*: `"rec list -> unit | (nat & list)"`.
 
 ### Arbitrary data
 
@@ -587,6 +589,13 @@ likely easy to write, even *complete* inverse doesn't exist.
 
 ## Release History
 
+- **0.7.0** &mdash; *2015-08-23* &mdash; More experiments
+    - `jsc.sum` - generate arbitrary sum types (generalisation of either) [125](https://github.com/jsverify/jsverify/pull/125)
+        - *BREAKING CHANGE:* bar (`|`) in DSL generates `jsc.sum`
+    - experimental support of recursive types in DSL (especially no shrinking yet) [#109](https://github.com/jsverify/jsverify/issues/109) [#126](https://github.com/jsverify/jsverify/pull/126)
+    - fail early when `jsc.forall` is given zero generators [#128](https://github.com/jsverify/jsverify/issues/128)
+    - `jsc.json` has shrink [#122](https://github.com/jsverify/jsverify/issues/122)
+    - non-true non-function results from properties are treated as exceptions [#127](https://github.com/jsverify/jsverify/issues/127)
 - **0.6.3** &mdash; *2015-07-27* &mdash; Bug fixes
     - `jsc.utils.isEqual` doesn't care about key ordering [#123](https://github.com/jsverify/jsverify/issues/123)
     - tuple's shrink is blessed [#124](https://github.com/jsverify/jsverify/issues/124)
