@@ -312,6 +312,8 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
 - `tuple(arbs: (arbitrary a, arbitrary b...)): arbitrary (a, b...)`
 
+- `sum(arbs: (arbitrary a, arbitrary b...)): arbitrary (a | b ...)
+
 - `dict(arb: arbitrary a): arbitrary (dict a)`
 
     Generates a JavaScript object with properties of type `A`.
@@ -426,6 +428,8 @@ if the primitives from *random* module are used.
 
 - `generator.tuple(gens: (generator a, generator b...)): generator (a, b...)`
 
+- `generator.sum(gens: (generator a, generator b...)): generator (a | b...)`
+
 - `generator.array(gen: generator a): generator (array a)`
 
 - `generator.nearray(gen: generator a): generator (array a)`
@@ -465,6 +469,8 @@ var ys = jsc.shrink.array(jsc.nat.shrink)([1]);
 
 - `shrink.tuple(shrs: (shrink a, shrink b...)): shrink (a, b...)`
 
+- `shrink.sum(shrs: (shrink a, shrink b...)): shrink (a | b...)`
+
 - `shrink.array(shr: shrink a): shrink (array a)`
 
 - `shrink.nearray(shr: shrink a): shrink (nearray a)`
@@ -480,6 +486,8 @@ var ys = jsc.shrink.array(jsc.nat.shrink)([1]);
 - `show.either(showA: a -> string, showB: b -> string, e: either a b): string`
 
 - `show.tuple(shrinks: (a -> string, b -> string...), x: (a, b...)): string`
+
+- `show.sum(shrinks: (a -> string, b -> string...), x: (a | b ...)): string`
 
 - `show.array(shrink: a -> string, x: array a): string`
 
@@ -740,7 +748,7 @@ likely easy to write, even *complete* inverse doesn't exist.
 - [quickcheck](https://npmjs.org/package/quickcheck)
 - [qc.js](https://bitbucket.org/darrint/qc.js/)
 - [quick\_check](https://www.npmjs.org/package/quick_check)
-- [gencheck](https://github.com/graue/gentest)
+- [gentest](https://github.com/graue/gentest)
 - [node-quickcheck](https://github.com/mcandre/node-quickcheck)
 
 ### Others
