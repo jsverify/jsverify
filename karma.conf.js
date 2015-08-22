@@ -1,10 +1,11 @@
+/* eslint strict:[2,"function"] */
 module.exports = function (config) {
   "use strict";
   config.set({
     basePath: "",
     frameworks: ["mocha"],
     files: [
-      "tests-bundle.js"
+      "tests-bundle.js",
     ],
     exclude: [
     ],
@@ -16,6 +17,6 @@ module.exports = function (config) {
     logLevel: config.LOG_INFO,
     autoWatch: false,
     browsers: ["Chrome", "Firefox"],
-    singleRun: true
+    singleRun: true,
   });
 };

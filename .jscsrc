@@ -50,8 +50,8 @@
     "maximumLineLength": 300,
     "validateIndentation": 2,
     "validateQuoteMarks": {
-    	"escape": true,
-    	"mark": "\""
+      "escape": true,
+      "mark": "\""
     },
 
     "requireCamelCaseOrUpperCaseIdentifiers": "ignoreProperties",

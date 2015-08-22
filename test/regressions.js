@@ -109,7 +109,7 @@ describe("regressions", function () {
   describe("#112", function () {
     it("should support large test counts", function () {
       var prop = jsc.forall("nat", function (n) {
-        return n === n;
+        return n === n; // eslint-disable-line no-self-compare
       });
 
       jsc.assert(prop, { tests: 100000 });

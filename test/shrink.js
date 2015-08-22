@@ -233,7 +233,7 @@ describe("shrink", function () {
 
   describe("dict", function () {
     it("shrinks to smaller dicts", function () {
-      checkShrink([{"": 1}], jsc.forall(jsc.dict(jsc.nat()), function (m) {
+      checkShrink([{ "": 1 }], jsc.forall(jsc.dict(jsc.nat()), function (m) {
         return _.size(m) === 0 || _.some(m, function (value) { return value === 0; });
       }));
     });
@@ -241,7 +241,7 @@ describe("shrink", function () {
 
   describe("record", function () {
     it("shrinks as tuple", function () {
-      checkShrink([{a: 0, b: []}], jsc.forall("{ a: nat; b: [bool] }", function (record) {
+      checkShrink([{ a: 0, b: [] }], jsc.forall("{ a: nat; b: [bool] }", function (record) {
         return record.a === record.a + 1;
       }));
     });
@@ -250,7 +250,7 @@ describe("shrink", function () {
       var natShrink = jsc.nat().shrink;
       var prop = jsc.forall("nat", function (n) {
         var a = jsc.shrink.record({ key: natShrink }, { key: n });
-        var b = jsc.shrink.record({ key: natShrink })({ key: n});
+        var b = jsc.shrink.record({ key: natShrink })({ key: n });
 
         return _.isEqual(a, b);
       });
@@ -262,7 +262,7 @@ describe("shrink", function () {
       var natShrink = jsc.nat.shrink;
       var prop = jsc.forall("nat", function (n) {
         var a = jsc.shrink.record({ key: natShrink }, { key: n });
-        var b = jsc.shrink.record({ key: natShrink })({ key: n});
+        var b = jsc.shrink.record({ key: natShrink })({ key: n });
 
         return _.isEqual(a, b);
       });

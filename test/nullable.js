@@ -17,7 +17,7 @@ describe("nullable example", function () {
   var nullableNatArb = jsc.compile("either unit nat").smap(toNullable, fromNullable);
 
   var userEnv = {
-    "nullablenat": nullableNatArb
+    nullablenat: nullableNatArb,
   };
 
   jsc.property("nullable nat", "nullablenat", userEnv, function (n) {

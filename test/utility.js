@@ -24,7 +24,7 @@ describe("utility functions: _", function () {
       // also special cases
       assert(predicate({ a: 1, b: 2 }, { a: 1, b: 3 }));
       assert(predicate({ a: 2, b: 2 }, { a: 1, b: 3 }));
-      assert(predicate({ a: 1}, { b: 1 }));
+      assert(predicate({ a: 1 }, { b: 1 }));
     });
 
     it("is reflexive", function () {

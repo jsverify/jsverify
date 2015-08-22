@@ -1,11 +1,14 @@
 /* global beforeEach:true, jsc:true */
+/* eslint strict:[2,"function"] */
 beforeEach(function () {
   "use strict";
-  this.addMatchers({
+
+  this.addMatchers({ // eslint-disable-line no-invalid-this
     // Expects that property is synchronous
     toHold: function () {
       var actual = this.actual;
       var notText = this.isNot ? " not" : "";
+
       /* global window */
       var quiet = window && !(/verbose=true/).test(window.location.search);
 

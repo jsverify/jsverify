@@ -1,4 +1,5 @@
 /* global jasmine:true, beforeEach:true, jsc:true */
+/* eslint strict:[2,"function"] */
 beforeEach(function () {
   "use strict";
   jasmine.addMatchers({
@@ -6,13 +7,14 @@ beforeEach(function () {
     toHold: function () {
       return {
         compare: function (actual) {
+
           /* global window */
           var quiet = window && !(/verbose=true/).test(window.location.search);
 
           var r = jsc.check(actual, { quiet: quiet });
 
           var pass = r === true;
-          var message;
+          var message = "";
 
           if (pass) {
             message = "Expected property not to hold.";
@@ -24,7 +26,7 @@ beforeEach(function () {
             pass: pass,
             message: message,
           };
-        }
+        },
       };
     },
   });

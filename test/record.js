@@ -10,7 +10,7 @@ describe("record", function () {
     var spec = {
       a: jsc.string,
       b: jsc.nat,
-      c: jsc.fn
+      c: jsc.fn,
     };
 
     jsc.assert(jsc.forall(jsc.record(spec), function (obj) {
@@ -25,7 +25,7 @@ describe("record", function () {
     var spec = {
       a: "string",
       b: "nat",
-      c: "unit -> unit"
+      c: "unit -> unit",
     };
 
     jsc.assert(jsc.forall(jsc.record(spec), function (obj) {
@@ -38,13 +38,13 @@ describe("record", function () {
 
   it("supports environment", function () {
     var userenv = {
-      "str": jsc.string,
+      str: jsc.string,
     };
 
     var spec = {
       a: "str",
       b: "nat",
-      c: "unit -> unit"
+      c: "unit -> unit",
     };
 
     jsc.assert(jsc.forall(jsc.record(spec, userenv), function (obj) {

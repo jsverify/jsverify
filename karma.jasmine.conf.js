@@ -1,3 +1,4 @@
+/* eslint strict:[2,"function"] */
 module.exports = function (config) {
   "use strict";
   config.set({
@@ -6,7 +7,7 @@ module.exports = function (config) {
     files: [
       "helpers/jasmineHelpers2.js",
       "dist/jsverify.standalone.js",
-      "spec/*.js"
+      "spec/*.js",
     ],
     exclude: [
     ],
@@ -18,6 +19,6 @@ module.exports = function (config) {
     logLevel: config.LOG_INFO,
     autoWatch: false,
     browsers: ["Chrome", "Firefox"],
-    singleRun: true
+    singleRun: true,
   });
 };
