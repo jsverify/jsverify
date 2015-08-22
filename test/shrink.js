@@ -6,6 +6,7 @@ var jsc = require("../lib/jsverify.js");
 var assert = require("assert");
 var _ = require("underscore");
 var chai = require("chai");
+var lazyseq = require("lazy-seq");
 
 function checkShrinkPredicate(p, property, tries, wasShrinked) {
   tries = tries || 20;
@@ -272,17 +273,24 @@ describe("shrink", function () {
   });
 
   describe("json", function () {
-    it("cannot be shrinked, for now", function () {
-      var property = jsc.forall(jsc.json, function (x) {
-        return x !== x;
+    function contains(seq, value) {
+      return lazyseq.nil.append(seq).fold(false, function (x, next) {
+        if (jsc.utils.isEqual(x, value)) {
+          return true;
+        } else {
+          return next();
+        }
       });
+    }
 
-      // try many times to get more examples
-      for (var i = 0; i < 10; i++) {
-        var r = jsc.check(property, { quiet: true });
-        assert(r !== true);
-        assert(r.shrinks === 0);
-      }
+    it("bool", function () {
+      assert(contains(jsc.json.shrink(true), false));
+      assert(contains(jsc.json.shrink(2), 0));
+      assert(contains(jsc.json.shrink("f"), ""));
+      assert(contains(jsc.json.shrink([0]), []));
+      assert(contains(jsc.json.shrink([1]), [0]));
+      assert(contains(jsc.json.shrink({ "": 1 }), { "": 0 }));
+      assert(contains(jsc.json.shrink({ f: 0 }), { "": 0 }));
     });
   });
 
