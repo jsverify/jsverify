@@ -164,6 +164,10 @@ for now in either identity or promise functor, for synchronous and promise prope
     [-0.4199344692751765, false]
     ```
 
+- `throws(block: () -> a, error: class?, message: string?): bool
+
+  Executes nullary function `block`. Returns `true` if `block` throws. See [assert.throws](https://nodejs.org/api/assert.html#assert_assert_throws_block_error_message)
+
 ### Types
 
 - `generator a` is a function `(size: nat) -> a`.
@@ -589,8 +593,10 @@ likely easy to write, even *complete* inverse doesn't exist.
 
 ## Release History
 
+- **0.7.1** &mdash; *2015-08-24* &mdash; jsc.throws
+    - Add `jsc.throws` [#133](https://github.com/jsverify/jsverify/pull/133)
 - **0.7.0** &mdash; *2015-08-23* &mdash; More experiments
-    - `jsc.sum` - generate arbitrary sum types (generalisation of either) [125](https://github.com/jsverify/jsverify/pull/125)
+    - `jsc.sum` - generate arbitrary sum types (generalisation of either) [#125](https://github.com/jsverify/jsverify/pull/125)
         - *BREAKING CHANGE:* bar (`|`) in DSL generates `jsc.sum`
     - experimental support of recursive types in DSL (especially no shrinking yet) [#109](https://github.com/jsverify/jsverify/issues/109) [#126](https://github.com/jsverify/jsverify/pull/126)
     - fail early when `jsc.forall` is given zero generators [#128](https://github.com/jsverify/jsverify/issues/128)
