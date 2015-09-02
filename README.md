@@ -200,7 +200,7 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 - *applications* are applied as one could expect: `"array bool"` is evaluated to `jsc.array(jsc.bool)`.
 - *functions* are supported: `"bool -> bool"` is evaluated to `jsc.fn(jsc.bool)`.
 - *square brackets* are treated as a shorthand for the array type: `"[nat]"` is evaluated to `jsc.array(jsc.nat)`.
-- *union*: `"bool | nat"` is evaluated to `jsc.sum(jsc.bool, jsc.nat)`.
+- *union*: `"bool | nat"` is evaluated to `jsc.sum([jsc.bool, jsc.nat])`.
     - **Note** `oneof` cannot be shrinked, because the union is untagged, we don't know which shrink to use.
 - *conjunction*: `"bool & nat"` is evaluated to `jsc.tuple(jsc.bool, jsc.nat)`.
 - *anonymous records*: `"{ b: bool; n: nat }"` is evaluated to `jsc.record({ n: jsc.bool, n: jsc.nat })`.
