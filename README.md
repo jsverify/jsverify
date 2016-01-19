@@ -204,7 +204,7 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
     - **Note** `oneof` cannot be shrinked, because the union is untagged, we don't know which shrink to use.
 - *conjunction*: `"bool & nat"` is evaluated to `jsc.tuple(jsc.bool, jsc.nat)`.
 - *anonymous records*: `"{ b: bool; n: nat }"` is evaluated to `jsc.record({ n: jsc.bool, n: jsc.nat })`.
-- *EXPRIMENTAL: recursive types*: `"rec list -> unit | (nat & list)"`.
+- *EXPERIMENTAL: recursive types*: `"rec list -> unit | (nat & list)"`.
 
 ### Arbitrary data
 
