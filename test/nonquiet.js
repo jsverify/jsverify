@@ -48,4 +48,19 @@ describe("nonquiet cases", function () {
       jsc.check(jsc.forall(jsc.nat(), 1));
     });
   });
+
+  it("assert rethrows exceptions thrown", function () {
+    assert.throws(function () {
+      jsc.assert(jsc.forall(jsc.nat(), function () {
+        var e = new Error();
+        e.stack = "xyzzy";
+        e.extraData = 42;
+        throw e;
+      }), { quiet: true });
+    }, function (e) {
+      return e.message.indexOf("rngState") >= 0 &&
+             e.stack === "xyzzy" &&
+             e.extraData === 42;
+    });
+  });
 });
