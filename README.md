@@ -318,7 +318,7 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
 - `tuple(arbs: (arbitrary a, arbitrary b...)): arbitrary (a, b...)`
 
-- `sum(arbs: (arbitrary a, arbitrary b...)): arbitrary (a | b ...)
+- `sum(arbs: (arbitrary a, arbitrary b...)): arbitrary (a | b ...)`
 
 - `dict(arb: arbitrary a): arbitrary (dict a)`
 
