@@ -137,9 +137,6 @@ rules: {
   // disallow else after a return in an if: http://eslint.org/docs/rules/no-else-return
   no-else-return: 0,
 
-  // disallow use of labels for anything other than loops and switches: http://eslint.org/docs/rules/no-empty-label
-  no-empty-label: 2,
-
   // disallow comparisons to null without a type-checking operator: http://eslint.org/docs/rules/no-eq-null
   no-eq-null: 2,
 
@@ -459,8 +456,7 @@ rules: {
   // sort variables within the same declaration block: http://eslint.org/docs/rules/sort-vars
   sort-vars: 2,
 
-  // require a space after certain keywords: http://eslint.org/docs/rules/space-after-keywords
-  space-after-keywords: 2,
+  keyword-spacing: 2,
 
   // require or disallow a space before blocks: http://eslint.org/docs/rules/space-before-blocks
   space-before-blocks: 2,
@@ -473,9 +469,6 @@ rules: {
 
   // require spaces around operators: http://eslint.org/docs/rules/space-infix-ops
   space-infix-ops: 2,
-
-  // require a space after return, throw, and case: http://eslint.org/docs/rules/space-return-throw-case
-  space-return-throw-case: 2,
 
   // require or disallow spaces before/after unary operators: http://eslint.org/docs/rules/space-unary-ops
   space-unary-ops: 2,

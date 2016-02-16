@@ -6,7 +6,7 @@ var assert = require("assert");
 var jsc = require("../lib/jsverify.js");
 
 function toArray(s) {
-  return s.fold(function (idx, len, val) {
+  return s.fold(function (idx, len, val) { // eslint-disable-line consistent-return
     switch (idx) {
       case 0: return [];
       case 1: return [val[0]].concat(toArray(val[1]));
