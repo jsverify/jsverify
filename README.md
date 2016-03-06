@@ -192,7 +192,7 @@ See [perldoc for bless](http://perldoc.perl.org/functions/bless.html).
 There is a small DSL to help with `forall`. For example the two definitions below are equivalent:
 ```js
 var bool_fn_applied_thrice = jsc.forall("bool -> bool", "bool", check);
-var bool_fn_applied_thrice = jsc.forall(jsc.fn(jsc.bool()), jsc.bool(), check);
+var bool_fn_applied_thrice = jsc.forall(jsc.fn(jsc.bool), jsc.bool, check);
 ```
 
 The DSL is based on a subset of language recognized by [typify-parser](https://github.com/phadej/typify-parser):
