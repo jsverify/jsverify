@@ -32,6 +32,10 @@ describe("utility functions: _", function () {
         return jsc.utils.isEqual(x, x);
       }));
     });
+
+    it("considers NaN as equal to itself", function () {
+      assert(jsc.utils.isEqual(NaN, NaN));
+    });
   });
 
   describe("FMap", function () {
