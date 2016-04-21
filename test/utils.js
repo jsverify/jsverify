@@ -81,5 +81,9 @@ describe("jsc.utils", function () {
       return jsc.utils.isApproxEqual({ a: 1, b: 2 }, { a: 2, b: 2 }) === false &&
         jsc.utils.isApproxEqual({ a: 1, b: 2 }, { a: 1, b: 1 }) === false;
     });
+
+    jsc.property("considers NaN as equal to itself", function () {
+      return jsc.utils.isApproxEqual(NaN, NaN);
+    });
   });
 });
