@@ -1,4 +1,4 @@
-.PHONY : all test test-travis jshint eslint jscs karma mocha istanbul npm-freeze david dist literate README.md
+.PHONY : all test test-default test-travis jshint eslint jscs karma mocha istanbul npm-freeze david dist literate README.md
 
 BINDIR=node_modules/.bin
 
@@ -18,9 +18,12 @@ DIST=dist/jsverify.standalone.js
 
 all : test
 
-test : jshint eslint jscs mocha istanbul david npm-freeze
+test :
+	if [ "x${TRAVIS}" = "xtrue" ]; then $(MAKE) test-travis; else $(MAKE) test-default; fi
 
-test-travis : test test-readme
+test-default : jshint eslint jscs mocha istanbul david npm-freeze
+
+test-travis : test-readme test-default
 
 SRC=lib test fail examples helpers karma.conf.js karma.jasmine.conf.js
 
