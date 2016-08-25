@@ -168,6 +168,20 @@ for now in either identity or promise functor, for synchronous and promise prope
 
   Executes nullary function `block`. Returns `true` if `block` throws. See [assert.throws](https://nodejs.org/api/assert.html#assert_assert_throws_block_error_message)
 
+- `assertForall(arbs: arbitrary a ..., userenv: (map arbitrary)?, prop : a -> property): void`
+
+   Combines 'assert' and 'forall'.
+   Constructs a property with forall from arguments, then throws an exception if the property doesn't hold.
+   Options for 'assert' cannot be set here - use assert(forall(...)) if you need that.
+
+- `checkForall(arbs: arbitrary a ..., userenv: (map arbitrary)?, prop : a -> property): result`
+
+  Combines 'check' and 'forall'.
+  Constructs a property with forall from arguments, and returns a value based on if the property holds or not.
+  See 'check' for description of return value.
+
+  Options for 'check' cannot be set here - use check(forall(...)) if you need that.
+
 ### Types
 
 - `generator a` is a function `(size: nat) -> a`.
@@ -596,6 +610,7 @@ likely easy to write, even *complete* inverse doesn't exist.
 
 - **0.7.2** &mdash; *2016-08-25* &mdash; One year since the last release
     - `jsc.utils.isEqual` returns true if both arguments are `NaN`.
+    - Add `jsc.assertForall` and `jsc.checkForall`
 - **0.7.1** &mdash; *2015-08-24* &mdash; jsc.throws
     - Add `jsc.throws` [#133](https://github.com/jsverify/jsverify/pull/133)
 - **0.7.0** &mdash; *2015-08-23* &mdash; More experiments

@@ -2,6 +2,7 @@
 
 - **0.7.2** &mdash; *2016-08-25* &mdash; One year since the last release
     - `jsc.utils.isEqual` returns true if both arguments are `NaN`.
+    - Add `jsc.assertForall` and `jsc.checkForall`
 - **0.7.1** &mdash; *2015-08-24* &mdash; jsc.throws
     - Add `jsc.throws` [#133](https://github.com/jsverify/jsverify/pull/133)
 - **0.7.0** &mdash; *2015-08-23* &mdash; More experiments
