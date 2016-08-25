@@ -556,6 +556,7 @@ Use [underscore.js](http://underscorejs.org/), [lodash](https://lodash.com/), [r
 
     Tests whether two objects are approximately and optimistically equal.
     Returns `false` only if they are distinguisable not equal.
+    Returns `true` when `x` and `y` are `NaN`.
     This function works with cyclic data.
 
     Takes optional 'opts' parameter with properties:
@@ -593,6 +594,8 @@ likely easy to write, even *complete* inverse doesn't exist.
 
 ## Release History
 
+- **0.7.2** &mdash; *2016-08-25* &mdash; One year since the last release
+    - `jsc.utils.isEqual` returns true if both arguments are `NaN`.
 - **0.7.1** &mdash; *2015-08-24* &mdash; jsc.throws
     - Add `jsc.throws` [#133](https://github.com/jsverify/jsverify/pull/133)
 - **0.7.0** &mdash; *2015-08-23* &mdash; More experiments
