@@ -138,7 +138,7 @@ function tuple(arbs) {
 }
 
 /**
-  - `sum(arbs: (arbitrary a, arbitrary b...)): arbitrary (a | b ...)
+  - `sum(arbs: (arbitrary a, arbitrary b...)): arbitrary (a | b ...)`
 */
 function sum(arbs) {
   arbs = arbs.map(utils.force);
@@ -612,7 +612,7 @@ FMap.prototype.insert = function FMapInsert(key, value) {
   this.data.push([key, value]);
 };
 
-FMap.prototype.get = function FMapGet(key) {
+FMap.prototype.get = function FMapGet(key) { // eslint-disable-line consistent-return
   for (var i = 0; i < this.data.length; i++) {
     if (this.eq(this.data[i][0], key)) {
       return this.data[i][1];
@@ -932,7 +932,7 @@ function generatePair(genA, genB) {
   - `generator.either(genA: generator a, genB: generator b): generator (either a b)`
 */
 function generateEither(genA, genB) {
-  var result = generatorBless(function (size) {
+  var result = generatorBless(function (size) { // eslint-disable-line consistent-return
     var n = random(0, 1);
     switch (n) {
       case 0: return either.left(genA(size));
@@ -1324,7 +1324,7 @@ function forall() {
             return shrinkResult(gens, x, test, size, shrinks, exc, function (rr) {
               return {
                 counterexample: rr.counterexample.concat(rRecPrime.counterexample),
-                counterexamplestr: rr.counterexamplestr ,// + "; " + rRec.counterexamplestr,
+                counterexamplestr: rr.counterexamplestr, // + "; " + rRec.counterexamplestr,
                 shrinks: rr.shrinks,
                 exc: rr.exc || rRecPrime.exc,
               };
@@ -1344,14 +1344,16 @@ function forall() {
   };
 }
 
-function formatFailedCase(r, state) {
+function formatFailedCase(r, state, includeStack) {
   var msg = "Failed after " + r.tests + " tests and " + r.shrinks + " shrinks. ";
   msg += "rngState: " + (r.rngState || state) + "; ";
   msg += "Counterexample: " + r.counterexamplestr + "; ";
   if (r.exc) {
     if (r.exc instanceof Error) {
       msg += "Exception: " + r.exc.message;
-      msg += "\nStack trace: " + r.exc.stack;
+      if (includeStack) {
+        msg += "\nStack trace: " + r.exc.stack;
+      }
     } else {
       msg += "Error: " + r.exc;
     }
@@ -1359,7 +1361,7 @@ function formatFailedCase(r, state) {
   return msg;
 }
 
-function findRngState(argv) {
+function findRngState(argv) { // eslint-disable-line consistent-return
   for (var i = 0; i < argv.length - 1; i++) {
     if (argv[i] === "--jsverifyRngState") {
       return argv[i + 1];
@@ -1422,7 +1424,7 @@ function check(property, opts) {
         rPrime.tests = i;
         /* global console */
         if (!opts.quiet) {
-          console.error(formatFailedCase(rPrime, state), rPrime.counterexample);
+          console.error(formatFailedCase(rPrime, state, true), rPrime.counterexample);
         }
         return rPrime;
       }
@@ -1453,7 +1455,12 @@ function checkThrow(property, opts) {
 
   return functor.run(functor.map(check(property, opts), function (r) {
     if (r !== true) {
-      throw new Error(formatFailedCase(r));
+      if (r.exc instanceof Error) {
+        r.exc.message = formatFailedCase(r);
+        throw r.exc;
+      } else {
+        throw new Error(formatFailedCase(r));
+      }
     }
   }));
 }
@@ -1481,7 +1488,7 @@ function bddProperty(name) {
   var args = Array.prototype.slice.call(arguments, 1);
   if (args.length === 1) {
     it(name, function () {
-      return functor.run(functor.map(args[0](), function (result) {
+      return functor.run(functor.map(args[0](), function (result) { // eslint-disable-line consistent-return
         if (typeof result === "function") {
           return checkThrow(result);
         } else if (result !== true) {
@@ -1570,6 +1577,30 @@ function throws(block, error, message) {
 }
 
 /**
+  - `assertForall(arbs: arbitrary a ..., userenv: (map arbitrary)?, prop : a -> property): void`
+
+     Combines 'assert' and 'forall'.
+     Constructs a property with forall from arguments, then throws an exception if the property doesn't hold.
+     Options for 'assert' cannot be set here - use assert(forall(...)) if you need that.
+*/
+function assertForall() {
+  return checkThrow(forall.apply(null, arguments));
+}
+
+/**
+  - `checkForall(arbs: arbitrary a ..., userenv: (map arbitrary)?, prop : a -> property): result`
+
+    Combines 'check' and 'forall'.
+    Constructs a property with forall from arguments, and returns a value based on if the property holds or not.
+    See 'check' for description of return value.
+
+    Options for 'check' cannot be set here - use check(forall(...)) if you need that.
+*/
+function checkForall() {
+  return check(forall.apply(null, arguments));
+}
+
+/**
   ### Types
 
   - `generator a` is a function `(size: nat) -> a`.
@@ -1612,6 +1643,8 @@ var jsc = {
   forall: forall,
   check: check,
   assert: checkThrow,
+  assertForall: assertForall,
+  checkForall: checkForall,
   property: bddProperty,
   sampler: sampler,
   throws: throws,
@@ -2668,7 +2701,7 @@ module.exports = {
   There is a small DSL to help with `forall`. For example the two definitions below are equivalent:
   ```js
   var bool_fn_applied_thrice = jsc.forall("bool -> bool", "bool", check);
-  var bool_fn_applied_thrice = jsc.forall(jsc.fn(jsc.bool()), jsc.bool(), check);
+  var bool_fn_applied_thrice = jsc.forall(jsc.fn(jsc.bool), jsc.bool, check);
   ```
 
   The DSL is based on a subset of language recognized by [typify-parser](https://github.com/phadej/typify-parser):
@@ -2676,11 +2709,11 @@ module.exports = {
   - *applications* are applied as one could expect: `"array bool"` is evaluated to `jsc.array(jsc.bool)`.
   - *functions* are supported: `"bool -> bool"` is evaluated to `jsc.fn(jsc.bool)`.
   - *square brackets* are treated as a shorthand for the array type: `"[nat]"` is evaluated to `jsc.array(jsc.nat)`.
-  - *union*: `"bool | nat"` is evaluated to `jsc.sum(jsc.bool, jsc.nat)`.
+  - *union*: `"bool | nat"` is evaluated to `jsc.sum([jsc.bool, jsc.nat])`.
       - **Note** `oneof` cannot be shrinked, because the union is untagged, we don't know which shrink to use.
   - *conjunction*: `"bool & nat"` is evaluated to `jsc.tuple(jsc.bool, jsc.nat)`.
-  - *anonymous records*: `"{ b: bool; n: nat }"` is evaluated to `jsc.record({ n: jsc.bool, n: jsc.nat })`.
-  - *EXPRIMENTAL: recursive types*: `"rec list -> unit | (nat & list)"`.
+  - *anonymous records*: `"{ b: bool; n: nat }"` is evaluated to `jsc.record({ b: jsc.bool, n: jsc.nat })`.
+  - *EXPERIMENTAL: recursive types*: `"rec list -> unit | (nat & list)"`.
 */
 
 var arbitrary = require("./arbitrary.js");
@@ -2810,6 +2843,11 @@ function isObject(o) {
   /* eslint-enable no-new-object */
 }
 
+/* undefined-safe isNaN */
+function isNaN(n) {
+  return typeof n === "number" && n !== n;
+}
+
 /**
   ### Utility functions
 
@@ -2833,6 +2871,10 @@ function sort(arr) {
 */
 function isEqual(a, b) {
   var i;
+
+  if (isNaN(a) && isNaN(b)) {
+    return true;
+  }
 
   if (a === b) {
     return true;
@@ -2866,6 +2908,7 @@ function isEqual(a, b) {
 
       Tests whether two objects are approximately and optimistically equal.
       Returns `false` only if they are distinguisable not equal.
+      Returns `true` when `x` and `y` are `NaN`.
       This function works with cyclic data.
 
       Takes optional 'opts' parameter with properties:
@@ -2882,6 +2925,10 @@ function isApproxEqual(x, y, opts) {
   var state = [];
 
   function loop(a, b, n) {
+    if (isNaN(a) && isNaN(b)) {
+      return true;
+    }
+
     // trivial check
     if (a === b) {
       return true;

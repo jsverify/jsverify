@@ -608,6 +608,9 @@ likely easy to write, even *complete* inverse doesn't exist.
 
 ## Release History
 
+- **0.7.4** &mdash; *2016-09-07* &mdash; Bless `suchthat`
+    - Fix "arbitraries created with `suchthat` are missing `.smap`
+      [#184](https://github.com/jsverify/jsverify/issues/184)
 - **0.7.3** &mdash; *2016-08-26* &mdash; Remove lodash
     - Fixed accidental use of `lodash`. We have our own `isNaN` now.
 - **0.7.2** &mdash; *2016-08-25* &mdash; One year since the last release
