@@ -5,8 +5,8 @@
 var jsc = require("../lib/jsverify.js");
 var arbitraryAssert = require("../lib/arbitraryAssert.js");
 
-describe('suchthat', function () {
-  const arb = jsc.suchthat(jsc.integer, function (v) {
+describe("suchthat", function () {
+  var arb = jsc.suchthat(jsc.integer, function (v) {
     return v % 2 === 0;
   });
 
@@ -14,14 +14,14 @@ describe('suchthat', function () {
     arbitraryAssert(arb);
   });
 
-  it('should support smap', function () {
-    const arbAsString = arb.smap(
-      (v) => v.toString(),
-      (v) => parseInt(v, 10)
+  it("should support smap", function () {
+    var arbAsString = arb.smap(
+      function (v) { return v.toString(); },
+      function (v) { return parseInt(v, 10); }
     );
 
     jsc.assert(jsc.forall(arbAsString, function (value) {
-      return typeof value === 'string'
+      return typeof value === "string";
     }));
 
     jsc.assert(jsc.forall(arbAsString, function (value) {
