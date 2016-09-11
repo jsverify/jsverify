@@ -61,7 +61,7 @@ $ mocha examples/nat.js --grep 'are less than' --jsverifyRngState 074e9b5f037a8c
 
 Errorneous case is found with first try.
 
-### Usage with [jasmine](http://pivotal.github.io/jasmine/)
+### Usage with [jasmine](https://jasmine.github.io/)
 
 Check [jasmineHelpers.js](helpers/jasmineHelpers.js) and [jasmineHelpers2.js](helpers/jasmineHelpers2.js) for jasmine 1.3 and 2.0 respectively.
 
