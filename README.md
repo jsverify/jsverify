@@ -352,22 +352,22 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
 - ```js
   letrec(
-     (tie: key -> (arbitrary a | arbitrary b | ...))
-     -> { key: arbitrary a, key: arbitrary b, ... }):
-   { key: arbitrary a, key: arbitrary b, ... }
-   ```
+    (tie: key -> (arbitrary a | arbitrary b | ...))
+    -> { key: arbitrary a, key: arbitrary b, ... }):
+  { key: arbitrary a, key: arbitrary b, ... }
+  ```
 
-   Mutually recursive definitions. Every reference to a sibling arbitrary
-   should go through the `tie` function.
+  Mutually recursive definitions. Every reference to a sibling arbitrary
+  should go through the `tie` function.
 
-   ```js
-   { arb1, arb2 } = jsc.letrec(function (tie) {
-     return {
-       arb1: jsc.tuple(jsc.int, jsc.oneof(jsc.const(null), tie("arb2"))),
-       arb2: jsc.tuple(jsc.bool, jsc.oneof(jsc.const(null), tie("arb1"))),
-     }
-   });
-   ```
+  ```js
+  { arb1, arb2 } = jsc.letrec(function (tie) {
+    return {
+      arb1: jsc.tuple(jsc.int, jsc.oneof(jsc.const(null), tie("arb2"))),
+      arb2: jsc.tuple(jsc.bool, jsc.oneof(jsc.const(null), tie("arb1"))),
+    }
+  });
+  ```
 
 ### Arbitrary records
 
