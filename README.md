@@ -31,7 +31,7 @@ jsc.assert(boolFnAppliedThrice);
 
 ## Documentation
 
-### Usage with [mocha](http://visionmedia.github.io/mocha/)
+### Usage with [mocha](http://mochajs.org/)
 
 Using jsverify with mocha is easy, just define the properties and use `jsverify.assert`.
 
