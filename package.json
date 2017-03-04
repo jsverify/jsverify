@@ -17,6 +17,7 @@
   },
   "license": "MIT",
   "main": "lib/jsverify",
+  "types": "jsverify.d.ts",
   "engines": {
     "node": ">= 0.8.0"
   },
