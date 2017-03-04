@@ -164,7 +164,7 @@ for now in either identity or promise functor, for synchronous and promise prope
     [-0.4199344692751765, false]
     ```
 
-- `throws(block: () -> a, error: class?, message: string?): bool
+- `throws(block: () -> a, error: class?, message: string?): bool`
 
   Executes nullary function `block`. Returns `true` if `block` throws. See [assert.throws](https://nodejs.org/api/assert.html#assert_assert_throws_block_error_message)
 
