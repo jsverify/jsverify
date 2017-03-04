@@ -27,7 +27,7 @@
     "bluebird": "^3.1.1",
     "browserify": "^14.0.0",
     "chai": "^3.0.0",
-    "david": "^10.1.0",
+    "david": "^11.0.0",
     "eslint": "^3.3.1",
     "esprima": "^3.0.0",
     "istanbul": "^0.4.1",
