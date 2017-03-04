@@ -4,6 +4,7 @@
 
 var assert = require("assert");
 var jsc = require("../lib/jsverify.js");
+var _ = require("underscore");
 
 function toArray(s) {
   return s.fold(function (idx, len, val) { // eslint-disable-line consistent-return
@@ -57,5 +58,48 @@ describe("rec", function () {
       nonEmpty = nonEmpty || arr.length !== 0;
     }
     assert(nonEmpty, "arrayArb should generate non-empty arrays too");
+  });
+});
+
+describe("letrec", function () {
+  it("builds mutually recursive arbitraries", function () {
+    var arbs = jsc.letrec(function (tie) {
+      return {
+        arb1: jsc.oneof(jsc.unit, tie("arb2")),
+        arb2: jsc.tuple([tie("arb1")]),
+        arb3: tie("arb1"),
+      };
+    });
+
+    arbs.arb1.shrink([]);
+
+    jsc.assert(jsc.forall(arbs.arb1, function (l) {
+      do {
+        l = l[0];
+      } while (_.isArray(l));
+      return _.isUndefined(l);
+    }));
+
+    jsc.assert(jsc.forall(arbs.arb2, function (l) {
+      do {
+        l = l[0];
+      } while (_.isArray(l));
+      return _.isUndefined(l);
+    }));
+
+    jsc.assert(jsc.forall(arbs.arb3, function (l) {
+      do {
+        l = l[0];
+      } while (_.isArray(l));
+      return _.isUndefined(l);
+    }));
+  });
+
+  it("throws if not all arbitraries are defined", function () {
+    assert.throws(function () {
+      jsc.letrec(function (tie) {
+        return { arb1: tie("arb2") };
+      });
+    });
   });
 });
