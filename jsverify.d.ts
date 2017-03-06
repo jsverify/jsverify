@@ -12,6 +12,8 @@ declare module 'jsverify' {
     }
 
     function bless<U>(arb : ArbitraryLike<U>) : Arbitrary<U>;
+    function sampler<U>(arb : Arbitrary<U>, genSize? : number) : (sampleSize : number) => U;
+    function small<U>(arb : Arbitrary<U>) : Arbitrary<U>;
 
     interface Options {
         tests : number;
@@ -99,6 +101,30 @@ declare module 'jsverify' {
     function forall<A, B, C, D, E, F, G, H, I, J>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, arb9 : Arbitrary<I>, arb10 : Arbitrary<J>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H, d : I, f : J) => Property<any>) : Property<any>;
     function forall(...args : any[]) : Property<any>;
 
+    function assertForall<A>(arb1 : Arbitrary<A>, prop : (t : A) => Property<A>) : void;
+    function assertForall<A, B>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, prop : (t : A, u : B) => Property<any>) : void;
+    function assertForall<A, B, C>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, prop : (t : A, u : B, v : C) => Property<any>) : void;
+    function assertForall<A, B, C, D>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, prop : (t : A, u : B, v : C, w : D) => Property<any>) : void;
+    function assertForall<A, B, C, D, E>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, prop : (t : A, u : B, v : C, w : D, e : E) => Property<any>) : void;
+    function assertForall<A, B, C, D, E, F>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, prop : (t : A, u : B, v : C, w : D, e : E, a : F) => Property<any>) : void;
+    function assertForall<A, B, C, D, E, F, G>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G) => Property<any>) : void;
+    function assertForall<A, B, C, D, E, F, G, H>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H) => Property<any>) : void;
+    function assertForall<A, B, C, D, E, F, G, H, I>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, arb9 : Arbitrary<I>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H, d : I) => Property<any>) : void;
+    function assertForall<A, B, C, D, E, F, G, H, I, J>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, arb9 : Arbitrary<I>, arb10 : Arbitrary<J>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H, d : I, f : J) => Property<any>) : void;
+    function assertForall(...args : any[]) : void;
+
+    function checkForall<A>(arb1 : Arbitrary<A>, prop : (t : A) => Property<A>) : Result<A>;
+    function checkForall<A, B>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, prop : (t : A, u : B) => Property<any>) : Result<any>;
+    function checkForall<A, B, C>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, prop : (t : A, u : B, v : C) => Property<any>) : Result<any>;
+    function checkForall<A, B, C, D>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, prop : (t : A, u : B, v : C, w : D) => Property<any>) : Result<any>;
+    function checkForall<A, B, C, D, E>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, prop : (t : A, u : B, v : C, w : D, e : E) => Property<any>) : Result<any>;
+    function checkForall<A, B, C, D, E, F>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, prop : (t : A, u : B, v : C, w : D, e : E, a : F) => Property<any>) : Result<any>;
+    function checkForall<A, B, C, D, E, F, G>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G) => Property<any>) : Result<any>;
+    function checkForall<A, B, C, D, E, F, G, H>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H) => Property<any>) : Result<any>;
+    function checkForall<A, B, C, D, E, F, G, H, I>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, arb9 : Arbitrary<I>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H, d : I) => Property<any>) : Result<any>;
+    function checkForall<A, B, C, D, E, F, G, H, I, J>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, arb9 : Arbitrary<I>, arb10 : Arbitrary<J>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H, d : I, f : J) => Property<any>) : Result<any>;
+    function checkForall(...args : any[]) : Result<any>;
+
     function check<T>(prop : Property<T>, opts? : Options) : Result<T>;
     function assert(prop : Property<any>, opts? : Options) : void;
 
@@ -123,6 +149,9 @@ declare module 'jsverify' {
 
         unit : Generator<any>;
 
+        bless<T>(genLike : GeneratorFn<T>) : Generator<T>;
+        small<T>(gen : Generator<T>) : Generator<T>;
+
         combine<A, R>(arb1 : Generator<A>, prop : (t : A) => R) : Generator<R>;
         combine<A, B, R>(arb1 : Generator<A>, arb2 : Generator<B>, prop : (t : A, u : B) => R) : Generator<R>;
         combine<A, B, C, R>(arb1 : Generator<A>, arb2 : Generator<B>, arb3 : Generator<C>, prop : (t : A, u : B, v : C) => R) : Generator<R>;
@@ -146,6 +175,8 @@ declare module 'jsverify' {
 
         array<T>(shr : Shrink<T>) : Shrink<T[]>;
         nearray<T>(shr : Shrink<T>) : Shrink<T[]>;
+
+        bless<T>(shrinkLike : ShrinkFn<T>) : Shrink<T>;
     }
 
     interface ShowFunctions {
