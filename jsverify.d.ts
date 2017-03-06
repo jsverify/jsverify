@@ -87,8 +87,18 @@ declare module 'jsverify' {
 
     function oneOf<T>(gs : Arbitrary<T>[]) : Arbitrary<T>;
 
-    //Properties
-    function forall<T>(arb1 : Arbitrary<T>, prop : (t : T) => Property<T>) : Property<T>; //TODO: Fix declaration
+    function forall<A>(arb1 : Arbitrary<A>, prop : (t : A) => Property<A>) : Property<A>;
+    function forall<A, B>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, prop : (t : A, u : B) => Property<any>) : Property<any>;
+    function forall<A, B, C>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, prop : (t : A, u : B, v : C) => Property<any>) : Property<any>;
+    function forall<A, B, C, D>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, prop : (t : A, u : B, v : C, w : D) => Property<any>) : Property<any>;
+    function forall<A, B, C, D, E>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, prop : (t : A, u : B, v : C, w : D, e : E) => Property<any>) : Property<any>;
+    function forall<A, B, C, D, E, F>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, prop : (t : A, u : B, v : C, w : D, e : E, a : F) => Property<any>) : Property<any>;
+    function forall<A, B, C, D, E, F, G>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G) => Property<any>) : Property<any>;
+    function forall<A, B, C, D, E, F, G, H>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H) => Property<any>) : Property<any>;
+    function forall<A, B, C, D, E, F, G, H, I>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, arb9 : Arbitrary<I>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H, d : I) => Property<any>) : Property<any>;
+    function forall<A, B, C, D, E, F, G, H, I, J>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, arb9 : Arbitrary<I>, arb10 : Arbitrary<J>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H, d : I, f : J) => Property<any>) : Property<any>;
+    function forall(...args : any[]) : Property<any>;
+
     function check<T>(prop : Property<T>, opts? : Options) : Result<T>;
     function assert(prop : Property<any>, opts? : Options) : void;
 
@@ -99,7 +109,6 @@ declare module 'jsverify' {
 
     interface GeneratorFunctions {
         constant<U>(u : U) : Generator<U>;
-        //combine<U>(...gen : Generator<any>[], f : (...a : any[]) => U) : Generator<U>; //TODO: Find solution
         oneOf<U>(gens : Generator<U>[]) : Generator<U>;
         recursive<U>(genZ : Generator<U>, f : (u : U) => U) : Generator<U>;
         pair<T, U>(genA : Generator<T>, genB : Generator<U>) : Generator<[T, U]>;
@@ -113,6 +122,18 @@ declare module 'jsverify' {
         dict<U>(gen : Generator<U>) : Generator<{ [key : string]: U }>;
 
         unit : Generator<any>;
+
+        combine<A, R>(arb1 : Generator<A>, prop : (t : A) => R) : Generator<R>;
+        combine<A, B, R>(arb1 : Generator<A>, arb2 : Generator<B>, prop : (t : A, u : B) => R) : Generator<R>;
+        combine<A, B, C, R>(arb1 : Generator<A>, arb2 : Generator<B>, arb3 : Generator<C>, prop : (t : A, u : B, v : C) => R) : Generator<R>;
+        combine<A, B, C, D, R>(arb1 : Generator<A>, arb2 : Generator<B>, arb3 : Generator<C>, arb4 : Generator<D>, prop : (t : A, u : B, v : C, w : D) => R) : Generator<R>;
+        combine<A, B, C, D, E, R>(arb1 : Generator<A>, arb2 : Generator<B>, arb3 : Generator<C>, arb4 : Generator<D>, arb5 : Generator<E>, prop : (t : A, u : B, v : C, w : D, e : E) => R) : Generator<R>;
+        combine<A, B, C, D, E, F, R>(arb1 : Generator<A>, arb2 : Generator<B>, arb3 : Generator<C>, arb4 : Generator<D>, arb5 : Generator<E>, arb6 : Generator<F>, prop : (t : A, u : B, v : C, w : D, e : E, a : F) => R) : Generator<R>;
+        combine<A, B, C, D, E, F, G, R>(arb1 : Generator<A>, arb2 : Generator<B>, arb3 : Generator<C>, arb4 : Generator<D>, arb5 : Generator<E>, arb6 : Generator<F>, arb7 : Generator<G>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G) => R) : Generator<R>;
+        combine<A, B, C, D, E, F, G, H, R>(arb1 : Generator<A>, arb2 : Generator<B>, arb3 : Generator<C>, arb4 : Generator<D>, arb5 : Generator<E>, arb6 : Generator<F>, arb7 : Generator<G>, arb8 : Generator<H>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H) => R) : Generator<R>;
+        combine<A, B, C, D, E, F, G, H, I, R>(arb1 : Generator<A>, arb2 : Generator<B>, arb3 : Generator<C>, arb4 : Generator<D>, arb5 : Generator<E>, arb6 : Generator<F>, arb7 : Generator<G>, arb8 : Generator<H>, arb9 : Generator<I>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H, d : I) => R) : Generator<R>;
+        combine<A, B, C, D, E, F, G, H, I, J, R>(arb1 : Generator<A>, arb2 : Generator<B>, arb3 : Generator<C>, arb4 : Generator<D>, arb5 : Generator<E>, arb6 : Generator<F>, arb7 : Generator<G>, arb8 : Generator<H>, arb9 : Generator<I>, arb10 : Generator<J>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H, d : I, f : J) => R) : Generator<R>;
+        combine<R>(...args : any[]) : Generator<R>;
     }
 
     interface ShrinkFunctions {
