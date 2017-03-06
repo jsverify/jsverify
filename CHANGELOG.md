@@ -1,7 +1,7 @@
 ## Release History
 
 - **0.7.4** &mdash; *2016-09-07* &mdash; Bless `suchthat`
-    - Fix "arbitraries created with `suchthat` are missing `.smap`
+    - Fix "arbitraries created with `suchthat` are missing `.smap`"
       [#184](https://github.com/jsverify/jsverify/issues/184)
 - **0.7.3** &mdash; *2016-08-26* &mdash; Remove lodash
     - Fixed accidental use of `lodash`. We have our own `isNaN` now.
@@ -20,7 +20,7 @@
 - **0.6.3** &mdash; *2015-07-27* &mdash; Bug fixes
     - `jsc.utils.isEqual` doesn't care about key ordering [#123](https://github.com/jsverify/jsverify/issues/123)
     - tuple's shrink is blessed [#124](https://github.com/jsverify/jsverify/issues/124)
-- **0.6.2** &madsh; *2015-07-13* &mdash; Trampolines
+- **0.6.2** &mdash; *2015-07-13* &mdash; Trampolines
 - **0.6.1** &mdash; *2015-07-13* &mdash; Bug fixes
     - Print stacktrace of catched exceptions
     - `maxsize = 0` for numeric generators works
@@ -38,7 +38,7 @@
     - `jsc.generator.record`
     - Thanks to @peterjoel for reporting issues
 - **0.6.0-alpha.6** &mdash; *2015-04-25* &mdash; Fix issues #98
-    - Documentation imporovements
+    - Documentation improvements
     - Fix issue [#98](https://github.com/jsverify/jsverify/issues/98) - error while generating `int32` values
 - **0.6.0-alpha.5** &mdash; *2015-04-23* &mdash; Fix issue #99
     - Documentation improvements
@@ -63,7 +63,7 @@
 - **0.5.1** &mdash; *2015-02-19* &mdash; Dependencies bump
     - We also work on 0.12 and iojs!
 - **0.5.0** &mdash; *2014-12-24* &mdash; Merry Chrismas 2014!
-    - Documention cleanup
+    - Documentation cleanup
 - **0.5.0-beta.2** &mdash; *2014-12-21* &mdash; Beta 2!
     - Pair &amp; tuple related code cleanup
     - Update `CONTRIBUTING.md`

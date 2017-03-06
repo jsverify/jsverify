@@ -2,7 +2,7 @@
 
 <img src="https://raw.githubusercontent.com/jsverify/jsverify/master/jsverify-300.png" align="right" height="100" />
 
-> Property based checking. Like QuickCheck.
+> Property-based checking. Like QuickCheck.
 
 [![Build Status](https://secure.travis-ci.org/jsverify/jsverify.svg?branch=master)](http://travis-ci.org/jsverify/jsverify)
 [![NPM version](https://badge.fury.io/js/jsverify.svg)](http://badge.fury.io/js/jsverify)
@@ -59,7 +59,7 @@ $ mocha examples/nat.js --grep 'are less than' --jsverifyRngState 074e9b5f037a8c
    Error: Failed after 1 tests and 1 shrinks. rngState: 074e9b5f037a8c21d6; Counterexample: 90;
 ```
 
-Errorneous case is found with first try.
+Erroneous case is found with first try.
 
 ### Usage with [jasmine](https://jasmine.github.io/)
 
@@ -77,7 +77,7 @@ Property-based testing is somewhere in between.
 We formulate propositions, invariants or other properties we believe to hold, but
 only test it to hold for numerous (randomly generated) values.
 
-Types and function signatures are written in [Coq](http://coq.inria.fr/)/[Haskell](http://www.haskell.org/haskellwiki/Haskell) influented style:
+Types and function signatures are written in [Coq](http://coq.inria.fr/)/[Haskell](http://www.haskell.org/haskellwiki/Haskell)-influenced style:
 C# -style `List<T> filter(List<T> v, Func<T, bool> predicate)` is represented by
 `filter(v: array T, predicate: T -> bool): array T` in our style.
 
@@ -143,7 +143,7 @@ for now in either identity or promise functor, for synchronous and promise prope
 
 - `compile(desc: string, env: typeEnv?): arbitrary a`
 
-    Compile the type describiption in provided type environment, or default one.
+    Compile the type description in provided type environment, or default one.
 
 - `sampler(arb: arbitrary a, genSize: nat = 10): (sampleSize: nat?) -> a`
 
@@ -192,7 +192,7 @@ for now in either identity or promise functor, for synchronous and promise prope
 
 ### Blessing
 
-We chose to respresent generators and shrinks by functions, yet we would
+We chose to represent generators and shrinks by functions, yet we would
 like to have additional methods on them. Thus we *bless* objects with
 additional properties.
 
@@ -249,7 +249,7 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
     _.identity(_uniq([0, 0])) = [0]] != [0, 0]
     ```
 
-    We need an inverse for shrinking, and there right inverse is enough. We can always *pull back* `smap`ped value and shrink the preimage, and *map* or *push forward* shrinked preimages again.
+    We need an inverse for shrinking, and there right inverse is enough. We can always *pull back* `smap`ped value, shrink the preimage, and *map* or *push forward* shrunk preimages again.
 
 - `bless(arb: {...}): arbitrary a`
 
@@ -429,7 +429,7 @@ var ys = jsc.generator.array(jsc.nat.generator)(1);
 In purely functional approach `generator a` would be explicitly stateful computation:
 `(size: nat, rng: randomstate) -> (a, randomstate)`.
 *JSVerify* uses an implicit random number generator state,
-but the value generation is deterministic (tests reproduceable),
+but the value generation is deterministic (tests are reproducible),
 if the primitives from *random* module are used.
 
 - `generator.bless(f: nat -> a): generator a`
@@ -588,7 +588,7 @@ Use [underscore.js](http://underscorejs.org/), [lodash](https://lodash.com/), [r
 - `utils.isApproxEqual(x: a, y: b, opts: obj): bool`
 
     Tests whether two objects are approximately and optimistically equal.
-    Returns `false` only if they are distinguisable not equal.
+    Returns `false` only if they are distinguishable not equal.
     Returns `true` when `x` and `y` are `NaN`.
     This function works with cyclic data.
 
@@ -628,7 +628,7 @@ likely easy to write, even *complete* inverse doesn't exist.
 ## Release History
 
 - **0.7.4** &mdash; *2016-09-07* &mdash; Bless `suchthat`
-    - Fix "arbitraries created with `suchthat` are missing `.smap`
+    - Fix "arbitraries created with `suchthat` are missing `.smap`"
       [#184](https://github.com/jsverify/jsverify/issues/184)
 - **0.7.3** &mdash; *2016-08-26* &mdash; Remove lodash
     - Fixed accidental use of `lodash`. We have our own `isNaN` now.
@@ -647,7 +647,7 @@ likely easy to write, even *complete* inverse doesn't exist.
 - **0.6.3** &mdash; *2015-07-27* &mdash; Bug fixes
     - `jsc.utils.isEqual` doesn't care about key ordering [#123](https://github.com/jsverify/jsverify/issues/123)
     - tuple's shrink is blessed [#124](https://github.com/jsverify/jsverify/issues/124)
-- **0.6.2** &madsh; *2015-07-13* &mdash; Trampolines
+- **0.6.2** &mdash; *2015-07-13* &mdash; Trampolines
 - **0.6.1** &mdash; *2015-07-13* &mdash; Bug fixes
     - Print stacktrace of catched exceptions
     - `maxsize = 0` for numeric generators works
@@ -665,7 +665,7 @@ likely easy to write, even *complete* inverse doesn't exist.
     - `jsc.generator.record`
     - Thanks to @peterjoel for reporting issues
 - **0.6.0-alpha.6** &mdash; *2015-04-25* &mdash; Fix issues #98
-    - Documentation imporovements
+    - Documentation improvements
     - Fix issue [#98](https://github.com/jsverify/jsverify/issues/98) - error while generating `int32` values
 - **0.6.0-alpha.5** &mdash; *2015-04-23* &mdash; Fix issue #99
     - Documentation improvements
@@ -690,7 +690,7 @@ likely easy to write, even *complete* inverse doesn't exist.
 - **0.5.1** &mdash; *2015-02-19* &mdash; Dependencies bump
     - We also work on 0.12 and iojs!
 - **0.5.0** &mdash; *2014-12-24* &mdash; Merry Chrismas 2014!
-    - Documention cleanup
+    - Documentation cleanup
 - **0.5.0-beta.2** &mdash; *2014-12-21* &mdash; Beta 2!
     - Pair &amp; tuple related code cleanup
     - Update `CONTRIBUTING.md`
