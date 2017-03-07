@@ -344,7 +344,7 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
 - `json: arbitrary json`
 
-     JavaScript Objects: boolean, number, string, array of `json` values or object with `json` values.
+     JavaScript Objects: boolean, number, string, null, array of `json` values or object with `json` values.
 
 - `oneof(gs : array (arbitrary a)...) : arbitrary a`
 

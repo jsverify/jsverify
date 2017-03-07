@@ -292,6 +292,10 @@ describe("shrink", function () {
       assert(contains(jsc.json.shrink({ "": 1 }), { "": 0 }));
       assert(contains(jsc.json.shrink({ f: 0 }), { "": 0 }));
     });
+
+    it("null is non-shrinkable", function () {
+      return _.isEqual(jsc.json.shrink(null), []);
+    });
   });
 
   describe("smap", function () {
