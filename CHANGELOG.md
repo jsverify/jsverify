@@ -1,5 +1,11 @@
 ## Release History
 
+- **0.7.5** &mdash; *2017-03-08* &mdash; International Women's Day
+    - Add `letrec` combinator
+      [#193](https://github.com/jsverify/jsverify/pull/193)
+    - Add `null` to `json` arbitrary
+      [#201](https://github.com/jsverify/jsverify/pull/201)
+    - Fix typos and outdated links in documentation
 - **0.7.4** &mdash; *2016-09-07* &mdash; Bless `suchthat`
     - Fix "arbitraries created with `suchthat` are missing `.smap`"
       [#184](https://github.com/jsverify/jsverify/issues/184)
