@@ -1,5 +1,9 @@
 ## Release History
 
+- **0.8.0** &mdash; *2017-03-12* &mdash; TypeScript typings
+    - Provide TypeScript typings
+      [#202](https://github.com/jsverify/jsverify/pull/202)
+      [#196](https://github.com/jsverify/jsverify/pull/196)
 - **0.7.5** &mdash; *2017-03-08* &mdash; International Women's Day
     - Add `letrec` combinator
       [#193](https://github.com/jsverify/jsverify/pull/193)

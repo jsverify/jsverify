@@ -1,4 +1,4 @@
-.PHONY : all test test-default test-travis jshint eslint jscs karma mocha istanbul npm-freeze david dist literate README.md
+.PHONY : all test test-default test-travis jshint eslint jscs karma mocha mocha-ts istanbul npm-freeze david dist literate README.md
 
 BINDIR=node_modules/.bin
 
@@ -21,7 +21,7 @@ all : test
 test :
 	if [ "x${TRAVIS}" = "xtrue" ]; then $(MAKE) test-travis; else $(MAKE) test-default; fi
 
-test-default : jshint eslint jscs mocha istanbul david npm-freeze
+test-default : jshint eslint jscs mocha istanbul mocha-ts david npm-freeze
 
 test-travis : test-readme test-default
 
@@ -48,6 +48,9 @@ jasmine : $(DIST)
 mocha :
 	$(MOCHA) --reporter spec test
 	$(MOCHA) fail >/dev/null || test $$? -eq 12  # There are 12 "should fail" fixtures
+
+mocha-ts :
+	$(MOCHA) --reporter spec --require ts-node/register `find test-ts -name '*.ts'`
 
 istanbul :
 	$(ISTANBUL) cover -- $(IMOCHA) --reporter dot --timeout 10000 test
