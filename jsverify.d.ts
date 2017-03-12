@@ -14,6 +14,7 @@ declare module 'jsverify' {
     function bless<U>(arb : ArbitraryLike<U>) : Arbitrary<U>;
     function sampler<U>(arb : Arbitrary<U>, genSize? : number) : (sampleSize : number) => U;
     function small<U>(arb : Arbitrary<U>) : Arbitrary<U>;
+    function suchthat<U>(arb : Arbitrary<U>, predicate : (u : U) => boolean) : Arbitrary<U>;
 
     interface Options {
         tests : number;
@@ -84,6 +85,8 @@ declare module 'jsverify' {
     function dict<T>(arb : Arbitrary<T>) : Arbitrary<{ [s : string]: T }>;
     function array<T>(arb : Arbitrary<T>) : Arbitrary<T[]>;
     function nearray<T>(arb : Arbitrary<T>) : Arbitrary<T[]>;
+    function fn<T>(arb : Arbitrary<T>) : Arbitrary<(a : any) => T>;
+    function fun<T>(arb : Arbitrary<T>) : Arbitrary<(a : any) => T>;
     const json : Arbitrary<any>;
     const unit : Arbitrary<any>;
 
