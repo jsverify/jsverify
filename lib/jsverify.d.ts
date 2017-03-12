@@ -1,4 +1,4 @@
-declare module 'jsverify' {
+declare namespace JSVerify {
     type Arbitrary<T> = ArbitraryLike<T> & ArbitraryFns<T>;
 
     interface ArbitraryLike<T> {
@@ -128,6 +128,18 @@ declare module 'jsverify' {
     function checkForall<A, B, C, D, E, F, G, H, I, J>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, arb9 : Arbitrary<I>, arb10 : Arbitrary<J>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H, d : I, f : J) => Property<any>) : Result<any>;
     function checkForall(...args : any[]) : Result<any>;
 
+    function property<A>(description: String, arb1 : Arbitrary<A>, prop : (t : A) => Property<A>) : any;
+    function property<A, B>(description: String, arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, prop : (t : A, u : B) => Property<any>) : any;
+    function property<A, B, C>(description: String, arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, prop : (t : A, u : B, v : C) => Property<any>) : any;
+    function property<A, B, C, D>(description: String, arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, prop : (t : A, u : B, v : C, w : D) => Property<any>) : any;
+    function property<A, B, C, D, E>(description: String, arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, prop : (t : A, u : B, v : C, w : D, e : E) => Property<any>) : any;
+    function property<A, B, C, D, E, F>(description: String, arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, prop : (t : A, u : B, v : C, w : D, e : E, a : F) => Property<any>) : any;
+    function property<A, B, C, D, E, F, G>(description: String, arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G) => Property<any>) : any;
+    function property<A, B, C, D, E, F, G, H>(description: String, arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H) => Property<any>) : any;
+    function property<A, B, C, D, E, F, G, H, I>(description: String, arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, arb9 : Arbitrary<I>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H, d : I) => Property<any>) : any;
+    function property<A, B, C, D, E, F, G, H, I, J>(description: String, arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, arb9 : Arbitrary<I>, arb10 : Arbitrary<J>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H, d : I, f : J) => Property<any>) : any;
+    function property(...args : any[]) : Result<any>;
+
     function check<T>(prop : Property<T>, opts? : Options) : Result<T>;
     function assert(prop : Property<any>, opts? : Options) : void;
 
@@ -199,3 +211,5 @@ declare module 'jsverify' {
         number(min : number, max : number) : number;
     }
 }
+
+export = JSVerify;
