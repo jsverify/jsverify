@@ -45,6 +45,19 @@ describe("sort", function () {
 });
 ```
 
+Starting from version 0.8.0 you can write the specs in TypeScript. There are
+typings provided. The drawback is that you cannot use type DSL:
+
+```typescript
+describe("basic jsverify usage", () => {
+  jsc.property("(b && b) === b", jsc.bool, b => (b && b) === b);
+
+  jsc.property("boolean fn thrice", jsc.fn(jsc.bool), jsc.bool, (f, b) =>
+    f(f(f(b))) === f(b)
+  );
+});
+```
+
 You can also provide `--jsverifyRngState state` command line argument, to run tests with particular random generator state.
 
 ```
@@ -627,6 +640,10 @@ likely easy to write, even *complete* inverse doesn't exist.
 
 ## Release History
 
+- **0.8.0** &mdash; *2017-03-12* &mdash; TypeScript typings
+    - Provide TypeScript typings
+      [#202](https://github.com/jsverify/jsverify/pull/202)
+      [#196](https://github.com/jsverify/jsverify/pull/196)
 - **0.7.5** &mdash; *2017-03-08* &mdash; International Women's Day
     - Add `letrec` combinator
       [#193](https://github.com/jsverify/jsverify/pull/193)
