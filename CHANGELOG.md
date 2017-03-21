@@ -1,5 +1,6 @@
 ## Release History
 
+- **0.8.1** &mdash; *2017-03-31* &mdash; Typescript updates
 - **0.8.0** &mdash; *2017-03-12* &mdash; TypeScript typings
     - Provide TypeScript typings
       [#202](https://github.com/jsverify/jsverify/pull/202)
