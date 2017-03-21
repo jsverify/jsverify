@@ -17,10 +17,10 @@ declare namespace JSVerify {
     function suchthat<U>(arb : Arbitrary<U>, predicate : (u : U) => boolean) : Arbitrary<U>;
 
     interface Options {
-        tests : number;
-        size : number;
-        quiet : boolean;
-        rngState : string;
+        tests? : number;
+        size? : number;
+        quiet? : boolean;
+        rngState? : string;
     }
 
     interface Result<T> {
