@@ -7,3 +7,10 @@ describe("basic jsverify usage", () => {
     f(f(f(b))) === f(b)
   );
 });
+
+describe("fails before #204", () => {
+  it('define only test size', () => {
+    const property = jsc.forall(jsc.nat, n => n >= 0);
+    jsc.assert(property, { size: 200 });
+  });
+});
