@@ -92,29 +92,29 @@ declare namespace JSVerify {
 
     function oneOf<T>(gs : Arbitrary<T>[]) : Arbitrary<T>;
 
-    function forall<A>(arb1 : Arbitrary<A>, prop : (t : A) => Property<A>) : Property<A>;
-    function forall<A, B>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, prop : (t : A, u : B) => Property<any>) : Property<any>;
-    function forall<A, B, C>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, prop : (t : A, u : B, v : C) => Property<any>) : Property<any>;
-    function forall<A, B, C, D>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, prop : (t : A, u : B, v : C, w : D) => Property<any>) : Property<any>;
-    function forall<A, B, C, D, E>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, prop : (t : A, u : B, v : C, w : D, e : E) => Property<any>) : Property<any>;
-    function forall<A, B, C, D, E, F>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, prop : (t : A, u : B, v : C, w : D, e : E, a : F) => Property<any>) : Property<any>;
-    function forall<A, B, C, D, E, F, G>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G) => Property<any>) : Property<any>;
-    function forall<A, B, C, D, E, F, G, H>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H) => Property<any>) : Property<any>;
-    function forall<A, B, C, D, E, F, G, H, I>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, arb9 : Arbitrary<I>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H, d : I) => Property<any>) : Property<any>;
-    function forall<A, B, C, D, E, F, G, H, I, J>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, arb9 : Arbitrary<I>, arb10 : Arbitrary<J>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H, d : I, f : J) => Property<any>) : Property<any>;
+    function forall<A, T>(arb1 : Arbitrary<A>, prop : (t : A) => Property<T>) : Property<T>;
+    function forall<A, B, T>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, prop : (t : A, u : B) => Property<T>) : Property<T>;
+    function forall<A, B, C, T>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, prop : (t : A, u : B, v : C) => Property<T>) : Property<T>;
+    function forall<A, B, C, D, T>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, prop : (t : A, u : B, v : C, w : D) => Property<T>) : Property<T>;
+    function forall<A, B, C, D, E, T>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, prop : (t : A, u : B, v : C, w : D, e : E) => Property<T>) : Property<T>;
+    function forall<A, B, C, D, E, F, T>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, prop : (t : A, u : B, v : C, w : D, e : E, a : F) => Property<T>) : Property<T>;
+    function forall<A, B, C, D, E, F, G, T>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G) => Property<T>) : Property<T>;
+    function forall<A, B, C, D, E, F, G, H, T>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H) => Property<T>) : Property<T>;
+    function forall<A, B, C, D, E, F, G, H, I, T>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, arb9 : Arbitrary<I>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H, d : I) => Property<T>) : Property<T>;
+    function forall<A, B, C, D, E, F, G, H, I, J, T>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, arb9 : Arbitrary<I>, arb10 : Arbitrary<J>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H, d : I, f : J) => Property<T>) : Property<T>;
     function forall(...args : any[]) : Property<any>;
 
-    function assertForall<A>(arb1 : Arbitrary<A>, prop : (t : A) => Property<A>) : void;
-    function assertForall<A, B>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, prop : (t : A, u : B) => Property<any>) : void;
-    function assertForall<A, B, C>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, prop : (t : A, u : B, v : C) => Property<any>) : void;
-    function assertForall<A, B, C, D>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, prop : (t : A, u : B, v : C, w : D) => Property<any>) : void;
-    function assertForall<A, B, C, D, E>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, prop : (t : A, u : B, v : C, w : D, e : E) => Property<any>) : void;
-    function assertForall<A, B, C, D, E, F>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, prop : (t : A, u : B, v : C, w : D, e : E, a : F) => Property<any>) : void;
-    function assertForall<A, B, C, D, E, F, G>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G) => Property<any>) : void;
-    function assertForall<A, B, C, D, E, F, G, H>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H) => Property<any>) : void;
-    function assertForall<A, B, C, D, E, F, G, H, I>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, arb9 : Arbitrary<I>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H, d : I) => Property<any>) : void;
-    function assertForall<A, B, C, D, E, F, G, H, I, J>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, arb9 : Arbitrary<I>, arb10 : Arbitrary<J>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H, d : I, f : J) => Property<any>) : void;
-    function assertForall(...args : any[]) : void;
+    function assertForall<A, T>(arb1 : Arbitrary<A>, prop : (t : A) => Property<T>) : T;
+    function assertForall<A, B, T>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, prop : (t : A, u : B) => Property<T>) : T;
+    function assertForall<A, B, C, T>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, prop : (t : A, u : B, v : C) => Property<T>) : T;
+    function assertForall<A, B, C, D, T>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, prop : (t : A, u : B, v : C, w : D) => Property<T>) : T;
+    function assertForall<A, B, C, D, E, T>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, prop : (t : A, u : B, v : C, w : D, e : E) => Property<T>) : T;
+    function assertForall<A, B, C, D, E, F, T>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, prop : (t : A, u : B, v : C, w : D, e : E, a : F) => Property<T>) : T;
+    function assertForall<A, B, C, D, E, F, G, T>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G) => Property<T>) : T;
+    function assertForall<A, B, C, D, E, F, G, H, T>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H) => Property<T>) : T;
+    function assertForall<A, B, C, D, E, F, G, H, I, T>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, arb9 : Arbitrary<I>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H, d : I) => Property<T>) : T;
+    function assertForall<A, B, C, D, E, F, G, H, I, J, T>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, arb3 : Arbitrary<C>, arb4 : Arbitrary<D>, arb5 : Arbitrary<E>, arb6 : Arbitrary<F>, arb7 : Arbitrary<G>, arb8 : Arbitrary<H>, arb9 : Arbitrary<I>, arb10 : Arbitrary<J>, prop : (t : A, u : B, v : C, w : D, e : E, a : F, b : G, c : H, d : I, f : J) => Property<T>) : T;
+    function assertForall(...args : any[]) : any;
 
     function checkForall<A>(arb1 : Arbitrary<A>, prop : (t : A) => Property<A>) : Result<A>;
     function checkForall<A, B>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, prop : (t : A, u : B) => Property<any>) : Result<any>;
@@ -141,7 +141,7 @@ declare namespace JSVerify {
     function property(...args : any[]) : Result<any>;
 
     function check<T>(prop : Property<T>, opts? : Options) : Result<T>;
-    function assert(prop : Property<any>, opts? : Options) : void;
+    function assert<T>(prop : Property<T>, opts? : Options) : T;
 
     const generator : GeneratorFunctions;
     const shrink : ShrinkFunctions;
