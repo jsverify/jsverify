@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
-    "allowJs": true
+    "allowJs": true,
+    "lib": ["DOM", "ES6"]
   }
 }
