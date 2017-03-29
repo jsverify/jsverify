@@ -25,5 +25,10 @@ describe("jsverify", function () {
 
       it = origIt;
     });
+
+    jsc.property("takes options", { size: 100, rngState: "000123456789abcdfe" }, jsc.nat(), function (n) {
+      return n < 100;
+    });
+
   });
 });
