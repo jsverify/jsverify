@@ -90,7 +90,7 @@ declare namespace JSVerify {
     const json : Arbitrary<any>;
     const unit : Arbitrary<any>;
 
-    function oneOf<T>(gs : Arbitrary<T>[]) : Arbitrary<T>;
+    function oneof<T>(gs : Arbitrary<T>[]) : Arbitrary<T>;
 
     function forall<A, T>(arb1 : Arbitrary<A>, prop : (t : A) => Property<T>) : Property<T>;
     function forall<A, B, T>(arb1 : Arbitrary<A>, arb2 : Arbitrary<B>, prop : (t : A, u : B) => Property<T>) : Property<T>;
@@ -150,7 +150,7 @@ declare namespace JSVerify {
 
     interface GeneratorFunctions {
         constant<U>(u : U) : Generator<U>;
-        oneOf<U>(gens : Generator<U>[]) : Generator<U>;
+        oneof<U>(gens : Generator<U>[]) : Generator<U>;
         recursive<U>(genZ : Generator<U>, f : (u : U) => U) : Generator<U>;
         pair<T, U>(genA : Generator<T>, genB : Generator<U>) : Generator<[T, U]>;
         either<T, U>(genA : Generator<T>, genB : Generator<U>) : Generator<T | U>;
