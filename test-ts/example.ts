@@ -19,4 +19,13 @@ describe("basic jsverify usage", () => {
       .then(val => val ? done(val) : done())
       .catch(error => done(error));
   });
+
+  // You may simply return a promise with mocha
+  jsc.property("async evaluation...", jsc.fun(jsc.nat), jsc.json, jsc.nat(20), (f, x, t) => {
+    const sync = f(x);
+
+    return new Promise(resolve => {
+      setTimeout(() => resolve(f(x)), t);
+    }).then(val => val === sync);
+  });
 });
