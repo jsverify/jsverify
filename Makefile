@@ -1,10 +1,11 @@
-.PHONY : all test test-default test-travis jshint eslint jscs karma mocha mocha-ts istanbul npm-freeze david dist literate README.md
+.PHONY : all test test-default test-travis jshint eslint jscs tslint karma mocha mocha-ts istanbul npm-freeze david dist literate README.md
 
 BINDIR=node_modules/.bin
 
 JSHINT=$(BINDIR)/jshint
 ESLINT=$(BINDIR)/eslint
 JSCS=$(BINDIR)/jscs
+TSLINT=$(BINDIR)/tslint
 MOCHA=$(BINDIR)/mocha
 IMOCHA=$(BINDIR)/_mocha
 ISTANBUL=$(BINDIR)/istanbul
@@ -26,6 +27,7 @@ test-default : jshint eslint jscs mocha istanbul mocha-ts david npm-freeze
 test-travis : test-readme test-default
 
 SRC=lib test fail examples helpers karma.conf.js karma.jasmine.conf.js
+TSSRC=lib/jsverify.d.ts test-ts
 
 jshint :
 	$(JSHINT) $(SRC)
@@ -35,6 +37,9 @@ eslint :
 
 jscs :
 	$(JSCS) $(SRC)
+
+tslint :
+	$(TSLINT) $(TSSRC)
 
 tests-bundle.js : test/*
 	$(BROWSERIFY) -r underscore -r lodash -r q -r when -r bluebird -o tests-bundle.js test/*.js

@@ -640,6 +640,9 @@ likely easy to write, even *complete* inverse doesn't exist.
 
 ## Release History
 
+- **0.8.2** &mdash; *2017-04-01* &mdash; Typescript updates
+    - Typings fixes
+    - Sources are `tslint`ed
 - **0.8.1** &mdash; *2017-03-31* &mdash; Typescript updates
 - **0.8.0** &mdash; *2017-03-12* &mdash; TypeScript typings
     - Provide TypeScript typings
