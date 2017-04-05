@@ -49,6 +49,16 @@ declare namespace JSVerify {
   type integerFn = (maxsize: number) => Arbitrary<number>;
   type integerFn2 = (minsize: number, maxsize: number) => Arbitrary<number>;
 
+  interface Either<T> {
+    value: T;
+  }
+
+  interface Addend<T> {
+    idx: number;
+    len: number;
+    value: T;
+  }
+
   const integer: Arbitrary<number> & integerFn & integerFn2;
   const nat: Arbitrary<number> & integerFn;
 	// tslint:disable-next-line:variable-name
@@ -78,11 +88,11 @@ declare namespace JSVerify {
 
   //Combinators
   function nonShrink<T>(arb: Arbitrary<T>): Arbitrary<T>;
-  function either<T, U>(arbA: Arbitrary<T>, arbB: Arbitrary<U>): Arbitrary<T | U>;
+  function either<T, U>(arbA: Arbitrary<T>, arbB: Arbitrary<U>): Arbitrary<Either<T | U>>;
   function pair<T, U>(arbA: Arbitrary<T>, arbB: Arbitrary<U>): Arbitrary<[T, U]>;
 
   function tuple(arbs: Arbitrary<any>[]): Arbitrary<any[]>;
-  function sum(arbs: Arbitrary<any>[]): Arbitrary<any>;
+  function sum<T>(arbs: Arbitrary<T>[]): Arbitrary<Addend<T>>;
 
   function dict<T>(arb: Arbitrary<T>): Arbitrary<{ [s: string]: T }>;
   function array<T>(arb: Arbitrary<T>): Arbitrary<T[]>;
