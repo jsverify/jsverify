@@ -62,6 +62,8 @@ declare namespace JSVerify {
     fold<U>(f: (idx: number, len: number, value: T) => U): U;
   }
 
+  function addend<T>(idx: number, len: number, value: T): Addend<T>;
+
   const integer: Arbitrary<number> & integerFn & integerFn2;
   const nat: Arbitrary<number> & integerFn;
 	// tslint:disable-next-line:variable-name
