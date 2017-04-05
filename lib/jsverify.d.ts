@@ -107,6 +107,7 @@ declare namespace JSVerify {
   const unit: Arbitrary<any>;
 
   function oneOf<T>(gs: Arbitrary<T>[]): Arbitrary<T>;
+  function record<T>(arbs: { [P in keyof T]: Arbitrary<T[P]> }): Arbitrary<T>;
 
 	/* tslint:disable:max-line-length */
   function forall<A, T>(arb1: Arbitrary<A>, prop: (t: A) => Property<T>): Property<T>;
