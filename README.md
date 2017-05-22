@@ -783,7 +783,7 @@ likely easy to write, even *complete* inverse doesn't exist.
     - use eslint
 - **0.4.0**-alpha5 move david to be devDependency
 - **0.4.0**-alpha4 more typify
-    - `suchchat` supports typify dsl
+    - `suchthat` supports typify dsl
     - `oneof` &rarr; `elements` to be in line with QuickCheck
     - Added versions of examples using typify dsl
 - **0.4.0**-alpha3 David, npm-freeze and jscs
