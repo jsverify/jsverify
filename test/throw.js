@@ -18,7 +18,7 @@ function checkShrink(mincase, message, property) {
     wasShrinked = wasShrinked || r.shrinks > 0;
   }
 
-  assert(wasShrinked, "should be shrinked");
+  assert(wasShrinked, "should be shrunken");
 }
 
 describe("properties that throws", function () {

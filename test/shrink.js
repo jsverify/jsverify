@@ -19,7 +19,7 @@ function checkShrinkPredicate(p, property, tries, wasShrinked) {
     wasShrinked = wasShrinked || r.shrinks > 0;
   }
 
-  assert(wasShrinked, "should be shrinked");
+  assert(wasShrinked, "should be shrunken");
 }
 
 function checkShrink(mincase, property, tries) {
@@ -85,7 +85,7 @@ describe("shrink", function () {
   });
 
   describe("suchthat", function () {
-    it("shrinks so predicate is true for all shrinked values still", function () {
+    it("shrinks so predicate is true for all shrunken values still", function () {
       var oddNumbers = jsc.suchthat(jsc.nat(), function (n) {
         return n % 2 === 1;
       });
@@ -174,12 +174,12 @@ describe("shrink", function () {
   });
 
   describe("number", function () {
-    it("zero isn't shrinked", function () {
+    it("zero isn't shrunken", function () {
       var arb = jsc.number;
       chai.expect(arb.shrink(0)).to.deep.equal([]);
     });
 
-    it("shrinked to absolutely smaller values", function () {
+    it("shrunk to absolutely smaller values", function () {
       var arb = jsc.number;
       var n = 10;
       assert(arb.shrink(n).every(function (x) {
@@ -187,7 +187,7 @@ describe("shrink", function () {
       }));
     });
 
-    it("shrinked to absolutely smaller values, 2", function () {
+    it("shrunk to absolutely smaller values, 2", function () {
       var n = 10;
       var arb = jsc.number(n);
       assert(arb.shrink(n).every(function (x) {
@@ -195,7 +195,7 @@ describe("shrink", function () {
       }));
     });
 
-    it("shrinked to absolutely smaller values, 3", function () {
+    it("shrunk to absolutely smaller values, 3", function () {
       var n = 10;
       var m = 5;
       var arb = jsc.number(m, n);
@@ -206,7 +206,7 @@ describe("shrink", function () {
   });
 
   describe("datetime", function () {
-    it("shrinked days stay in the interval", function () {
+    it("shrunken days stay in the interval", function () {
       var from = new Date("Sun Nov 30 2014 10:00:00 GMT+0200 (EET)");
       var to = new Date("Sun Nov 30 2014 14:00:00 GMT+0200 (EET)");
       var arb = jsc.datetime(from, to);
@@ -218,7 +218,7 @@ describe("shrink", function () {
   });
 
   describe("nonshrink array", function () {
-    it("cannot be shrinked", function () {
+    it("cannot be shrunk", function () {
       var property = jsc.forall(jsc.nonshrink(jsc.array(jsc.nat())), function (arr) {
         return arr.length === 0 || arr[0] === 0;
       });
@@ -332,7 +332,7 @@ describe("shrink", function () {
   });
 
   describe("function", function () {
-    it("cannot be shrinked", function () {
+    it("cannot be shrunk", function () {
       var property = jsc.forall(jsc.fn(), function (f) {
         return f(0) !== f(0);
       });
@@ -367,7 +367,7 @@ describe("shrink", function () {
   });
 
   describe("issue #99", function () {
-    it("shrinks a pair so predicate is true for all shrinked values still", function () {
+    it("shrinks a pair so predicate is true for all shrunken values still", function () {
       var smallAndBigPair = jsc.suchthat(jsc.pair(jsc.nat(), jsc.nat()), function (pair) {
         return pair[0] <= pair[1];
       });
