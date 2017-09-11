@@ -3,7 +3,9 @@
 
 var arbitrary = require("./arbitrary.js");
 var bless = require("./bless.js");
+var dict = require("./dict.js");
 var generator = require("./generator.js");
+var json = require("./json.js");
 var primitive = require("./primitive.js");
 var record = require("./record.js");
 var recordWithEnv = require("./recordWithEnv.js");
@@ -28,8 +30,11 @@ var api = {
     sum: arbitrary.sum,
     oneof: arbitrary.oneof,
     recursive: arbitrary.recursive,
+    letrec: arbitrary.letrec,
   },
   generator: {
+    dict: dict.generator,
+    json: json.json.generator,
     small: small.generator,
     record: record.generator,
   },
@@ -55,7 +60,7 @@ for (k in generator) {
 }
 module.exports = api;
 
-},{"./arbitrary.js":2,"./bless.js":6,"./generator.js":13,"./primitive.js":17,"./record.js":19,"./recordWithEnv.js":20,"./shrink.js":22,"./small.js":23,"./string.js":24}],2:[function(require,module,exports){
+},{"./arbitrary.js":2,"./bless.js":6,"./dict.js":7,"./generator.js":13,"./json.js":14,"./primitive.js":17,"./record.js":19,"./recordWithEnv.js":20,"./shrink.js":22,"./small.js":23,"./string.js":24}],2:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -154,7 +159,7 @@ function sum(arbs) {
       Generates a JavaScript object with properties of type `A`.
 */
 function dictArb(arb) {
-  return dict.dict(arb || json.json);
+  return dict.arbitrary(arb || json.json);
 }
 
 /**
@@ -174,7 +179,7 @@ function nearrayArb(arb) {
 /**
   - `json: arbitrary json`
 
-       JavaScript Objects: boolean, number, string, array of `json` values or object with `json` values.
+       JavaScript Objects: boolean, number, string, null, array of `json` values or object with `json` values.
 */
 var jsonArb = json.json;
 
@@ -206,6 +211,67 @@ function oneof() {
     shrink: shrink.noop,
     show: show.def,
   });
+}
+
+// Return a lazy arbitrary that delegates to another arbitrary at its
+// 'strict' property. An arbitrary must be assigned to that property before
+// this arbitrary can generate anything.
+function lazyArbitrary() {
+  var arb = {};
+  // This function must be pure because it will not be called with
+  // meaningful context.
+  arb.generator = generator.bless(function (size) {
+    return arb.strict.generator(size);
+  });
+  arb.shrink = shrink.noop;
+  arb.show = show.def;
+  arb = arbitraryBless(arb);
+  return arb;
+}
+
+/**
+  - ```js
+    letrec(
+      (tie: key -> (arbitrary a | arbitrary b | ...))
+      -> { key: arbitrary a, key: arbitrary b, ... }):
+    { key: arbitrary a, key: arbitrary b, ... }
+    ```
+
+    Mutually recursive definitions. Every reference to a sibling arbitrary
+    should go through the `tie` function.
+
+    ```js
+    { arb1, arb2 } = jsc.letrec(function (tie) {
+      return {
+        arb1: jsc.tuple(jsc.int, jsc.oneof(jsc.const(null), tie("arb2"))),
+        arb2: jsc.tuple(jsc.bool, jsc.oneof(jsc.const(null), tie("arb1"))),
+      }
+    });
+    ```
+*/
+function letrec(definition) {
+  // We must use a lazy dictionary because we do not know the key set
+  // before calling the definition.
+  var lazyArbs = {};
+
+  function tie(name) {
+    if (!lazyArbs.hasOwnProperty(name)) {
+      lazyArbs[name] = lazyArbitrary();
+    }
+    return lazyArbs[name];
+  }
+
+  var strictArbs = definition(tie);
+
+  Object.keys(lazyArbs).forEach(function (key) {
+    var strictArb = strictArbs[key];
+    if (!strictArb) {
+      throw new Error("undefined lazy arbitrary: " + key);
+    }
+    lazyArbs[key].strict = strictArb;
+  });
+
+  return strictArbs;
 }
 
 function recursive(arbZ, arbS) {
@@ -240,6 +306,7 @@ module.exports = {
   sum: sum,
   oneof: oneof,
   recursive: recursive,
+  letrec: letrec,
 };
 
 },{"./arbitraryAssert.js":3,"./arbitraryBless.js":4,"./array.js":5,"./dict.js":7,"./generator.js":13,"./json.js":14,"./pair.js":16,"./show.js":21,"./shrink.js":22,"./utils.js":28,"assert":29}],3:[function(require,module,exports){
@@ -309,7 +376,7 @@ function arbitraryProtoSMap(f, g, newShow) {
       _.identity(_uniq([0, 0])) = [0]] != [0, 0]
       ```
 
-      We need an inverse for shrinking, and there right inverse is enough. We can always *pull back* `smap`ped value and shrink the preimage, and *map* or *push forward* shrinked preimages again.
+      We need an inverse for shrinking, and there right inverse is enough. We can always *pull back* `smap`ped value, shrink the preimage, and *map* or *push forward* shrunken preimages again.
 */
 function arbitraryBless(arb) {
   arb.smap = arbitraryProtoSMap;
@@ -408,6 +475,7 @@ module.exports = bless;
 
 var arbitraryAssert = require("./arbitraryAssert.js");
 var array = require("./array.js");
+var generator = require("./generator.js");
 var pair = require("./pair.js");
 var string = require("./string.js");
 var utils = require("./utils.js");
@@ -418,6 +486,17 @@ function makeMapShow(elShow) {
       return k + ": " + elShow(m[k]);
     }).join(", ") + "}";
   };
+}
+
+/**
+  - `dict.generator(gen: generator a): generator (dict a)`
+*/
+function generateDict(gen) {
+  var pairGen = generator.pair(string.string.generator, gen);
+  var arrayGen = generator.array(pairGen);
+  var result = arrayGen.map(utils.pairArrayToDict);
+
+  return utils.curried2(result, arguments);
 }
 
 function dict(arb) {
@@ -431,10 +510,11 @@ function dict(arb) {
 }
 
 module.exports = {
-  dict: dict,
+  arbitrary: dict,
+  generator: generateDict,
 };
 
-},{"./arbitraryAssert.js":3,"./array.js":5,"./pair.js":16,"./string.js":24,"./utils.js":28}],8:[function(require,module,exports){
+},{"./arbitraryAssert.js":3,"./array.js":5,"./generator.js":13,"./pair.js":16,"./string.js":24,"./utils.js":28}],8:[function(require,module,exports){
 "use strict";
 
 var assert = require("assert");
@@ -768,7 +848,7 @@ module.exports = {
   run: run,
 };
 
-},{"trampa":35}],13:[function(require,module,exports){
+},{"trampa":32}],13:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -793,7 +873,7 @@ var utils = require("./utils.js");
   In purely functional approach `generator a` would be explicitly stateful computation:
   `(size: nat, rng: randomstate) -> (a, randomstate)`.
   *JSVerify* uses an implicit random number generator state,
-  but the value generation is deterministic (tests reproduceable),
+  but the value generation is deterministic (tests are reproducible),
   if the primitives from *random* module are used.
 */
 
@@ -1016,20 +1096,6 @@ function generateNEArray(gen) {
 /**
   - `generator.dict(gen: generator a): generator (dict a)`
 */
-function generateDict(gen) {
-  // Circular dependency :(
-  var string = require("./string.js");
-
-  var pairGen = generatePair(string.string.generator, gen);
-  var arrayGen = generateArray(pairGen);
-  var result = arrayGen.map(utils.pairArrayToDict);
-
-  return utils.curried2(result, arguments);
-}
-
-function generateJson(size) {
-  return require("./json.js").json.generator(size);
-}
 
 module.exports = {
   pair: generatePair,
@@ -1039,8 +1105,6 @@ module.exports = {
   sum: generateSum,
   array: generateArray,
   nearray: generateNEArray,
-  dict: generateDict,
-  json: generateJson,
   oneof: generateOneof,
   constant: generateConstant,
   bless: generatorBless,
@@ -1048,12 +1112,13 @@ module.exports = {
   recursive: generatorRecursive,
 };
 
-},{"./either.js":8,"./json.js":14,"./random.js":18,"./string.js":24,"./sum.js":26,"./utils.js":28,"assert":29}],14:[function(require,module,exports){
+},{"./either.js":8,"./random.js":18,"./sum.js":26,"./utils.js":28,"assert":29}],14:[function(require,module,exports){
 "use strict";
 
 var assert = require("assert");
 
 var arbitraryBless = require("./arbitraryBless.js");
+var dict = require("./dict.js");
 var generator = require("./generator.js");
 var primitive = require("./primitive.js");
 var show = require("./show.js");
@@ -1061,15 +1126,24 @@ var shrink = require("./shrink.js");
 var string = require("./string.js");
 var utils = require("./utils.js");
 
+var nullArb = primitive.constant(null);
+
 var generateInteger = primitive.integer.generator;
 var generateNumber = primitive.number.generator;
 var generateBool = primitive.bool.generator;
 var generateString = string.string.generator;
+var generateNull = nullArb.generator;
 
 var generateJson = generator.recursive(
-  generator.oneof([generateInteger, generateNumber, generateBool, generateString]),
+  generator.oneof([
+    generateInteger,
+    generateNumber,
+    generateBool,
+    generateString,
+    generateNull,
+  ]),
   function (gen) {
-    return generator.oneof([generator.array(gen), generator.dict(gen)]);
+    return generator.oneof([generator.array(gen), dict.generator(gen)]);
   });
 
 // Forward declaration
@@ -1086,6 +1160,10 @@ function shrinkRecJson(json) {
 
 shrinkJson = shrink.bless(function (json) {
   assert(typeof json !== "function");
+
+  if (json === null) {
+    return nullArb.shrink(json);
+  }
 
   switch (typeof json) {
     case "boolean": return primitive.bool.shrink(json);
@@ -1112,14 +1190,14 @@ module.exports = {
   json: json,
 };
 
-},{"./arbitraryBless.js":4,"./generator.js":13,"./primitive.js":17,"./show.js":21,"./shrink.js":22,"./string.js":24,"./utils.js":28,"assert":29}],15:[function(require,module,exports){
+},{"./arbitraryBless.js":4,"./dict.js":7,"./generator.js":13,"./primitive.js":17,"./show.js":21,"./shrink.js":22,"./string.js":24,"./utils.js":28,"assert":29}],15:[function(require,module,exports){
 /* @flow weak */
 /**
   # JSVerify
 
   <img src="https://raw.githubusercontent.com/jsverify/jsverify/master/jsverify-300.png" align="right" height="100" />
 
-  > Property based checking. Like QuickCheck.
+  > Property-based checking. Like QuickCheck.
 
   [![Build Status](https://secure.travis-ci.org/jsverify/jsverify.svg?branch=master)](http://travis-ci.org/jsverify/jsverify)
   [![NPM version](https://badge.fury.io/js/jsverify.svg)](http://badge.fury.io/js/jsverify)
@@ -1151,7 +1229,7 @@ module.exports = {
 /**
   ## Documentation
 
-  ### Usage with [mocha](http://visionmedia.github.io/mocha/)
+  ### Usage with [mocha](http://mochajs.org/)
 
   Using jsverify with mocha is easy, just define the properties and use `jsverify.assert`.
 
@@ -1162,6 +1240,19 @@ module.exports = {
     jsc.property("idempotent", "array nat", function (arr) {
       return _.isEqual(sort(sort(arr)), sort(arr));
     });
+  });
+  ```
+
+  Starting from version 0.8.0 you can write the specs in TypeScript. There are
+  typings provided. The drawback is that you cannot use type DSL:
+
+  ```typescript
+  describe("basic jsverify usage", () => {
+    jsc.property("(b && b) === b", jsc.bool, b => (b && b) === b);
+
+    jsc.property("boolean fn thrice", jsc.fn(jsc.bool), jsc.bool, (f, b) =>
+      f(f(f(b))) === f(b)
+    );
   });
   ```
 
@@ -1179,9 +1270,9 @@ module.exports = {
      Error: Failed after 1 tests and 1 shrinks. rngState: 074e9b5f037a8c21d6; Counterexample: 90;
   ```
 
-  Errorneous case is found with first try.
+  Erroneous case is found with first try.
 
-  ### Usage with [jasmine](http://pivotal.github.io/jasmine/)
+  ### Usage with [jasmine](https://jasmine.github.io/)
 
   Check [jasmineHelpers.js](helpers/jasmineHelpers.js) and [jasmineHelpers2.js](helpers/jasmineHelpers2.js) for jasmine 1.3 and 2.0 respectively.
 
@@ -1197,7 +1288,7 @@ module.exports = {
   We formulate propositions, invariants or other properties we believe to hold, but
   only test it to hold for numerous (randomly generated) values.
 
-  Types and function signatures are written in [Coq](http://coq.inria.fr/)/[Haskell](http://www.haskell.org/haskellwiki/Haskell) influented style:
+  Types and function signatures are written in [Coq](http://coq.inria.fr/)/[Haskell](http://www.haskell.org/haskellwiki/Haskell)-influenced style:
   C# -style `List<T> filter(List<T> v, Func<T, bool> predicate)` is represented by
   `filter(v: array T, predicate: T -> bool): array T` in our style.
 
@@ -1508,7 +1599,7 @@ function bddProperty(name) {
 /**
   - `compile(desc: string, env: typeEnv?): arbitrary a`
 
-      Compile the type describiption in provided type environment, or default one.
+      Compile the type description in provided type environment, or default one.
 */
 function compile(str, env) {
   env = env ? utils.merge(environment, env) : environment;
@@ -1552,7 +1643,7 @@ function sampler(arb, size) {
 }
 
 /**
-  - `throws(block: () -> a, error: class?, message: string?): bool
+  - `throws(block: () -> a, error: class?, message: string?): bool`
 
     Executes nullary function `block`. Returns `true` if `block` throws. See [assert.throws](https://nodejs.org/api/assert.html#assert_assert_throws_block_error_message)
 */
@@ -1611,7 +1702,7 @@ function checkForall() {
 
   ### Blessing
 
-  We chose to respresent generators and shrinks by functions, yet we would
+  We chose to represent generators and shrinks by functions, yet we would
   like to have additional methods on them. Thus we *bless* objects with
   additional properties.
 
@@ -1631,6 +1722,7 @@ function checkForall() {
 /// include ./string.js
 /// include ./fn.js
 /// include ./small.js
+/// include ./suchthat.js
 /// include ./generator.js
 /// include ./shrink.js
 /// include ./show.js
@@ -1692,7 +1784,7 @@ module.exports = jsc;
 /// plain ../related-work.md
 /// plain ../LICENSE
 
-},{"./api.js":1,"./either.js":8,"./environment.js":9,"./finitemap.js":10,"./fn.js":11,"./functor.js":12,"./random.js":18,"./show.js":21,"./shrink.js":22,"./suchthat.js":25,"./sum.js":26,"./typify.js":27,"./utils.js":28,"assert":29,"lazy-seq":33}],16:[function(require,module,exports){
+},{"./api.js":1,"./either.js":8,"./environment.js":9,"./finitemap.js":10,"./fn.js":11,"./functor.js":12,"./random.js":18,"./show.js":21,"./shrink.js":22,"./suchthat.js":25,"./sum.js":26,"./typify.js":27,"./utils.js":28,"assert":29,"lazy-seq":30}],16:[function(require,module,exports){
 "use strict";
 
 var arbitraryAssert = require("./arbitraryAssert.js");
@@ -2052,7 +2144,7 @@ randomInteger.setStateString = rc4.setStateString.bind(rc4);
 
 module.exports = randomInteger;
 
-},{"rc4":34}],19:[function(require,module,exports){
+},{"rc4":31}],19:[function(require,module,exports){
 "use strict";
 
 var arbitraryBless = require("./arbitraryBless.js");
@@ -2483,7 +2575,7 @@ module.exports = {
   bless: shrinkBless,
 };
 
-},{"./either.js":8,"./sum.js":26,"./utils.js":28,"assert":29,"lazy-seq":33}],23:[function(require,module,exports){
+},{"./either.js":8,"./sum.js":26,"./utils.js":28,"assert":29,"lazy-seq":30}],23:[function(require,module,exports){
 "use strict";
 
 var generator = require("./generator.js");
@@ -2609,8 +2701,11 @@ var typify = require("./typify.js");
 var utils = require("./utils.js");
 var generator = require("./generator.js");
 var shrink = require("./shrink.js");
+var arbitraryBless = require("./arbitraryBless.js");
 
 /**
+  ### Restricting arbitraries
+
   - `suchthat(arb: arbitrary a, userenv: env?, p : a -> bool): arbitrary a`
       Arbitrary of values that satisfy `p` predicate. It's advised that `p`'s accept rate is high.
 */
@@ -2626,7 +2721,7 @@ function suchthat(arb, userenv, predicate) {
   arb = typeof arb === "string" ? typify.parseTypify(env, arb) : arb;
   arb = utils.force(arb);
 
-  return {
+  return arbitraryBless({
     generator: generator.bless(function (size) {
       for (var i = 0; ; i++) {
         // if 5 tries failed, increase size
@@ -2647,14 +2742,14 @@ function suchthat(arb, userenv, predicate) {
     }),
 
     show: arb.show,
-  };
+  });
 }
 
 module.exports = {
   suchthat: suchthat,
 };
 
-},{"./environment.js":9,"./generator.js":13,"./shrink.js":22,"./typify.js":27,"./utils.js":28}],26:[function(require,module,exports){
+},{"./arbitraryBless.js":4,"./environment.js":9,"./generator.js":13,"./shrink.js":22,"./typify.js":27,"./utils.js":28}],26:[function(require,module,exports){
 "use strict";
 
 var assert = require("assert");
@@ -2710,7 +2805,7 @@ module.exports = {
   - *functions* are supported: `"bool -> bool"` is evaluated to `jsc.fn(jsc.bool)`.
   - *square brackets* are treated as a shorthand for the array type: `"[nat]"` is evaluated to `jsc.array(jsc.nat)`.
   - *union*: `"bool | nat"` is evaluated to `jsc.sum([jsc.bool, jsc.nat])`.
-      - **Note** `oneof` cannot be shrinked, because the union is untagged, we don't know which shrink to use.
+      - **Note** `oneof` cannot be shrunk, because the union is untagged, we don't know which shrink to use.
   - *conjunction*: `"bool & nat"` is evaluated to `jsc.tuple(jsc.bool, jsc.nat)`.
   - *anonymous records*: `"{ b: bool; n: nat }"` is evaluated to `jsc.record({ b: jsc.bool, n: jsc.nat })`.
   - *EXPERIMENTAL: recursive types*: `"rec list -> unit | (nat & list)"`.
@@ -2832,7 +2927,7 @@ module.exports = {
   parseTypify: parseTypify,
 };
 
-},{"./arbitrary.js":2,"./array.js":5,"./fn.js":11,"./record.js":19,"./utils.js":28,"assert":29,"typify-parser":36}],28:[function(require,module,exports){
+},{"./arbitrary.js":2,"./array.js":5,"./fn.js":11,"./record.js":19,"./utils.js":28,"assert":29,"typify-parser":33}],28:[function(require,module,exports){
 /* @flow weak */
 "use strict";
 
@@ -2907,7 +3002,7 @@ function isEqual(a, b) {
   - `utils.isApproxEqual(x: a, y: b, opts: obj): bool`
 
       Tests whether two objects are approximately and optimistically equal.
-      Returns `false` only if they are distinguisable not equal.
+      Returns `false` only if they are distinguishable not equal.
       Returns `true` when `x` and `y` are `NaN`.
       This function works with cyclic data.
 
@@ -3108,6 +3203,50 @@ module.exports = {
 };
 
 },{}],29:[function(require,module,exports){
+'use strict';
+
+// compare and isBuffer taken from https://github.com/feross/buffer/blob/680e9e5e488f22aac27599a57dc844a6315928dd/index.js
+// original notice:
+
+/*!
+ * The buffer module from node.js, for the browser.
+ *
+ * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
+ * @license  MIT
+ */
+function compare(a, b) {
+  if (a === b) {
+    return 0;
+  }
+
+  var x = a.length;
+  var y = b.length;
+
+  for (var i = 0, len = Math.min(x, y); i < len; ++i) {
+    if (a[i] !== b[i]) {
+      x = a[i];
+      y = b[i];
+      break;
+    }
+  }
+
+  if (x < y) {
+    return -1;
+  }
+  if (y < x) {
+    return 1;
+  }
+  return 0;
+}
+function isBuffer(b) {
+  if (global.Buffer && typeof global.Buffer.isBuffer === 'function') {
+    return global.Buffer.isBuffer(b);
+  }
+  return !!(b != null && b._isBuffer);
+}
+
+// based on node assert, original notice:
+
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
@@ -3132,14 +3271,36 @@ module.exports = {
 // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-// when used in node, this will actually load the util module we depend on
-// versus loading the builtin util module as happens otherwise
-// this is a bug in node module loading as far as I am concerned
 var util = require('util/');
-
-var pSlice = Array.prototype.slice;
 var hasOwn = Object.prototype.hasOwnProperty;
-
+var pSlice = Array.prototype.slice;
+var functionsHaveNames = (function () {
+  return function foo() {}.name === 'foo';
+}());
+function pToString (obj) {
+  return Object.prototype.toString.call(obj);
+}
+function isView(arrbuf) {
+  if (isBuffer(arrbuf)) {
+    return false;
+  }
+  if (typeof global.ArrayBuffer !== 'function') {
+    return false;
+  }
+  if (typeof ArrayBuffer.isView === 'function') {
+    return ArrayBuffer.isView(arrbuf);
+  }
+  if (!arrbuf) {
+    return false;
+  }
+  if (arrbuf instanceof DataView) {
+    return true;
+  }
+  if (arrbuf.buffer && arrbuf.buffer instanceof ArrayBuffer) {
+    return true;
+  }
+  return false;
+}
 // 1. The assert module provides functions that throw
 // AssertionError's when particular conditions are not met. The
 // assert module must conform to the following interface.
@@ -3151,6 +3312,19 @@ var assert = module.exports = ok;
 //                             actual: actual,
 //                             expected: expected })
 
+var regex = /\s*function\s+([^\(\s]*)\s*/;
+// based on https://github.com/ljharb/function.prototype.name/blob/adeeeec8bfcc6068b187d7d9fb3d5bb1d3a30899/implementation.js
+function getName(func) {
+  if (!util.isFunction(func)) {
+    return;
+  }
+  if (functionsHaveNames) {
+    return func.name;
+  }
+  var str = func.toString();
+  var match = str.match(regex);
+  return match && match[1];
+}
 assert.AssertionError = function AssertionError(options) {
   this.name = 'AssertionError';
   this.actual = options.actual;
@@ -3164,18 +3338,16 @@ assert.AssertionError = function AssertionError(options) {
     this.generatedMessage = true;
   }
   var stackStartFunction = options.stackStartFunction || fail;
-
   if (Error.captureStackTrace) {
     Error.captureStackTrace(this, stackStartFunction);
-  }
-  else {
+  } else {
     // non v8 browsers so we can have a stacktrace
     var err = new Error();
     if (err.stack) {
       var out = err.stack;
 
       // try to strip useless frames
-      var fn_name = stackStartFunction.name;
+      var fn_name = getName(stackStartFunction);
       var idx = out.indexOf('\n' + fn_name);
       if (idx >= 0) {
         // once we have located the function frame
@@ -3192,31 +3364,25 @@ assert.AssertionError = function AssertionError(options) {
 // assert.AssertionError instanceof Error
 util.inherits(assert.AssertionError, Error);
 
-function replacer(key, value) {
-  if (util.isUndefined(value)) {
-    return '' + value;
-  }
-  if (util.isNumber(value) && !isFinite(value)) {
-    return value.toString();
-  }
-  if (util.isFunction(value) || util.isRegExp(value)) {
-    return value.toString();
-  }
-  return value;
-}
-
 function truncate(s, n) {
-  if (util.isString(s)) {
+  if (typeof s === 'string') {
     return s.length < n ? s : s.slice(0, n);
   } else {
     return s;
   }
 }
-
+function inspect(something) {
+  if (functionsHaveNames || !util.isFunction(something)) {
+    return util.inspect(something);
+  }
+  var rawname = getName(something);
+  var name = rawname ? ': ' + rawname : '';
+  return '[Function' +  name + ']';
+}
 function getMessage(self) {
-  return truncate(JSON.stringify(self.actual, replacer), 128) + ' ' +
+  return truncate(inspect(self.actual), 128) + ' ' +
          self.operator + ' ' +
-         truncate(JSON.stringify(self.expected, replacer), 128);
+         truncate(inspect(self.expected), 128);
 }
 
 // At present only the three keys mentioned above are used and
@@ -3276,24 +3442,23 @@ assert.notEqual = function notEqual(actual, expected, message) {
 // assert.deepEqual(actual, expected, message_opt);
 
 assert.deepEqual = function deepEqual(actual, expected, message) {
-  if (!_deepEqual(actual, expected)) {
+  if (!_deepEqual(actual, expected, false)) {
     fail(actual, expected, message, 'deepEqual', assert.deepEqual);
   }
 };
 
-function _deepEqual(actual, expected) {
+assert.deepStrictEqual = function deepStrictEqual(actual, expected, message) {
+  if (!_deepEqual(actual, expected, true)) {
+    fail(actual, expected, message, 'deepStrictEqual', assert.deepStrictEqual);
+  }
+};
+
+function _deepEqual(actual, expected, strict, memos) {
   // 7.1. All identical values are equivalent, as determined by ===.
   if (actual === expected) {
     return true;
-
-  } else if (util.isBuffer(actual) && util.isBuffer(expected)) {
-    if (actual.length != expected.length) return false;
-
-    for (var i = 0; i < actual.length; i++) {
-      if (actual[i] !== expected[i]) return false;
-    }
-
-    return true;
+  } else if (isBuffer(actual) && isBuffer(expected)) {
+    return compare(actual, expected) === 0;
 
   // 7.2. If the expected value is a Date object, the actual value is
   // equivalent if it is also a Date object that refers to the same time.
@@ -3312,8 +3477,22 @@ function _deepEqual(actual, expected) {
 
   // 7.4. Other pairs that do not both pass typeof value == 'object',
   // equivalence is determined by ==.
-  } else if (!util.isObject(actual) && !util.isObject(expected)) {
-    return actual == expected;
+  } else if ((actual === null || typeof actual !== 'object') &&
+             (expected === null || typeof expected !== 'object')) {
+    return strict ? actual === expected : actual == expected;
+
+  // If both values are instances of typed arrays, wrap their underlying
+  // ArrayBuffers in a Buffer each to increase performance
+  // This optimization requires the arrays to have the same type as checked by
+  // Object.prototype.toString (aka pToString). Never perform binary
+  // comparisons for Float*Arrays, though, since e.g. +0 === -0 but their
+  // bit patterns are not identical.
+  } else if (isView(actual) && isView(expected) &&
+             pToString(actual) === pToString(expected) &&
+             !(actual instanceof Float32Array ||
+               actual instanceof Float64Array)) {
+    return compare(new Uint8Array(actual.buffer),
+                   new Uint8Array(expected.buffer)) === 0;
 
   // 7.5 For all other Object pairs, including Array objects, equivalence is
   // determined by having the same number of owned properties (as verified
@@ -3321,8 +3500,22 @@ function _deepEqual(actual, expected) {
   // (although not necessarily the same order), equivalent values for every
   // corresponding key, and an identical 'prototype' property. Note: this
   // accounts for both named and indexed properties on Arrays.
+  } else if (isBuffer(actual) !== isBuffer(expected)) {
+    return false;
   } else {
-    return objEquiv(actual, expected);
+    memos = memos || {actual: [], expected: []};
+
+    var actualIndex = memos.actual.indexOf(actual);
+    if (actualIndex !== -1) {
+      if (actualIndex === memos.expected.indexOf(expected)) {
+        return true;
+      }
+    }
+
+    memos.actual.push(actual);
+    memos.expected.push(expected);
+
+    return objEquiv(actual, expected, strict, memos);
   }
 }
 
@@ -3330,44 +3523,44 @@ function isArguments(object) {
   return Object.prototype.toString.call(object) == '[object Arguments]';
 }
 
-function objEquiv(a, b) {
-  if (util.isNullOrUndefined(a) || util.isNullOrUndefined(b))
+function objEquiv(a, b, strict, actualVisitedObjects) {
+  if (a === null || a === undefined || b === null || b === undefined)
     return false;
-  // an identical 'prototype' property.
-  if (a.prototype !== b.prototype) return false;
   // if one is a primitive, the other must be same
-  if (util.isPrimitive(a) || util.isPrimitive(b)) {
+  if (util.isPrimitive(a) || util.isPrimitive(b))
     return a === b;
-  }
-  var aIsArgs = isArguments(a),
-      bIsArgs = isArguments(b);
+  if (strict && Object.getPrototypeOf(a) !== Object.getPrototypeOf(b))
+    return false;
+  var aIsArgs = isArguments(a);
+  var bIsArgs = isArguments(b);
   if ((aIsArgs && !bIsArgs) || (!aIsArgs && bIsArgs))
     return false;
   if (aIsArgs) {
     a = pSlice.call(a);
     b = pSlice.call(b);
-    return _deepEqual(a, b);
+    return _deepEqual(a, b, strict);
   }
-  var ka = objectKeys(a),
-      kb = objectKeys(b),
-      key, i;
+  var ka = objectKeys(a);
+  var kb = objectKeys(b);
+  var key, i;
   // having the same number of owned properties (keys incorporates
   // hasOwnProperty)
-  if (ka.length != kb.length)
+  if (ka.length !== kb.length)
     return false;
   //the same set of keys (although not necessarily the same order),
   ka.sort();
   kb.sort();
   //~~~cheap key test
   for (i = ka.length - 1; i >= 0; i--) {
-    if (ka[i] != kb[i])
+    if (ka[i] !== kb[i])
       return false;
   }
   //equivalent values for every corresponding key, and
   //~~~possibly expensive deep test
   for (i = ka.length - 1; i >= 0; i--) {
     key = ka[i];
-    if (!_deepEqual(a[key], b[key])) return false;
+    if (!_deepEqual(a[key], b[key], strict, actualVisitedObjects))
+      return false;
   }
   return true;
 }
@@ -3376,10 +3569,18 @@ function objEquiv(a, b) {
 // assert.notDeepEqual(actual, expected, message_opt);
 
 assert.notDeepEqual = function notDeepEqual(actual, expected, message) {
-  if (_deepEqual(actual, expected)) {
+  if (_deepEqual(actual, expected, false)) {
     fail(actual, expected, message, 'notDeepEqual', assert.notDeepEqual);
   }
 };
+
+assert.notDeepStrictEqual = notDeepStrictEqual;
+function notDeepStrictEqual(actual, expected, message) {
+  if (_deepEqual(actual, expected, true)) {
+    fail(actual, expected, message, 'notDeepStrictEqual', notDeepStrictEqual);
+  }
+}
+
 
 // 9. The strict equality assertion tests strict equality, as determined by ===.
 // assert.strictEqual(actual, expected, message_opt);
@@ -3406,28 +3607,46 @@ function expectedException(actual, expected) {
 
   if (Object.prototype.toString.call(expected) == '[object RegExp]') {
     return expected.test(actual);
-  } else if (actual instanceof expected) {
-    return true;
-  } else if (expected.call({}, actual) === true) {
-    return true;
   }
 
-  return false;
+  try {
+    if (actual instanceof expected) {
+      return true;
+    }
+  } catch (e) {
+    // Ignore.  The instanceof check doesn't work for arrow functions.
+  }
+
+  if (Error.isPrototypeOf(expected)) {
+    return false;
+  }
+
+  return expected.call({}, actual) === true;
+}
+
+function _tryBlock(block) {
+  var error;
+  try {
+    block();
+  } catch (e) {
+    error = e;
+  }
+  return error;
 }
 
 function _throws(shouldThrow, block, expected, message) {
   var actual;
 
-  if (util.isString(expected)) {
+  if (typeof block !== 'function') {
+    throw new TypeError('"block" argument must be a function');
+  }
+
+  if (typeof expected === 'string') {
     message = expected;
     expected = null;
   }
 
-  try {
-    block();
-  } catch (e) {
-    actual = e;
-  }
+  actual = _tryBlock(block);
 
   message = (expected && expected.name ? ' (' + expected.name + ').' : '.') +
             (message ? ' ' + message : '.');
@@ -3436,7 +3655,14 @@ function _throws(shouldThrow, block, expected, message) {
     fail(actual, expected, 'Missing expected exception' + message);
   }
 
-  if (!shouldThrow && expectedException(actual, expected)) {
+  var userProvidedMessage = typeof message === 'string';
+  var isUnwantedException = !shouldThrow && util.isError(actual);
+  var isUnexpectedException = !shouldThrow && actual && !expected;
+
+  if ((isUnwantedException &&
+      userProvidedMessage &&
+      expectedException(actual, expected)) ||
+      isUnexpectedException) {
     fail(actual, expected, 'Got unwanted exception' + message);
   }
 
@@ -3450,15 +3676,15 @@ function _throws(shouldThrow, block, expected, message) {
 // assert.throws(block, Error_opt, message_opt);
 
 assert.throws = function(block, /*optional*/error, /*optional*/message) {
-  _throws.apply(this, [true].concat(pSlice.call(arguments)));
+  _throws(true, block, error, message);
 };
 
 // EXTENSION! This is annoying to write outside this module.
-assert.doesNotThrow = function(block, /*optional*/message) {
-  _throws.apply(this, [false].concat(pSlice.call(arguments)));
+assert.doesNotThrow = function(block, /*optional*/error, /*optional*/message) {
+  _throws(false, block, error, message);
 };
 
-assert.ifError = function(err) { if (err) {throw err;}};
+assert.ifError = function(err) { if (err) throw err; };
 
 var objectKeys = Object.keys || function (obj) {
   var keys = [];
@@ -3468,7 +3694,1276 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":32}],30:[function(require,module,exports){
+},{"util/":36}],30:[function(require,module,exports){
+/**
+  # lazy-seq
+
+  > Lazy sequences
+
+  [![Build Status](https://secure.travis-ci.org/phadej/lazy-seq.svg?branch=master)](http://travis-ci.org/phadej/lazy-seq)
+  [![NPM version](https://badge.fury.io/js/lazy-seq.svg)](http://badge.fury.io/js/lazy-seq)
+  [![Dependency Status](https://david-dm.org/phadej/lazy-seq.svg)](https://david-dm.org/phadej/lazy-seq)
+  [![devDependency Status](https://david-dm.org/phadej/lazy-seq/dev-status.svg)](https://david-dm.org/phadej/lazy-seq#info=devDependencies)
+  [![Code Climate](https://img.shields.io/codeclimate/github/phadej/lazy-seq.svg)](https://codeclimate.com/github/phadej/lazy-seq)
+
+  ## Lazy?
+
+  The list structure could be defined as
+
+  ```hs
+  data Seq a = Nil | Cons a (Seq a)
+  ```
+
+  The `Cons` constuctor takes two arguments, so there are four different laziness variants:
+
+  ```hs
+  Cons (Strict a) (Strict (Seq a)) -- 1. fully strict
+  Cons (Lazy a)   (Strict (Seq a)) -- 2. lazy values
+  Cons (Strict a) (Lazy (Seq a))   -- 3. lazy structure
+  Cons (Lazy   a) (Lazy (Seq a))   -- 4. fully lazy
+  ```
+
+  This module implements the third variant: lazy structure, but strict values.
+
+  ## Example
+
+  ```js
+  var ones = lazyseq.cons(1, function () { return ones; });
+  console.log(ones === ones.tail()); // true!
+  ```
+
+  ## Why?
+
+  This package is originally made to optimise shrink operations in [jsverify](http://jsverify.github.io/), a property-based testing library.
+
+  ## API
+*/
+
+"use strict";
+
+var assert = require("assert");
+
+/**
+  - *nil : Seq a* &mdash; Empty sequence.
+
+  - *cons : (head : a, tail : Array a | Seq a | () → Array a | () → Seq a) → Seq a* : Cons a value to the front of a sequence (list or thunk).
+*/
+var nil = {};
+
+/**
+  - *.isNil : Boolean* &mdash; Constant time check, whether the sequence is empty.
+*/
+nil.isNil = true;
+
+/**
+  - *.toString : () → String* &mdash; String representation. Doesn't force the tail.
+*/
+nil.toString = function () {
+  return "nil";
+};
+
+/**
+  - *.length : () → Nat* &mdash; Return the length of the sequene. Forces the structure.
+*/
+nil.length = function () {
+  return 0;
+};
+
+/**
+  - *.toArray : () → Array a* &mdash; Convert the sequence to JavaScript array.
+*/
+nil.toArray = function nilToArray() {
+  return [];
+};
+
+/**
+  - *.fold : (z : b, f : (a, () → b) → b) → b* &mdash; Fold from right.
+
+      ```hs
+      fold nil x f        = x
+      fold (cons h t) x f = f x (fold t x f)
+      ```
+*/
+nil.fold = function nilFold(x /*, f */) {
+  return x;
+};
+
+/**
+  - *.head : () → a* &mdash;  Extract the first element of a sequence, which must be non-empty.
+*/
+nil.head = function nilHead() {
+  throw new Error("nil.head");
+};
+
+/**
+  - *.tail : () → Seq a* &mdash; Return the tail of the sequence.
+
+      ```hs
+      tail nil        = nil
+      tail (cons h t) = t
+      ```
+*/
+nil.tail = function nilTail() {
+  return nil;
+};
+
+/**
+  - *.nth : (n : Nat) → a* &mdash; Return nth value of the sequence.
+*/
+nil.nth = function nilNth(n) {
+  assert(typeof n === "number");
+  throw new Error("Can't get " + n + "th value of the nil");
+};
+
+/**
+  - *.take : (n : Nat) → Seq a* &mdash; Take `n` first elements of the sequence.
+*/
+nil.take = function (n) {
+  assert(typeof n === "number");
+  return nil;
+};
+
+/**
+  - *.drop : (n : Nat) → Seq a* &mdash; Drop `n` first elements of the sequence.
+*/
+nil.drop = function (n) {
+  assert(typeof n === "number");
+  return nil;
+};
+
+/**
+  - *.map : (f : a → b) : Seq b* &mdash; The sequence obtained by applying `f` to each element of the original sequence.
+*/
+nil.map = function (f) {
+  assert(typeof f === "function");
+  return nil;
+};
+
+/**
+  - *.append : (ys : Seq a | Array a) : Seq a* &mdash; Append `ys` sequence.
+*/
+nil.append = function (seq) {
+  if (typeof seq === "function") {
+    seq = seq();
+  }
+
+  if (Array.isArray(seq)) {
+    /* eslint-disable no-use-before-define */
+    return fromArray(seq);
+    /* eslint-enable no-use-before-define */
+  } else {
+    return seq;
+  }
+};
+
+/**
+  - *.filter : (p : a -> bool) : Seq a* &mdash; filter using `p` predicate.
+*/
+nil.filter = function () {
+  return nil;
+};
+
+/**
+  - *.every : (p = identity: a -> b) : b | true &mdash; return first falsy value in the sequence, true otherwise. *N.B.* behaves slightly differently from `Array::every`.
+*/
+nil.every = function () {
+  return true;
+};
+
+/**
+  - *.some : (p = identity: a -> b) : b | false &mdash; return first truthy value in the sequence, false otherwise. *N.B.* behaves slightly differently from `Array::some`.
+*/
+nil.some = function () {
+  return false;
+};
+
+/**
+  - *.contains : (x : a) : bool &mdash; Returns `true` if `x` is in the sequence.
+*/
+nil.contains = function () {
+  return false;
+};
+
+/**
+  - *.containsNot : (x : a) : bool &mdash; Returns `true` if `x` is not in the sequence.
+*/
+nil.containsNot = function () {
+  return true;
+};
+
+// Default cons values are with strict semantics
+function Cons(head, tail) {
+  this.headValue = head;
+  this.tailValue = tail;
+}
+
+Cons.prototype.isNil = false;
+
+Cons.prototype.toString = function () {
+  return "Cons(" + this.headValue + ", " + this.tailValue + ")";
+};
+
+Cons.prototype.length = function () {
+  return 1 + this.tail().length();
+};
+
+Cons.prototype.toArray = function () {
+  var ptr = this;
+  var acc = [];
+  while (ptr !== nil) {
+    acc.push(ptr.headValue);
+    ptr = ptr.tail();
+  }
+  return acc;
+};
+
+Cons.prototype.fold = function consFold(x, f) {
+  var self = this;
+  return f(this.headValue, function () {
+    return self.tail().fold(x, f);
+  });
+};
+
+Cons.prototype.head = function consHead() {
+  return this.headValue;
+};
+
+Cons.prototype.tail = function consTail() {
+  return this.tailValue;
+};
+
+// But when cons is created, it's overloaded with lazy ones
+
+// Force tail to whnf.
+function lazyConsForce() {
+  /* jshint validthis:true */
+  var val = this.tailFn();
+  /* eslint-disable no-use-before-define */
+  this.tailValue = Array.isArray(val) ? fromArray(val) : val;
+  /* eslint-enable no-use-before-define */
+
+  delete this.tail;
+  delete this.force;
+
+  return this;
+}
+
+function lazyConsTail() {
+  /* jshint validthis:true */
+  this.force();
+  return this.tailValue;
+}
+
+function delay(head, tail) {
+  assert(typeof tail === "function");
+
+  head.tailFn = tail;
+  head.tail = lazyConsTail;
+
+  head.force = lazyConsForce;
+  return head;
+}
+
+function cons(head, tail) {
+  if (typeof tail === "function") {
+    return delay(new Cons(head), tail);
+  } else if (Array.isArray(tail)) {
+    return delay(cons(head), function () {
+      /* eslint-disable no-use-before-define */
+      return fromArray(tail);
+      /* eslint-enable no-use-before-define */
+    });
+  } else {
+    return new Cons(head, tail);
+  }
+}
+
+// Rest of the functions. They might use cons
+
+Cons.prototype.nth = function consNth(n) {
+  assert(typeof n === "number");
+  return n === 0 ? this.headValue : this.tail().nth(n - 1);
+};
+
+Cons.prototype.take = function consTake(n) {
+  assert(typeof n === "number");
+  var that = this;
+  return n === 0 ? nil : cons(this.headValue, function () {
+    return that.tail().take(n - 1);
+  });
+};
+
+Cons.prototype.drop = function consDrop(n) {
+  assert(typeof n === "number");
+  return n === 0 ? this : this.tail().drop(n - 1);
+};
+
+Cons.prototype.map = function consMap(f) {
+  assert(typeof f === "function");
+  var that = this;
+  return cons(f(that.headValue), function () {
+    return that.tail().map(f);
+  });
+};
+
+Cons.prototype.append = function consAppend(seq) {
+  // Short circuit decidable: (++ []) ≡ id
+  if (seq === nil || (Array.isArray(seq) && seq.length === 0)) {
+    return this;
+  }
+  var that = this;
+  return cons(that.headValue, function () {
+    return that.tail().append(seq);
+  });
+};
+
+Cons.prototype.filter = function consFilter(p) {
+  assert(typeof p === "function");
+  var that = this;
+  if (p(that.headValue)) {
+    return cons(that.headValue, function () {
+      return that.tail().filter(p);
+    });
+  } else {
+    return that.tail().filter(p);
+  }
+};
+
+Cons.prototype.every = function consEvery(p) {
+  p = p || function (x) { return x; };
+  assert(typeof p === "function");
+  var that = this;
+  var pHead = p(that.headValue);
+  if (!pHead) {
+    return pHead;
+  } else {
+    return that.tail().every(p);
+  }
+};
+
+Cons.prototype.some = function consSome(p) {
+  p = p || function (x) { return x; };
+  assert(typeof p === "function");
+  var that = this;
+  var pHead = p(that.headValue);
+  if (pHead) {
+    return pHead;
+  } else {
+    return that.tail().some(p);
+  }
+};
+
+Cons.prototype.contains = function consContains(x) {
+  var that = this;
+  if (x === that.headValue) {
+    return true;
+  } else {
+    return that.tail().contains(x);
+  }
+};
+
+Cons.prototype.containsNot = function consContainsNot(x) {
+  var that = this;
+  if (x === that.headValue) {
+    return false;
+  } else {
+    return that.tail().containsNot(x);
+  }
+};
+
+// Constructors
+/**
+  - *fromArray: (arr : Array a) → Seq a* &mdash; Convert a JavaScript array into lazy sequence.
+*/
+function fromArrayIter(arr, n) {
+  if (n < arr.length) {
+    return cons(arr[n], function () {
+      return fromArrayIter(arr, n + 1);
+    });
+  } else {
+    return nil;
+  }
+}
+
+function fromArray(arr) {
+  assert(Array.isArray(arr));
+  return fromArrayIter(arr, 0);
+}
+
+/**
+  - *singleton: (x : a) → Seq a* &mdash; Create a singleton sequence.
+*/
+function singleton(x) {
+  return fromArray([x]);
+}
+
+/**
+  - *append : (xs... : Array a | Seq a | () → Array a | () → Seq a) → Seq a* : Append one sequence-like to another.
+*/
+function append() {
+  var acc = nil;
+  for (var i = 0; i < arguments.length; i++) {
+    acc = acc.append(arguments[i]);
+  }
+  return acc;
+}
+
+/**
+  - *iterate : (x : a, f : a → a) → Seq a* &mdash; Create an infinite sequence of repeated applications of `f` to `x`: *x, f(x), f(f(x))&hellip;*.
+*/
+function iterate(x, f) {
+  return cons(x, function () {
+    return iterate(f(x), f);
+  });
+}
+
+/**
+  - *fold : (seq : Seq a | Array a, z : b, f : (a, () → b) → b) : b* &mdash; polymorphic version of fold. Works with arrays too.
+*/
+function listFold(list, z, f, n) {
+  if (n < list.length) {
+    return f(list[n], function () {
+      return listFold(list, z, f, n + 1);
+    });
+  } else {
+    return z;
+  }
+}
+
+function fold(list, z, f) {
+  if (Array.isArray(list)) {
+    return listFold(list, z, f, 0);
+  } else {
+    return list.fold(z, f);
+  }
+}
+
+module.exports = {
+  nil: nil,
+  cons: cons,
+  append: append,
+  fromArray: fromArray,
+  singleton: singleton,
+  iterate: iterate,
+  fold: fold,
+};
+
+/// plain CHANGELOG.md
+/// plain CONTRIBUTING.md
+
+},{"assert":29}],31:[function(require,module,exports){
+"use strict";
+
+// Based on RC4 algorithm, as described in
+// http://en.wikipedia.org/wiki/RC4
+
+function isInteger(n) {
+  return parseInt(n, 10) === n;
+}
+
+function createRC4(N) {
+  function identityPermutation() {
+    var s = new Array(N);
+    for (var i = 0; i < N; i++) {
+      s[i] = i;
+    }
+    return s;
+  }
+
+  // :: string | array integer -> array integer
+  function seed(key) {
+    if (key === undefined) {
+      key = new Array(N);
+      for (var k = 0; k < N; k++) {
+        key[k] = Math.floor(Math.random() * N);
+      }
+    } else if (typeof key === "string") {
+      // to string
+      key = "" + key;
+      key = key.split("").map(function (c) { return c.charCodeAt(0) % N; });
+    } else if (Array.isArray(key)) {
+      if (!key.every(function (v) {
+        return typeof v === "number" && v === (v | 0);
+      })) {
+        throw new TypeError("invalid seed key specified: not array of integers");
+      }
+    } else {
+      throw new TypeError("invalid seed key specified");
+    }
+
+    var keylen = key.length;
+
+    // resed state
+    var s = identityPermutation();
+
+    var j = 0;
+    for (var i = 0; i < N; i++) {
+      j = (j + s[i] + key[i % keylen]) % N;
+      var tmp = s[i];
+      s[i] = s[j];
+      s[j] = tmp;
+    }
+
+    return s;
+  }
+
+  /* eslint-disable no-shadow */
+  function RC4(key) {
+    this.s = seed(key);
+    this.i = 0;
+    this.j = 0;
+  }
+  /* eslint-enable no-shadow */
+
+  RC4.prototype.randomNative = function () {
+    this.i = (this.i + 1) % N;
+    this.j = (this.j + this.s[this.i]) % N;
+
+    var tmp = this.s[this.i];
+    this.s[this.i] = this.s[this.j];
+    this.s[this.j] = tmp;
+
+    var k = this.s[(this.s[this.i] + this.s[this.j]) % N];
+
+    return k;
+  };
+
+  RC4.prototype.randomUInt32 = function () {
+    var a = this.randomByte();
+    var b = this.randomByte();
+    var c = this.randomByte();
+    var d = this.randomByte();
+
+    return ((a * 256 + b) * 256 + c) * 256 + d;
+  };
+
+  RC4.prototype.randomFloat = function () {
+    return this.randomUInt32() / 0x100000000;
+  };
+
+  RC4.prototype.random = function () {
+    var a;
+    var b;
+
+    if (arguments.length === 1) {
+      a = 0;
+      b = arguments[0];
+    } else if (arguments.length === 2) {
+      a = arguments[0];
+      b = arguments[1];
+    } else {
+      throw new TypeError("random takes one or two integer arguments");
+    }
+
+    if (!isInteger(a) || !isInteger(b)) {
+      throw new TypeError("random takes one or two integer arguments");
+    }
+
+    return a + this.randomUInt32() % (b - a + 1);
+  };
+
+  RC4.prototype.currentState = function () {
+    return {
+      i: this.i,
+      j: this.j,
+      s: this.s.slice(), // copy
+    };
+  };
+
+  RC4.prototype.setState = function (state) {
+    var s = state.s;
+    var i = state.i;
+    var j = state.j;
+
+    /* eslint-disable yoda */
+    if (!(i === (i | 0) && 0 <= i && i < N)) {
+      throw new Error("state.i should be integer [0, " + (N - 1) + "]");
+    }
+
+    if (!(j === (j | 0) && 0 <= j && j < N)) {
+      throw new Error("state.j should be integer [0, " + (N - 1) + "]");
+    }
+    /* eslint-enable yoda */
+
+    // check length
+    if (!Array.isArray(s) || s.length !== N) {
+      throw new Error("state should be array of length " + N);
+    }
+
+    // check that all params are there
+    for (var k = 0; k < N; k++) {
+      if (s.indexOf(k) === -1) {
+        throw new Error("state should be permutation of 0.." + (N - 1) + ": " + k + " is missing");
+      }
+    }
+
+    this.i = i;
+    this.j = j;
+    this.s = s.slice(); // assign copy
+  };
+
+  return RC4;
+}
+
+var RC4 = createRC4(256);
+RC4.prototype.randomByte = RC4.prototype.randomNative;
+
+var RC4small = createRC4(16);
+RC4small.prototype.randomByte = function () {
+  var a = this.randomNative();
+  var b = this.randomNative();
+
+  return a * 16 + b;
+};
+
+var ordA = "a".charCodeAt(0);
+var ord0 = "0".charCodeAt(0);
+
+function toHex(n) {
+  return n < 10 ? String.fromCharCode(ord0 + n) : String.fromCharCode(ordA + n - 10);
+}
+
+function fromHex(c) {
+  return parseInt(c, 16);
+}
+
+RC4small.prototype.currentStateString = function () {
+  var state = this.currentState();
+
+  var i = toHex(state.i);
+  var j = toHex(state.j);
+
+  var res = i + j + state.s.map(toHex).join("");
+  return res;
+};
+
+RC4small.prototype.setStateString = function (stateString) {
+  if (!stateString.match(/^[0-9a-f]{18}$/)) {
+    throw new TypeError("RC4small stateString should be 18 hex character string");
+  }
+
+  var i = fromHex(stateString[0]);
+  var j = fromHex(stateString[1]);
+  var s = stateString.split("").slice(2).map(fromHex);
+
+  this.setState({
+    i: i,
+    j: j,
+    s: s,
+  });
+};
+
+RC4.RC4small = RC4small;
+
+module.exports = RC4;
+
+},{}],32:[function(require,module,exports){
+"use strict";
+
+/**
+
+# trampa
+
+Trampolines, to emulate tail-call recursion.
+
+[![Build Status](https://secure.travis-ci.org/phadej/trampa.svg?branch=master)](http://travis-ci.org/phadej/trampa)
+[![NPM version](https://badge.fury.io/js/trampa.svg)](http://badge.fury.io/js/trampa)
+[![Dependency Status](https://david-dm.org/trampa/trampa.svg)](https://david-dm.org/trampa/trampa)
+[![devDependency Status](https://david-dm.org/trampa/trampa/dev-status.svg)](https://david-dm.org/trampa/trampa#info=devDependencies)
+[![Code Climate](https://img.shields.io/codeclimate/github/phadej/trampa.svg)](https://codeclimate.com/github/phadej/trampa)
+
+## Synopsis
+
+```js
+var trampa = require("trampa");
+
+function loop(n, acc) {
+  return n === 0 ? trampa.wrap(acc) : trampa.lazy(function () {
+    return loop(n - 1, acc + 1);
+  });
+}
+
+loop(123456789, 0).run(); // doesn't cause stack overflow!
+```
+
+## API
+
+*/
+
+// loosely based on https://apocalisp.wordpress.com/2011/10/26/tail-call-elimination-in-scala-monads/
+
+var assert = require("assert");
+
+function Done(x) {
+  this.x = x;
+}
+
+function Cont(tramp, cont) {
+  assert(typeof cont === "function");
+  this.tramp = tramp;
+  this.cont = cont;
+}
+
+/**
+- `isTrampoline(t: obj): bool` &mdash; Returns, whether `t` is a trampolined object.
+*/
+function isTrampoline(t) {
+  return t instanceof Done || t instanceof Cont;
+}
+
+/**
+- `wrap(t: Trampoline a | a): Trampoline a` &mdash; Wrap `t` into trampoline, if it's not already one.
+*/
+function wrap(t) {
+  return isTrampoline(t) ? t : new Done(t);
+}
+
+/**
+- `lazy(t : () -> Trampoline a | a)` &mdash; Wrap lazy computation into trampoline. Useful when constructing computations.
+*/
+function lazy(computation) {
+  assert(typeof computation === "function", "lazy: computation should be function");
+  return wrap().jump(computation);
+}
+
+/**
+- `Trampoline.jump(f : a -> b | Trampoline b)` &mdash; *map* or *flatmap* trampoline computation. Like `.then` for promises.
+*/
+Done.prototype.jump = function (f) {
+  return new Cont(this, function (x) {
+    return wrap(f(x));
+  });
+};
+
+Cont.prototype.jump = Done.prototype.jump;
+
+function execute(curr, params) {
+  params = params || {};
+  var debug = params.debug || false;
+  var log = params.log || console.log;
+  var stack = [];
+
+  while (true) { // eslint-disable-line no-constant-condition
+    if (debug) {
+      log("trampoline execute: stack size " + stack.length);
+    }
+
+    if (curr instanceof Done) {
+      if (stack.length === 0) {
+        return curr.x;
+      } else {
+        curr = stack[stack.length - 1](curr.x);
+        stack.pop();
+      }
+    } else {
+      assert(curr instanceof Cont);
+      stack.push(curr.cont);
+      curr = curr.tramp;
+    }
+  }
+}
+
+/**
+- `Trampoline.run(): a` &mdash; Run the trampoline synchronously resulting a value.
+*/
+Done.prototype.run = Cont.prototype.run = function (params) {
+  return execute(this, params);
+};
+
+module.exports = {
+  isTrampoline: isTrampoline,
+  wrap: wrap,
+  lazy: lazy,
+};
+
+/**
+## Changelog
+
+- **1.0.0** &mdash; *2015-07-14* &mdash; Initial release
+*/
+
+},{"assert":29}],33:[function(require,module,exports){
+/**
+  # typify type parser
+
+  > Type signature parser for typify
+
+  [![Build Status](https://secure.travis-ci.org/phadej/typify-parser.svg?branch=master)](http://travis-ci.org/phadej/typify-parser)
+  [![NPM version](https://badge.fury.io/js/typify-parser.svg)](http://badge.fury.io/js/typify-parser)
+  [![Dependency Status](https://david-dm.org/phadej/typify-parser.svg)](https://david-dm.org/phadej/typify-parser)
+  [![devDependency Status](https://david-dm.org/phadej/typify-parser/dev-status.svg)](https://david-dm.org/phadej/typify-parser#info=devDependencies)
+  [![Code Climate](https://img.shields.io/codeclimate/github/phadej/typify-parser.svg)](https://codeclimate.com/github/phadej/typify-parser)
+
+  Turns `(foo, bar 42) -> quux` into
+  ```js
+  {
+    "type": "function",
+    "arg": {
+      "type": "product",
+      "args": [
+        {
+          "type": "ident",
+          "value": "foo"
+        },
+        {
+          "type": "application",
+          "callee": {
+            "type": "ident",
+            "value": "bar"
+          },
+          "args": [
+            {
+              "type": "number",
+              "value": 42
+            }
+          ]
+        }
+      ]
+    },
+    "result": {
+      "type": "ident",
+      "value": "quux"
+    }
+  }
+  ```
+
+  ## Synopsis
+
+  ```js
+  var parser = require("typify-parser");
+
+  // Example from above
+  var t = parser("(foo, bar 42) -> quux");
+
+  // Free vars
+  p.freeVars(t);                             // ['bar', 'foo', 'quux']
+  p.freeVars(p("rec list -> () | a & list")) // ['a']
+  ```
+*/
+"use strict";
+
+function unescapeString(str) {
+  return str.replace(/\\(?:'|"|\\|n|x[0-9a-fA-F]{2})/g, function (match) {
+    switch (match[1]) {
+      case "'": return "'";
+      case "\"": return "\"";
+      case "\\": return "\\";
+      case "n": return "\n";
+      case "x": return String.fromCharCode(parseInt(match.substr(2), 16));
+    }
+  });
+}
+
+function lex(input) {
+  // Unicode
+  // top: 22a4
+  // bottom: 22a5
+  // and: 2227
+  // or: 2228
+  // times: \u00d7
+  // to: 2192
+  // ellipsis: 2026
+  // blackboard 1: d835 dfd9
+  var m = input.match(/^([ \t\r\n]+|[\u22a4\u22a5\u2227\u2228\u00d7\u2192\u2026]|\ud835\udfd9|_\|_|\*|\(\)|"(?:[^"\\]|\\[\\'"n]|\\x[0-9a-fA-F]{2})*"|'(?:[^'\\]|\\[\\'"n]|\\x[0-9a-fA-F]{2})*'|[0-9a-zA-Z_\$@]+|,|->|:|;|&|\||\.\.\.|\(|\)|\[|\]|\{|\}|\?)*$/);
+  if (m === null) {
+    throw new SyntaxError("Cannot lex type signature");
+  }
+  m = input.match(/([ \t\r\n]+|[\u22a4\u22a5\u2227\u2228\u00d7\u2192\u2026]|\ud835\udfd9|_\|_|\*|\(\)|"(?:[^"\\]|\\[\\'"n]|\\x[0-9a-fA-F]{2})*"|'(?:[^'\\]|\\[\\'"n]|\\x[0-9a-fA-F]{2})*'|[0-9a-zA-Z_\$@]+|,|->|:|;|&|\||\.\.\.|\(|\)|\[|\]|\{|\}|\?)/g);
+
+  return m
+  .map(function (token) {
+    switch (token) {
+      case "_|_": return { type: "false" };
+      case "\u22a5": return { type: "false" };
+      case "*": return { type: "true" };
+      case "\u22a4": return { type: "true" };
+      case "()": return { type: "unit" };
+      case "\ud835\udfd9": return { type: "unit" };
+      case "true": return { type: "bool", value: true };
+      case "false": return { type: "bool", value: false };
+      case "rec": return { type: "rec" };
+      case "&": return { type: "&" };
+      case "\u2227": return { type: "&" };
+      case "|": return { type: "|" };
+      case "\u2228": return { type: "|" };
+      case ",": return { type: "," };
+      case "\u00d7": return { type: "," };
+      case ";": return { type: ";" };
+      case ":": return { type: ":" };
+      case "(": return { type: "(" };
+      case ")": return { type: ")" };
+      case "[": return { type: "[" };
+      case "]": return { type: "]" };
+      case "{": return { type: "{" };
+      case "}": return { type: "}" };
+      case "?": return { type: "?" };
+      case "->": return { type: "->" };
+      case "\u2192": return { type: "->" };
+      case "...": return { type: "..." };
+      case "\u2026": return { type: "..." };
+    }
+
+    // Whitespace
+    if (token.match(/^[ \r\r\n]+$/)) {
+      return null;
+    }
+
+    if (token.match(/^[0-9]+/)) {
+      return { type: "number", value: parseInt(token, 10) };
+    }
+
+    if (token[0] === "'" || token[0] === "\"") {
+      token = token.slice(1, -1);
+      return { type: "string", value: unescapeString(token) };
+    }
+
+    return { type: "ident", value: token };
+  })
+  .filter(function (token) {
+    return token !== null;
+  });
+}
+
+function makePunctParser(type) {
+  return function (state) {
+    if (state.pos >= state.len) {
+      throw new SyntaxError("Expecting identifier, end-of-input found");
+    }
+
+    var token = state.tokens[state.pos];
+    if (token.type !== type) {
+      throw new SyntaxError("Expecting '" + type + "', found: " + token.type);
+    }
+    state.pos += 1;
+
+    return type;
+  };
+}
+
+var colonParser = makePunctParser(":");
+var openCurlyParser = makePunctParser("{");
+var closeCurlyParser = makePunctParser("}");
+var semicolonParser = makePunctParser(";");
+var openParenParser = makePunctParser("(");
+var closeParenParser = makePunctParser(")");
+var openBracketParser = makePunctParser("[");
+var closeBracketParser = makePunctParser("]");
+var recKeywordParser = makePunctParser("rec");
+var arrowParser = makePunctParser("->");
+
+function nameParser(state) {
+  if (state.pos >= state.len) {
+    throw new SyntaxError("Expecting identifier, end-of-input found");
+  }
+
+  var token = state.tokens[state.pos];
+  if (token.type !== "ident") {
+    throw new SyntaxError("Expecting 'ident', found: " + token.type);
+  }
+  state.pos += 1;
+
+  return token.value;
+}
+
+function recursiveParser(state) {
+  recKeywordParser(state);
+  var name = nameParser(state);
+  arrowParser(state);
+  var value = typeParser(state); // eslint-disable-line no-use-before-define
+  return {
+    type: "recursive",
+    name: name,
+    arg: value,
+  };
+}
+
+function recordParser(state) {
+  openCurlyParser(state);
+
+  var token = state.tokens[state.pos];
+  if (token && token.type === "}") {
+    closeCurlyParser(state);
+    return { type: "record", fields: {} };
+  }
+
+  var fields = {};
+
+  while (true) { // eslint-disable-line no-constant-condition
+    // read
+    var name = nameParser(state);
+    colonParser(state);
+    var value = typeParser(state); // eslint-disable-line no-use-before-define
+
+    // assign to fields
+    fields[name] = value;
+
+    // ending token
+    token = state.tokens[state.pos];
+
+    // break if }
+    if (token && token.type === "}") {
+      closeCurlyParser(state);
+      break;
+    } else if (token && token.type === ";") {
+      semicolonParser(state);
+    } else {
+      throw new SyntaxError("Expecting '}' or ';', found: " + token.type);
+    }
+  }
+
+  return { type: "record", fields: fields };
+}
+
+function postfix(parser, postfixToken, constructor) {
+  return function (state) {
+    var arg = parser(state);
+
+    var token = state.tokens[state.pos];
+    if (token && token.type === postfixToken) {
+      state.pos += 1;
+      return {
+        type: constructor,
+        arg: arg,
+      };
+    } else {
+      return arg;
+    }
+  };
+}
+
+// this ties the knot
+var optionalParser = postfix(terminalParser, "?", "optional"); // eslint-disable-line no-use-before-define
+
+function applicationParser(state) {
+  var rator = optionalParser(state);
+  var rands = [];
+
+  while (true) { // eslint-disable-line no-constant-condition
+    var pos = state.pos;
+    // XXX: we shouldn't use exceptions for this
+    try {
+      var arg = optionalParser(state);
+      rands.push(arg);
+    } catch (err) {
+      state.pos = pos;
+      break;
+    }
+  }
+
+  if (rands.length === 0) {
+    return rator;
+  } else {
+    return {
+      type: "application",
+      callee: rator,
+      args: rands,
+    };
+  }
+}
+
+function separatedBy(parser, separator, constructor) {
+  return function (state) {
+    var list = [parser(state)];
+    while (true) { // eslint-disable-line no-constant-condition
+      // separator
+      var token = state.tokens[state.pos];
+      if (token && token.type === separator) {
+        state.pos += 1;
+      } else {
+        break;
+      }
+
+      // right argument
+      list.push(parser(state));
+    }
+
+    if (list.length === 1) {
+      return list[0];
+    } else {
+      return {
+        type: constructor,
+        args: list,
+      };
+    }
+  };
+}
+
+var conjunctionParser = separatedBy(applicationParser, "&", "conjunction");
+var disjunctionParser = separatedBy(conjunctionParser, "|", "disjunction");
+
+// TODO: combine with optional
+var variadicParser = postfix(disjunctionParser, "...", "variadic");
+
+function namedParser(state) {
+  var token1 = state.tokens[state.pos];
+  var token2 = state.tokens[state.pos + 1];
+  if (token1 && token2 && token1.type === "ident" && token2.type === ":") {
+    state.pos += 2;
+    var arg = namedParser(state);
+    return {
+      type: "named",
+      name: token1.value,
+      arg: arg,
+    };
+  } else {
+    return variadicParser(state);
+  }
+}
+
+var productParser = separatedBy(namedParser, ",", "product");
+
+function functionParser(state) {
+  var v = productParser(state);
+
+  var token = state.tokens[state.pos];
+  if (token && token.type === "->") {
+    state.pos += 1;
+    var result = functionParser(state);
+    return {
+      type: "function",
+      arg: v,
+      result: result,
+    };
+  } else {
+    return v;
+  }
+}
+
+function typeParser(state) {
+  return functionParser(state);
+}
+
+function parenthesesParser(state) {
+  openParenParser(state);
+  var type = typeParser(state);
+  closeParenParser(state);
+  return type;
+}
+
+function bracketParser(state) {
+  openBracketParser(state);
+  var type = typeParser(state);
+  closeBracketParser(state);
+  return {
+    type: "brackets",
+    arg: type,
+  };
+}
+
+function terminalParser(state) {
+  if (state.pos >= state.len) {
+    throw new SyntaxError("Expecting terminal, end-of-input found");
+  }
+
+  var token = state.tokens[state.pos];
+  switch (token.type) {
+    case "false":
+    case "true":
+    case "unit":
+    case "string":
+    case "number":
+    case "bool":
+    case "ident":
+      state.pos += 1;
+      return token;
+    case "{":
+      return recordParser(state);
+    case "(":
+      return parenthesesParser(state);
+    case "[":
+      return bracketParser(state);
+    case "rec":
+      return recursiveParser(state);
+    default:
+      throw new SyntaxError("Expecting terminal, " + token.type + " found");
+  }
+}
+
+function parse(input) {
+  // console.log(input);
+  var tokens = lex(input);
+  // console.log(tokens);
+  var state = {
+    pos: 0,
+    len: tokens.length,
+    tokens: tokens,
+  };
+
+  var res = typeParser(state);
+  // console.log(state);
+  if (state.pos !== state.len) {
+    throw new SyntaxError("expecting end-of-input, " + tokens[state.pos].type + " found");
+  }
+  return res;
+}
+
+function recordFreeVars(fields) {
+  var res = [];
+  for (var k in fields) {
+    var t = fields[k];
+    res = res.concat(freeVarsImpl(t)); // eslint-disable-line no-use-before-define
+  }
+  return res;
+}
+
+function concatFreeVars(ts) {
+  var res = [];
+  for (var i = 0; i < ts.length; i++) {
+    var t = ts[i];
+    res = res.concat(freeVarsImpl(t)); // eslint-disable-line no-use-before-define
+  }
+  return res;
+}
+
+function freeVarsImpl(t) {
+  switch (t.type) {
+    case "false":
+    case "true":
+    case "unit":
+    case "string":
+    case "number":
+    case "bool":
+      return [];
+    case "ident": return [t.value];
+    case "record": return recordFreeVars(t.fields);
+    case "named": return freeVarsImpl(t.arg);
+    case "conjunction": return concatFreeVars(t.args);
+    case "disjunction": return concatFreeVars(t.args);
+    case "product": return concatFreeVars(t.args);
+    case "recursive": return freeVarsImpl(t.arg).filter(function (n) {
+      return n !== t.name;
+    });
+    case "optional": return freeVarsImpl(t.arg);
+    case "brackets": return freeVarsImpl(t.arg);
+    case "variadic": return freeVarsImpl(t.arg);
+    case "application": return freeVarsImpl(t.callee).concat(concatFreeVars(t.args));
+    case "function": return freeVarsImpl(t.arg).concat(freeVarsImpl(t.result));
+    //default: throw new Error("Unknown type " + t.type);
+  }
+}
+
+function uniq(arr) {
+  var res = [];
+  for (var i = 0; i < arr.length; i++) {
+    var x = arr[i];
+    if (res.indexOf(x) === -1) {
+      res.push(x);
+    }
+  }
+  return res;
+}
+
+function freeVars(t) {
+  var fvs = freeVarsImpl(t);
+  fvs.sort();
+  return uniq(fvs);
+}
+
+parse.freeVars = freeVars;
+
+module.exports = parse;
+
+},{}],34:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -3493,14 +4988,14 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],31:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],32:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -4088,1274 +5583,5 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-},{"./support/isBuffer":31,"inherits":30}],33:[function(require,module,exports){
-/**
-  # lazy-seq
-
-  > Lazy sequences
-
-  [![Build Status](https://secure.travis-ci.org/phadej/lazy-seq.svg?branch=master)](http://travis-ci.org/phadej/lazy-seq)
-  [![NPM version](https://badge.fury.io/js/lazy-seq.svg)](http://badge.fury.io/js/lazy-seq)
-  [![Dependency Status](https://david-dm.org/phadej/lazy-seq.svg)](https://david-dm.org/phadej/lazy-seq)
-  [![devDependency Status](https://david-dm.org/phadej/lazy-seq/dev-status.svg)](https://david-dm.org/phadej/lazy-seq#info=devDependencies)
-  [![Code Climate](https://img.shields.io/codeclimate/github/phadej/lazy-seq.svg)](https://codeclimate.com/github/phadej/lazy-seq)
-
-  ## Lazy?
-
-  The list structure could be defined as
-
-  ```hs
-  data Seq a = Nil | Cons a (Seq a)
-  ```
-
-  The `Cons` constuctor takes two arguments, so there are four different laziness variants:
-
-  ```hs
-  Cons (Strict a) (Strict (Seq a)) -- 1. fully strict
-  Cons (Lazy a)   (Strict (Seq a)) -- 2. lazy values
-  Cons (Strict a) (Lazy (Seq a))   -- 3. lazy structure
-  Cons (Lazy   a) (Lazy (Seq a))   -- 4. fully lazy
-  ```
-
-  This module implements the third variant: lazy structure, but strict values.
-
-  ## Example
-
-  ```js
-  var ones = lazyseq.cons(1, function () { return ones; });
-  console.log(ones === ones.tail()); // true!
-  ```
-
-  ## Why?
-
-  This package is originally made to optimise shrink operations in [jsverify](http://jsverify.github.io/), a property-based testing library.
-
-  ## API
-*/
-
-"use strict";
-
-var assert = require("assert");
-
-/**
-  - *nil : Seq a* &mdash; Empty sequence.
-
-  - *cons : (head : a, tail : Array a | Seq a | () → Array a | () → Seq a) → Seq a* : Cons a value to the front of a sequence (list or thunk).
-*/
-var nil = {};
-
-/**
-  - *.isNil : Boolean* &mdash; Constant time check, whether the sequence is empty.
-*/
-nil.isNil = true;
-
-/**
-  - *.toString : () → String* &mdash; String representation. Doesn't force the tail.
-*/
-nil.toString = function () {
-  return "nil";
-};
-
-/**
-  - *.length : () → Nat* &mdash; Return the length of the sequene. Forces the structure.
-*/
-nil.length = function () {
-  return 0;
-};
-
-/**
-  - *.toArray : () → Array a* &mdash; Convert the sequence to JavaScript array.
-*/
-nil.toArray = function nilToArray() {
-  return [];
-};
-
-/**
-  - *.fold : (z : b, f : (a, () → b) → b) → b* &mdash; Fold from right.
-
-      ```hs
-      fold nil x f        = x
-      fold (cons h t) x f = f x (fold t x f)
-      ```
-*/
-nil.fold = function nilFold(x /*, f */) {
-  return x;
-};
-
-/**
-  - *.head : () → a* &mdash;  Extract the first element of a sequence, which must be non-empty.
-*/
-nil.head = function nilHead() {
-  throw new Error("nil.head");
-};
-
-/**
-  - *.tail : () → Seq a* &mdash; Return the tail of the sequence.
-
-      ```hs
-      tail nil        = nil
-      tail (cons h t) = t
-      ```
-*/
-nil.tail = function nilTail() {
-  return nil;
-};
-
-/**
-  - *.nth : (n : Nat) → a* &mdash; Return nth value of the sequence.
-*/
-nil.nth = function nilNth(n) {
-  assert(typeof n === "number");
-  throw new Error("Can't get " + n + "th value of the nil");
-};
-
-/**
-  - *.take : (n : Nat) → Seq a* &mdash; Take `n` first elements of the sequence.
-*/
-nil.take = function (n) {
-  assert(typeof n === "number");
-  return nil;
-};
-
-/**
-  - *.drop : (n : Nat) → Seq a* &mdash; Drop `n` first elements of the sequence.
-*/
-nil.drop = function (n) {
-  assert(typeof n === "number");
-  return nil;
-};
-
-/**
-  - *.map : (f : a → b) : Seq b* &mdash; The sequence obtained by applying `f` to each element of the original sequence.
-*/
-nil.map = function (f) {
-  assert(typeof f === "function");
-  return nil;
-};
-
-/**
-  - *.append : (ys : Seq a | Array a) : Seq a* &mdash; Append `ys` sequence.
-*/
-nil.append = function (seq) {
-  if (typeof seq === "function") {
-    seq = seq();
-  }
-
-  if (Array.isArray(seq)) {
-    /* eslint-disable no-use-before-define */
-    return fromArray(seq);
-    /* eslint-enable no-use-before-define */
-  } else {
-    return seq;
-  }
-};
-
-/**
-  - *.filter : (p : a -> bool) : Seq a* &mdash; filter using `p` predicate.
-*/
-nil.filter = function () {
-  return nil;
-};
-
-/**
-  - *.every : (p = identity: a -> b) : b | true &mdash; return first falsy value in the sequence, true otherwise. *N.B.* behaves slightly differently from `Array::every`.
-*/
-nil.every = function () {
-  return true;
-};
-
-/**
-  - *.some : (p = identity: a -> b) : b | false &mdash; return first truthy value in the sequence, false otherwise. *N.B.* behaves slightly differently from `Array::some`.
-*/
-nil.some = function () {
-  return false;
-};
-
-/**
-  - *.contains : (x : a) : bool &mdash; Returns `true` if `x` is in the sequence.
-*/
-nil.contains = function () {
-  return false;
-};
-
-/**
-  - *.containsNot : (x : a) : bool &mdash; Returns `true` if `x` is not in the sequence.
-*/
-nil.containsNot = function () {
-  return true;
-};
-
-// Default cons values are with strict semantics
-function Cons(head, tail) {
-  this.headValue = head;
-  this.tailValue = tail;
-}
-
-Cons.prototype.isNil = false;
-
-Cons.prototype.toString = function () {
-  return "Cons(" + this.headValue + ", " + this.tailValue + ")";
-};
-
-Cons.prototype.length = function () {
-  return 1 + this.tail().length();
-};
-
-Cons.prototype.toArray = function () {
-  var ptr = this;
-  var acc = [];
-  while (ptr !== nil) {
-    acc.push(ptr.headValue);
-    ptr = ptr.tail();
-  }
-  return acc;
-};
-
-Cons.prototype.fold = function consFold(x, f) {
-  var self = this;
-  return f(this.headValue, function () {
-    return self.tail().fold(x, f);
-  });
-};
-
-Cons.prototype.head = function consHead() {
-  return this.headValue;
-};
-
-Cons.prototype.tail = function consTail() {
-  return this.tailValue;
-};
-
-// But when cons is created, it's overloaded with lazy ones
-
-// Force tail to whnf.
-function lazyConsForce() {
-  /* jshint validthis:true */
-  var val = this.tailFn();
-  /* eslint-disable no-use-before-define */
-  this.tailValue = Array.isArray(val) ? fromArray(val) : val;
-  /* eslint-enable no-use-before-define */
-
-  delete this.tail;
-  delete this.force;
-
-  return this;
-}
-
-function lazyConsTail() {
-  /* jshint validthis:true */
-  this.force();
-  return this.tailValue;
-}
-
-function delay(head, tail) {
-  assert(typeof tail === "function");
-
-  head.tailFn = tail;
-  head.tail = lazyConsTail;
-
-  head.force = lazyConsForce;
-  return head;
-}
-
-function cons(head, tail) {
-  if (typeof tail === "function") {
-    return delay(new Cons(head), tail);
-  } else if (Array.isArray(tail)) {
-    return delay(cons(head), function () {
-      /* eslint-disable no-use-before-define */
-      return fromArray(tail);
-      /* eslint-enable no-use-before-define */
-    });
-  } else {
-    return new Cons(head, tail);
-  }
-}
-
-// Rest of the functions. They might use cons
-
-Cons.prototype.nth = function consNth(n) {
-  assert(typeof n === "number");
-  return n === 0 ? this.headValue : this.tail().nth(n - 1);
-};
-
-Cons.prototype.take = function consTake(n) {
-  assert(typeof n === "number");
-  var that = this;
-  return n === 0 ? nil : cons(this.headValue, function () {
-    return that.tail().take(n - 1);
-  });
-};
-
-Cons.prototype.drop = function consDrop(n) {
-  assert(typeof n === "number");
-  return n === 0 ? this : this.tail().drop(n - 1);
-};
-
-Cons.prototype.map = function consMap(f) {
-  assert(typeof f === "function");
-  var that = this;
-  return cons(f(that.headValue), function () {
-    return that.tail().map(f);
-  });
-};
-
-Cons.prototype.append = function consAppend(seq) {
-  // Short circuit decidable: (++ []) ≡ id
-  if (seq === nil || (Array.isArray(seq) && seq.length === 0)) {
-    return this;
-  }
-  var that = this;
-  return cons(that.headValue, function () {
-    return that.tail().append(seq);
-  });
-};
-
-Cons.prototype.filter = function consFilter(p) {
-  assert(typeof p === "function");
-  var that = this;
-  if (p(that.headValue)) {
-    return cons(that.headValue, function () {
-      return that.tail().filter(p);
-    });
-  } else {
-    return that.tail().filter(p);
-  }
-};
-
-Cons.prototype.every = function consEvery(p) {
-  p = p || function (x) { return x; };
-  assert(typeof p === "function");
-  var that = this;
-  var pHead = p(that.headValue);
-  if (!pHead) {
-    return pHead;
-  } else {
-    return that.tail().every(p);
-  }
-};
-
-Cons.prototype.some = function consSome(p) {
-  p = p || function (x) { return x; };
-  assert(typeof p === "function");
-  var that = this;
-  var pHead = p(that.headValue);
-  if (pHead) {
-    return pHead;
-  } else {
-    return that.tail().some(p);
-  }
-};
-
-Cons.prototype.contains = function consContains(x) {
-  var that = this;
-  if (x === that.headValue) {
-    return true;
-  } else {
-    return that.tail().contains(x);
-  }
-};
-
-Cons.prototype.containsNot = function consContainsNot(x) {
-  var that = this;
-  if (x === that.headValue) {
-    return false;
-  } else {
-    return that.tail().containsNot(x);
-  }
-};
-
-// Constructors
-/**
-  - *fromArray: (arr : Array a) → Seq a* &mdash; Convert a JavaScript array into lazy sequence.
-*/
-function fromArrayIter(arr, n) {
-  if (n < arr.length) {
-    return cons(arr[n], function () {
-      return fromArrayIter(arr, n + 1);
-    });
-  } else {
-    return nil;
-  }
-}
-
-function fromArray(arr) {
-  assert(Array.isArray(arr));
-  return fromArrayIter(arr, 0);
-}
-
-/**
-  - *singleton: (x : a) → Seq a* &mdash; Create a singleton sequence.
-*/
-function singleton(x) {
-  return fromArray([x]);
-}
-
-/**
-  - *append : (xs... : Array a | Seq a | () → Array a | () → Seq a) → Seq a* : Append one sequence-like to another.
-*/
-function append() {
-  var acc = nil;
-  for (var i = 0; i < arguments.length; i++) {
-    acc = acc.append(arguments[i]);
-  }
-  return acc;
-}
-
-/**
-  - *iterate : (x : a, f : a → a) → Seq a* &mdash; Create an infinite sequence of repeated applications of `f` to `x`: *x, f(x), f(f(x))&hellip;*.
-*/
-function iterate(x, f) {
-  return cons(x, function () {
-    return iterate(f(x), f);
-  });
-}
-
-/**
-  - *fold : (seq : Seq a | Array a, z : b, f : (a, () → b) → b) : b* &mdash; polymorphic version of fold. Works with arrays too.
-*/
-function listFold(list, z, f, n) {
-  if (n < list.length) {
-    return f(list[n], function () {
-      return listFold(list, z, f, n + 1);
-    });
-  } else {
-    return z;
-  }
-}
-
-function fold(list, z, f) {
-  if (Array.isArray(list)) {
-    return listFold(list, z, f, 0);
-  } else {
-    return list.fold(z, f);
-  }
-}
-
-module.exports = {
-  nil: nil,
-  cons: cons,
-  append: append,
-  fromArray: fromArray,
-  singleton: singleton,
-  iterate: iterate,
-  fold: fold,
-};
-
-/// plain CHANGELOG.md
-/// plain CONTRIBUTING.md
-
-},{"assert":29}],34:[function(require,module,exports){
-"use strict";
-
-// Based on RC4 algorithm, as described in
-// http://en.wikipedia.org/wiki/RC4
-
-function isInteger(n) {
-  return parseInt(n, 10) === n;
-}
-
-function createRC4(N) {
-  function identityPermutation() {
-    var s = new Array(N);
-    for (var i = 0; i < N; i++) {
-      s[i] = i;
-    }
-    return s;
-  }
-
-  // :: string | array integer -> array integer
-  function seed(key) {
-    if (key === undefined) {
-      key = new Array(N);
-      for (var k = 0; k < N; k++) {
-        key[k] = Math.floor(Math.random() * N);
-      }
-    } else if (typeof key === "string") {
-      // to string
-      key = "" + key;
-      key = key.split("").map(function (c) { return c.charCodeAt(0) % N; });
-    } else if (Array.isArray(key)) {
-      if (!key.every(function (v) {
-        return typeof v === "number" && v === (v | 0);
-      })) {
-        throw new TypeError("invalid seed key specified: not array of integers");
-      }
-    } else {
-      throw new TypeError("invalid seed key specified");
-    }
-
-    var keylen = key.length;
-
-    // resed state
-    var s = identityPermutation();
-
-    var j = 0;
-    for (var i = 0; i < N; i++) {
-      j = (j + s[i] + key[i % keylen]) % N;
-      var tmp = s[i];
-      s[i] = s[j];
-      s[j] = tmp;
-    }
-
-    return s;
-  }
-
-  /* eslint-disable no-shadow */
-  function RC4(key) {
-    this.s = seed(key);
-    this.i = 0;
-    this.j = 0;
-  }
-  /* eslint-enable no-shadow */
-
-  RC4.prototype.randomNative = function () {
-    this.i = (this.i + 1) % N;
-    this.j = (this.j + this.s[this.i]) % N;
-
-    var tmp = this.s[this.i];
-    this.s[this.i] = this.s[this.j];
-    this.s[this.j] = tmp;
-
-    var k = this.s[(this.s[this.i] + this.s[this.j]) % N];
-
-    return k;
-  };
-
-  RC4.prototype.randomUInt32 = function () {
-    var a = this.randomByte();
-    var b = this.randomByte();
-    var c = this.randomByte();
-    var d = this.randomByte();
-
-    return ((a * 256 + b) * 256 + c) * 256 + d;
-  };
-
-  RC4.prototype.randomFloat = function () {
-    return this.randomUInt32() / 0x100000000;
-  };
-
-  RC4.prototype.random = function () {
-    var a;
-    var b;
-
-    if (arguments.length === 1) {
-      a = 0;
-      b = arguments[0];
-    } else if (arguments.length === 2) {
-      a = arguments[0];
-      b = arguments[1];
-    } else {
-      throw new TypeError("random takes one or two integer arguments");
-    }
-
-    if (!isInteger(a) || !isInteger(b)) {
-      throw new TypeError("random takes one or two integer arguments");
-    }
-
-    return a + this.randomUInt32() % (b - a + 1);
-  };
-
-  RC4.prototype.currentState = function () {
-    return {
-      i: this.i,
-      j: this.j,
-      s: this.s.slice(), // copy
-    };
-  };
-
-  RC4.prototype.setState = function (state) {
-    var s = state.s;
-    var i = state.i;
-    var j = state.j;
-
-    /* eslint-disable yoda */
-    if (!(i === (i | 0) && 0 <= i && i < N)) {
-      throw new Error("state.i should be integer [0, " + (N - 1) + "]");
-    }
-
-    if (!(j === (j | 0) && 0 <= j && j < N)) {
-      throw new Error("state.j should be integer [0, " + (N - 1) + "]");
-    }
-    /* eslint-enable yoda */
-
-    // check length
-    if (!Array.isArray(s) || s.length !== N) {
-      throw new Error("state should be array of length " + N);
-    }
-
-    // check that all params are there
-    for (var k = 0; k < N; k++) {
-      if (s.indexOf(k) === -1) {
-        throw new Error("state should be permutation of 0.." + (N - 1) + ": " + k + " is missing");
-      }
-    }
-
-    this.i = i;
-    this.j = j;
-    this.s = s.slice(); // assign copy
-  };
-
-  return RC4;
-}
-
-var RC4 = createRC4(256);
-RC4.prototype.randomByte = RC4.prototype.randomNative;
-
-var RC4small = createRC4(16);
-RC4small.prototype.randomByte = function () {
-  var a = this.randomNative();
-  var b = this.randomNative();
-
-  return a * 16 + b;
-};
-
-var ordA = "a".charCodeAt(0);
-var ord0 = "0".charCodeAt(0);
-
-function toHex(n) {
-  return n < 10 ? String.fromCharCode(ord0 + n) : String.fromCharCode(ordA + n - 10);
-}
-
-function fromHex(c) {
-  return parseInt(c, 16);
-}
-
-RC4small.prototype.currentStateString = function () {
-  var state = this.currentState();
-
-  var i = toHex(state.i);
-  var j = toHex(state.j);
-
-  var res = i + j + state.s.map(toHex).join("");
-  return res;
-};
-
-RC4small.prototype.setStateString = function (stateString) {
-  if (!stateString.match(/^[0-9a-f]{18}$/)) {
-    throw new TypeError("RC4small stateString should be 18 hex character string");
-  }
-
-  var i = fromHex(stateString[0]);
-  var j = fromHex(stateString[1]);
-  var s = stateString.split("").slice(2).map(fromHex);
-
-  this.setState({
-    i: i,
-    j: j,
-    s: s,
-  });
-};
-
-RC4.RC4small = RC4small;
-
-module.exports = RC4;
-
-},{}],35:[function(require,module,exports){
-"use strict";
-
-/**
-
-# trampa
-
-Trampolines, to emulate tail-call recursion.
-
-[![Build Status](https://secure.travis-ci.org/phadej/trampa.svg?branch=master)](http://travis-ci.org/phadej/trampa)
-[![NPM version](https://badge.fury.io/js/trampa.svg)](http://badge.fury.io/js/trampa)
-[![Dependency Status](https://david-dm.org/trampa/trampa.svg)](https://david-dm.org/trampa/trampa)
-[![devDependency Status](https://david-dm.org/trampa/trampa/dev-status.svg)](https://david-dm.org/trampa/trampa#info=devDependencies)
-[![Code Climate](https://img.shields.io/codeclimate/github/phadej/trampa.svg)](https://codeclimate.com/github/phadej/trampa)
-
-## Synopsis
-
-```js
-var trampa = require("trampa");
-
-function loop(n, acc) {
-  return n === 0 ? trampa.wrap(acc) : trampa.lazy(function () {
-    return loop(n - 1, acc + 1);
-  });
-}
-
-loop(123456789, 0).run(); // doesn't cause stack overflow!
-```
-
-## API
-
-*/
-
-// loosely based on https://apocalisp.wordpress.com/2011/10/26/tail-call-elimination-in-scala-monads/
-
-var assert = require("assert");
-
-function Done(x) {
-  this.x = x;
-}
-
-function Cont(tramp, cont) {
-  assert(typeof cont === "function");
-  this.tramp = tramp;
-  this.cont = cont;
-}
-
-/**
-- `isTrampoline(t: obj): bool` &mdash; Returns, whether `t` is a trampolined object.
-*/
-function isTrampoline(t) {
-  return t instanceof Done || t instanceof Cont;
-}
-
-/**
-- `wrap(t: Trampoline a | a): Trampoline a` &mdash; Wrap `t` into trampoline, if it's not already one.
-*/
-function wrap(t) {
-  return isTrampoline(t) ? t : new Done(t);
-}
-
-/**
-- `lazy(t : () -> Trampoline a | a)` &mdash; Wrap lazy computation into trampoline. Useful when constructing computations.
-*/
-function lazy(computation) {
-  assert(typeof computation === "function", "lazy: computation should be function");
-  return wrap().jump(computation);
-}
-
-/**
-- `Trampoline.jump(f : a -> b | Trampoline b)` &mdash; *map* or *flatmap* trampoline computation. Like `.then` for promises.
-*/
-Done.prototype.jump = function (f) {
-  return new Cont(this, function (x) {
-    return wrap(f(x));
-  });
-};
-
-Cont.prototype.jump = Done.prototype.jump;
-
-function execute(curr, params) {
-  params = params || {};
-  var debug = params.debug || false;
-  var log = params.log || console.log;
-  var stack = [];
-
-  while (true) { // eslint-disable-line no-constant-condition
-    if (debug) {
-      log("trampoline execute: stack size " + stack.length);
-    }
-
-    if (curr instanceof Done) {
-      if (stack.length === 0) {
-        return curr.x;
-      } else {
-        curr = stack[stack.length - 1](curr.x);
-        stack.pop();
-      }
-    } else {
-      assert(curr instanceof Cont);
-      stack.push(curr.cont);
-      curr = curr.tramp;
-    }
-  }
-}
-
-/**
-- `Trampoline.run(): a` &mdash; Run the trampoline synchronously resulting a value.
-*/
-Done.prototype.run = Cont.prototype.run = function (params) {
-  return execute(this, params);
-};
-
-module.exports = {
-  isTrampoline: isTrampoline,
-  wrap: wrap,
-  lazy: lazy,
-};
-
-/**
-## Changelog
-
-- **1.0.0** &mdash; *2015-07-14* &mdash; Initial release
-*/
-
-},{"assert":29}],36:[function(require,module,exports){
-/**
-  # typify type parser
-
-  > Type signature parser for typify
-
-  [![Build Status](https://secure.travis-ci.org/phadej/typify-parser.svg?branch=master)](http://travis-ci.org/phadej/typify-parser)
-  [![NPM version](https://badge.fury.io/js/typify-parser.svg)](http://badge.fury.io/js/typify-parser)
-  [![Dependency Status](https://david-dm.org/phadej/typify-parser.svg)](https://david-dm.org/phadej/typify-parser)
-  [![devDependency Status](https://david-dm.org/phadej/typify-parser/dev-status.svg)](https://david-dm.org/phadej/typify-parser#info=devDependencies)
-  [![Code Climate](https://img.shields.io/codeclimate/github/phadej/typify-parser.svg)](https://codeclimate.com/github/phadej/typify-parser)
-
-  Turns `(foo, bar 42) -> quux` into
-  ```js
-  {
-    "type": "function",
-    "arg": {
-      "type": "product",
-      "args": [
-        {
-          "type": "ident",
-          "value": "foo"
-        },
-        {
-          "type": "application",
-          "callee": {
-            "type": "ident",
-            "value": "bar"
-          },
-          "args": [
-            {
-              "type": "number",
-              "value": 42
-            }
-          ]
-        }
-      ]
-    },
-    "result": {
-      "type": "ident",
-      "value": "quux"
-    }
-  }
-  ```
-
-  ## Synopsis
-
-  ```js
-  var parser = require("typify-parser");
-
-  // Example from above
-  var t = parser("(foo, bar 42) -> quux");
-
-  // Free vars
-  p.freeVars(t);                             // ['bar', 'foo', 'quux']
-  p.freeVars(p("rec list -> () | a & list")) // ['a']
-  ```
-*/
-"use strict";
-
-function unescapeString(str) {
-  return str.replace(/\\(?:'|"|\\|n|x[0-9a-fA-F]{2})/g, function (match) {
-    switch (match[1]) {
-      case "'": return "'";
-      case "\"": return "\"";
-      case "\\": return "\\";
-      case "n": return "\n";
-      case "x": return String.fromCharCode(parseInt(match.substr(2), 16));
-    }
-  });
-}
-
-function lex(input) {
-  // Unicode
-  // top: 22a4
-  // bottom: 22a5
-  // and: 2227
-  // or: 2228
-  // times: \u00d7
-  // to: 2192
-  // ellipsis: 2026
-  // blackboard 1: d835 dfd9
-  var m = input.match(/^([ \t\r\n]+|[\u22a4\u22a5\u2227\u2228\u00d7\u2192\u2026]|\ud835\udfd9|_\|_|\*|\(\)|"(?:[^"\\]|\\[\\'"n]|\\x[0-9a-fA-F]{2})*"|'(?:[^'\\]|\\[\\'"n]|\\x[0-9a-fA-F]{2})*'|[0-9a-zA-Z_\$@]+|,|->|:|;|&|\||\.\.\.|\(|\)|\[|\]|\{|\}|\?)*$/);
-  if (m === null) {
-    throw new SyntaxError("Cannot lex type signature");
-  }
-  m = input.match(/([ \t\r\n]+|[\u22a4\u22a5\u2227\u2228\u00d7\u2192\u2026]|\ud835\udfd9|_\|_|\*|\(\)|"(?:[^"\\]|\\[\\'"n]|\\x[0-9a-fA-F]{2})*"|'(?:[^'\\]|\\[\\'"n]|\\x[0-9a-fA-F]{2})*'|[0-9a-zA-Z_\$@]+|,|->|:|;|&|\||\.\.\.|\(|\)|\[|\]|\{|\}|\?)/g);
-
-  return m
-  .map(function (token) {
-    switch (token) {
-      case "_|_": return { type: "false" };
-      case "\u22a5": return { type: "false" };
-      case "*": return { type: "true" };
-      case "\u22a4": return { type: "true" };
-      case "()": return { type: "unit" };
-      case "\ud835\udfd9": return { type: "unit" };
-      case "true": return { type: "bool", value: true };
-      case "false": return { type: "bool", value: false };
-      case "rec": return { type: "rec" };
-      case "&": return { type: "&" };
-      case "\u2227": return { type: "&" };
-      case "|": return { type: "|" };
-      case "\u2228": return { type: "|" };
-      case ",": return { type: "," };
-      case "\u00d7": return { type: "," };
-      case ";": return { type: ";" };
-      case ":": return { type: ":" };
-      case "(": return { type: "(" };
-      case ")": return { type: ")" };
-      case "[": return { type: "[" };
-      case "]": return { type: "]" };
-      case "{": return { type: "{" };
-      case "}": return { type: "}" };
-      case "?": return { type: "?" };
-      case "->": return { type: "->" };
-      case "\u2192": return { type: "->" };
-      case "...": return { type: "..." };
-      case "\u2026": return { type: "..." };
-    }
-
-    // Whitespace
-    if (token.match(/^[ \r\r\n]+$/)) {
-      return null;
-    }
-
-    if (token.match(/^[0-9]+/)) {
-      return { type: "number", value: parseInt(token, 10) };
-    }
-
-    if (token[0] === "'" || token[0] === "\"") {
-      token = token.slice(1, -1);
-      return { type: "string", value: unescapeString(token) };
-    }
-
-    return { type: "ident", value: token };
-  })
-  .filter(function (token) {
-    return token !== null;
-  });
-}
-
-function makePunctParser(type) {
-  return function (state) {
-    if (state.pos >= state.len) {
-      throw new SyntaxError("Expecting identifier, end-of-input found");
-    }
-
-    var token = state.tokens[state.pos];
-    if (token.type !== type) {
-      throw new SyntaxError("Expecting '" + type + "', found: " + token.type);
-    }
-    state.pos += 1;
-
-    return type;
-  };
-}
-
-var colonParser = makePunctParser(":");
-var openCurlyParser = makePunctParser("{");
-var closeCurlyParser = makePunctParser("}");
-var semicolonParser = makePunctParser(";");
-var openParenParser = makePunctParser("(");
-var closeParenParser = makePunctParser(")");
-var openBracketParser = makePunctParser("[");
-var closeBracketParser = makePunctParser("]");
-var recKeywordParser = makePunctParser("rec");
-var arrowParser = makePunctParser("->");
-
-function nameParser(state) {
-  if (state.pos >= state.len) {
-    throw new SyntaxError("Expecting identifier, end-of-input found");
-  }
-
-  var token = state.tokens[state.pos];
-  if (token.type !== "ident") {
-    throw new SyntaxError("Expecting 'ident', found: " + token.type);
-  }
-  state.pos += 1;
-
-  return token.value;
-}
-
-function recursiveParser(state) {
-  recKeywordParser(state);
-  var name = nameParser(state);
-  arrowParser(state);
-  var value = typeParser(state); // eslint-disable-line no-use-before-define
-  return {
-    type: "recursive",
-    name: name,
-    arg: value,
-  };
-}
-
-function recordParser(state) {
-  openCurlyParser(state);
-
-  var token = state.tokens[state.pos];
-  if (token && token.type === "}") {
-    closeCurlyParser(state);
-    return { type: "record", fields: {} };
-  }
-
-  var fields = {};
-
-  while (true) { // eslint-disable-line no-constant-condition
-    // read
-    var name = nameParser(state);
-    colonParser(state);
-    var value = typeParser(state); // eslint-disable-line no-use-before-define
-
-    // assign to fields
-    fields[name] = value;
-
-    // ending token
-    token = state.tokens[state.pos];
-
-    // break if }
-    if (token && token.type === "}") {
-      closeCurlyParser(state);
-      break;
-    } else if (token && token.type === ";") {
-      semicolonParser(state);
-    } else {
-      throw new SyntaxError("Expecting '}' or ';', found: " + token.type);
-    }
-  }
-
-  return { type: "record", fields: fields };
-}
-
-function postfix(parser, postfixToken, constructor) {
-  return function (state) {
-    var arg = parser(state);
-
-    var token = state.tokens[state.pos];
-    if (token && token.type === postfixToken) {
-      state.pos += 1;
-      return {
-        type: constructor,
-        arg: arg,
-      };
-    } else {
-      return arg;
-    }
-  };
-}
-
-// this ties the knot
-var optionalParser = postfix(terminalParser, "?", "optional"); // eslint-disable-line no-use-before-define
-
-function applicationParser(state) {
-  var rator = optionalParser(state);
-  var rands = [];
-
-  while (true) { // eslint-disable-line no-constant-condition
-    var pos = state.pos;
-    // XXX: we shouldn't use exceptions for this
-    try {
-      var arg = optionalParser(state);
-      rands.push(arg);
-    } catch (err) {
-      state.pos = pos;
-      break;
-    }
-  }
-
-  if (rands.length === 0) {
-    return rator;
-  } else {
-    return {
-      type: "application",
-      callee: rator,
-      args: rands,
-    };
-  }
-}
-
-function separatedBy(parser, separator, constructor) {
-  return function (state) {
-    var list = [parser(state)];
-    while (true) { // eslint-disable-line no-constant-condition
-      // separator
-      var token = state.tokens[state.pos];
-      if (token && token.type === separator) {
-        state.pos += 1;
-      } else {
-        break;
-      }
-
-      // right argument
-      list.push(parser(state));
-    }
-
-    if (list.length === 1) {
-      return list[0];
-    } else {
-      return {
-        type: constructor,
-        args: list,
-      };
-    }
-  };
-}
-
-var conjunctionParser = separatedBy(applicationParser, "&", "conjunction");
-var disjunctionParser = separatedBy(conjunctionParser, "|", "disjunction");
-
-// TODO: combine with optional
-var variadicParser = postfix(disjunctionParser, "...", "variadic");
-
-function namedParser(state) {
-  var token1 = state.tokens[state.pos];
-  var token2 = state.tokens[state.pos + 1];
-  if (token1 && token2 && token1.type === "ident" && token2.type === ":") {
-    state.pos += 2;
-    var arg = namedParser(state);
-    return {
-      type: "named",
-      name: token1.value,
-      arg: arg,
-    };
-  } else {
-    return variadicParser(state);
-  }
-}
-
-var productParser = separatedBy(namedParser, ",", "product");
-
-function functionParser(state) {
-  var v = productParser(state);
-
-  var token = state.tokens[state.pos];
-  if (token && token.type === "->") {
-    state.pos += 1;
-    var result = functionParser(state);
-    return {
-      type: "function",
-      arg: v,
-      result: result,
-    };
-  } else {
-    return v;
-  }
-}
-
-function typeParser(state) {
-  return functionParser(state);
-}
-
-function parenthesesParser(state) {
-  openParenParser(state);
-  var type = typeParser(state);
-  closeParenParser(state);
-  return type;
-}
-
-function bracketParser(state) {
-  openBracketParser(state);
-  var type = typeParser(state);
-  closeBracketParser(state);
-  return {
-    type: "brackets",
-    arg: type,
-  };
-}
-
-function terminalParser(state) {
-  if (state.pos >= state.len) {
-    throw new SyntaxError("Expecting terminal, end-of-input found");
-  }
-
-  var token = state.tokens[state.pos];
-  switch (token.type) {
-    case "false":
-    case "true":
-    case "unit":
-    case "string":
-    case "number":
-    case "bool":
-    case "ident":
-      state.pos += 1;
-      return token;
-    case "{":
-      return recordParser(state);
-    case "(":
-      return parenthesesParser(state);
-    case "[":
-      return bracketParser(state);
-    case "rec":
-      return recursiveParser(state);
-    default:
-      throw new SyntaxError("Expecting terminal, " + token.type + " found");
-  }
-}
-
-function parse(input) {
-  // console.log(input);
-  var tokens = lex(input);
-  // console.log(tokens);
-  var state = {
-    pos: 0,
-    len: tokens.length,
-    tokens: tokens,
-  };
-
-  var res = typeParser(state);
-  // console.log(state);
-  if (state.pos !== state.len) {
-    throw new SyntaxError("expecting end-of-input, " + tokens[state.pos].type + " found");
-  }
-  return res;
-}
-
-function recordFreeVars(fields) {
-  var res = [];
-  for (var k in fields) {
-    var t = fields[k];
-    res = res.concat(freeVarsImpl(t)); // eslint-disable-line no-use-before-define
-  }
-  return res;
-}
-
-function concatFreeVars(ts) {
-  var res = [];
-  for (var i = 0; i < ts.length; i++) {
-    var t = ts[i];
-    res = res.concat(freeVarsImpl(t)); // eslint-disable-line no-use-before-define
-  }
-  return res;
-}
-
-function freeVarsImpl(t) {
-  switch (t.type) {
-    case "false":
-    case "true":
-    case "unit":
-    case "string":
-    case "number":
-    case "bool":
-      return [];
-    case "ident": return [t.value];
-    case "record": return recordFreeVars(t.fields);
-    case "named": return freeVarsImpl(t.arg);
-    case "conjunction": return concatFreeVars(t.args);
-    case "disjunction": return concatFreeVars(t.args);
-    case "product": return concatFreeVars(t.args);
-    case "recursive": return freeVarsImpl(t.arg).filter(function (n) {
-      return n !== t.name;
-    });
-    case "optional": return freeVarsImpl(t.arg);
-    case "brackets": return freeVarsImpl(t.arg);
-    case "variadic": return freeVarsImpl(t.arg);
-    case "application": return freeVarsImpl(t.callee).concat(concatFreeVars(t.args));
-    case "function": return freeVarsImpl(t.arg).concat(freeVarsImpl(t.result));
-    //default: throw new Error("Unknown type " + t.type);
-  }
-}
-
-function uniq(arr) {
-  var res = [];
-  for (var i = 0; i < arr.length; i++) {
-    var x = arr[i];
-    if (res.indexOf(x) === -1) {
-      res.push(x);
-    }
-  }
-  return res;
-}
-
-function freeVars(t) {
-  var fvs = freeVarsImpl(t);
-  fvs.sort();
-  return uniq(fvs);
-}
-
-parse.freeVars = freeVars;
-
-module.exports = parse;
-
-},{}]},{},[15])(15)
+},{"./support/isBuffer":35,"inherits":34}]},{},[15])(15)
 });
