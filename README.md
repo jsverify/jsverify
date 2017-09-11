@@ -428,6 +428,11 @@ jsc.property("small array of normal natural numbers", "(small array) nat", funct
 });
 ```
 
+### Restricting arbitraries
+
+- `suchthat(arb: arbitrary a, userenv: env?, p : a -> bool): arbitrary a`
+    Arbitrary of values that satisfy `p` predicate. It's advised that `p`'s accept rate is high.
+
 ### Generator functions
 
 A generator function, `generator a`, is a function `(size: nat) -> a`, which generates a value of given size.
