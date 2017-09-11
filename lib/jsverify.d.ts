@@ -3,8 +3,8 @@ declare namespace JSVerify {
 
   interface ArbitraryLike<T> {
     generator: Generator<T>;
-    show: Show<T>;
-    shrink: Shrink<T>;
+    show?: Show<T>;
+    shrink?: Shrink<T>;
   }
 
   interface ArbitraryFns<T> {
