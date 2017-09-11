@@ -645,6 +645,11 @@ likely easy to write, even *complete* inverse doesn't exist.
 
 ## Release History
 
+- **0.8.3** &mdash; *2017-09-11* &mdash; Updates
+    - Remove Jasmine 1 helper
+    - Support async tests in Jasmine 2 helper
+    - Add `suchthat` docs
+    - Update typings: `suchthat`, and type `jsc.record`.
 - **0.8.2** &mdash; *2017-04-01* &mdash; Typescript updates
     - Typings fixes
     - Sources are `tslint`ed
