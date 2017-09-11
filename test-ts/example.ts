@@ -29,3 +29,10 @@ describe("basic jsverify usage", () => {
     }).then(val => val === sync);
   });
 });
+
+describe("fails before #204", () => {
+  it('define only test size', () => {
+    const property = jsc.forall(jsc.nat, n => n >= 0);
+    jsc.assert(property, { size: 200 });
+  });
+});
