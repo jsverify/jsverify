@@ -85,8 +85,8 @@ declare namespace JSVerify {
   function sum(arbs: Arbitrary<any>[]): Arbitrary<any>;
 
   function dict<T>(arb: Arbitrary<T>): Arbitrary<{ [s: string]: T }>;
-  function array<T>(arb: Arbitrary<T>): Arbitrary<T[]>;
-  function nearray<T>(arb: Arbitrary<T>): Arbitrary<T[]>;
+  function array<T>(arb: Arbitrary<T>, scale?: (n: number) => number): Arbitrary<T[]>;
+  function nearray<T>(arb: Arbitrary<T>, scale?: (n: number) => number): Arbitrary<T[]>;
   function fn<T>(arb: Arbitrary<T>): Arbitrary<(a: any) => T>;
   function fun<T>(arb: Arbitrary<T>): Arbitrary<(a: any) => T>;
   const json: Arbitrary<any>;
@@ -169,8 +169,8 @@ declare namespace JSVerify {
     tuple(gens: Generator<any>[]): Generator<any[]>;
     sum(gens: Generator<any>[]): Generator<any>;
 
-    array<U>(gen: Generator<U>): Generator<U[]>;
-    nearray<U>(gen: Generator<U>): Generator<U[]>;
+    array<U>(gen: Generator<U>, scale?: (n: number) => number): Generator<U[]>;
+    nearray<U>(gen: Generator<U>, scale?: (n: number) => number): Generator<U[]>;
     dict<U>(gen: Generator<U>): Generator<{ [key: string]: U }>;
 
     unit: Generator<any>;
