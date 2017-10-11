@@ -28,4 +28,16 @@ describe("throws", function () {
 
     return jsc.throws(block, Error, msg) === b;
   });
+
+  jsc.property("regex", "bool", "string", function (b, msg) {
+    var block = function () {
+      throw (b ? new Error(msg) : "other-error");
+    };
+
+    return jsc.throws(
+      block,
+      Error,
+      new RegExp(msg.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"))
+    ) === b;
+  });
 });
