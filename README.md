@@ -262,7 +262,7 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
     _.identity(_uniq([0, 0])) = [0]] != [0, 0]
     ```
 
-    We need an inverse for shrinking, and there right inverse is enough. We can always *pull back* `smap`ped value, shrink the preimage, and *map* or *push forward* shrunken preimages again.
+    We need an inverse for shrinking, and the right inverse is enough. We can always *pull back* `smap`ped value, shrink the preimage, and *map* or *push forward* shrunken preimages again.
 
 - `bless(arb: {...}): arbitrary a`
 
