@@ -77,7 +77,7 @@ declare namespace JSVerify {
   const asciinestring: Arbitrary<string>;
 
   //Combinators
-  function nonShrink<T>(arb: Arbitrary<T>): Arbitrary<T>;
+  function nonshrink<T>(arb: Arbitrary<T>): Arbitrary<T>;
   function either<T, U>(arbA: Arbitrary<T>, arbB: Arbitrary<U>): Arbitrary<T | U>;
   function pair<T, U>(arbA: Arbitrary<T>, arbB: Arbitrary<U>): Arbitrary<[T, U]>;
 
