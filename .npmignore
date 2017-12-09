@@ -3,7 +3,6 @@
 .eslintrc
 .travis.yml
 
-dist/
 examples/
 node_modules/
 test/
