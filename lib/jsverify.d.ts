@@ -162,7 +162,7 @@ declare namespace JSVerify {
   interface GeneratorFunctions {
     constant<U>(u: U): Generator<U>;
     oneof<U>(gens: Generator<U>[]): Generator<U>;
-    recursive<U>(genZ: Generator<U>, f: (u: U) => U): Generator<U>;
+    recursive<U>(genZ: Generator<U>, genS: (gen: Generator<U>) => Generator<U>): Generator<U>;
     pair<T, U>(genA: Generator<T>, genB: Generator<U>): Generator<[T, U]>;
     either<T, U>(genA: Generator<T>, genB: Generator<U>): Generator<T | U>;
 
