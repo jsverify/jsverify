@@ -93,6 +93,7 @@ declare namespace JSVerify {
   const unit: Arbitrary<any>;
 
   function oneof<T>(gs: Arbitrary<T>[]): Arbitrary<T>;
+  function recursive<U>(arbZ: Arbitrary<U>, arbS: (arb: Arbitrary<U>) => Arbitrary<U>): Arbitrary<U>;
   function record<T>(arbs: { [P in keyof T]: Arbitrary<T[P]> }): Arbitrary<T>;
 
 	/* tslint:disable:max-line-length */
