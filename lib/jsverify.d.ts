@@ -81,7 +81,13 @@ declare namespace JSVerify {
   function either<T, U>(arbA: Arbitrary<T>, arbB: Arbitrary<U>): Arbitrary<T | U>;
   function pair<T, U>(arbA: Arbitrary<T>, arbB: Arbitrary<U>): Arbitrary<[T, U]>;
 
+  function tuple<A>(arbs: [Arbitrary<A>]): Arbitrary<[A]>;
+  function tuple<A, B>(arbs: [Arbitrary<A>, Arbitrary<B>]): Arbitrary<[A, B]>;
+  function tuple<A, B, C>(arbs: [Arbitrary<A>, Arbitrary<B>, Arbitrary<C>]): Arbitrary<[A, B, C]>;
+  function tuple<A, B, C, D>(arbs: [Arbitrary<A>, Arbitrary<B>, Arbitrary<C>, Arbitrary<D>]): Arbitrary<[A, B, C, D]>;
+  function tuple<A, B, C, D, E>(arbs: [Arbitrary<A>, Arbitrary<B>, Arbitrary<C>, Arbitrary<D>, Arbitrary<E>]): Arbitrary<[A, B, C, D, E]>;
   function tuple(arbs: Arbitrary<any>[]): Arbitrary<any[]>;
+
   function sum(arbs: Arbitrary<any>[]): Arbitrary<any>;
 
   function dict<T>(arb: Arbitrary<T>): Arbitrary<{ [s: string]: T }>;
