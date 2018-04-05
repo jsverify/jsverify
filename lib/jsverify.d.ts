@@ -92,6 +92,10 @@ declare namespace JSVerify {
   const json: Arbitrary<any>;
   const unit: Arbitrary<any>;
 
+  function oneof<A, B>(gs: [Arbitrary<A>, Arbitrary<B>]): Arbitrary<A | B>;
+  function oneof<A, B, C>(gs: [Arbitrary<A>, Arbitrary<B>, Arbitrary<C>]): Arbitrary<A | B | C>;
+  function oneof<A, B, C, D>(gs: [Arbitrary<A>, Arbitrary<B>, Arbitrary<C>, Arbitrary<D>]): Arbitrary<A | B | C | D>;
+  function oneof<A, B, C, D, E>(gs: [Arbitrary<A>, Arbitrary<B>, Arbitrary<C>, Arbitrary<D>, Arbitrary<E>]): Arbitrary<A | B | C | D | E>;
   function oneof<T>(gs: Arbitrary<T>[]): Arbitrary<T>;
   function record<T>(arbs: { [P in keyof T]: Arbitrary<T[P]> }): Arbitrary<T>;
 
