@@ -12,7 +12,7 @@ declare namespace JSVerify {
   }
 
   function bless<U>(arb: ArbitraryLike<U>): Arbitrary<U>;
-  function sampler<U>(arb: Arbitrary<U>, genSize?: number): (sampleSize: number) => U;
+  function sampler<U>(arb: Arbitrary<U>, genSize?: number): (sampleSize?: number) => U;
   function small<U>(arb: Arbitrary<U>): Arbitrary<U>;
   function suchthat<U>(arb: Arbitrary<U>, predicate: (u: U) => boolean): Arbitrary<U>;
 
