@@ -46,6 +46,16 @@ declare namespace JSVerify {
 
   type Show<T> = (t: T) => string;
   type Property<T> = boolean | void | T;
+
+  interface Either<T, U> {
+    value: T | U;
+    either<X>(l: (a: T) => X, r: (b: U) => X): X;
+    isEqual(other: Either<T, U>): boolean;
+    bimap<X, Y>(f: (a: T) => X, g: (b: U) => Y): Either<X, Y>;
+    first<X>(f: (a: T) => X): Either<X, U>;
+    second<Y>(g: (b: U) => Y): Either<T, Y>;
+  }
+
   type integerFn = (maxsize: number) => Arbitrary<number>;
   type integerFn2 = (minsize: number, maxsize: number) => Arbitrary<number>;
 
@@ -78,7 +88,7 @@ declare namespace JSVerify {
 
   //Combinators
   function nonshrink<T>(arb: Arbitrary<T>): Arbitrary<T>;
-  function either<T, U>(arbA: Arbitrary<T>, arbB: Arbitrary<U>): Arbitrary<T | U>;
+  function either<T, U>(arbA: Arbitrary<T>, arbB: Arbitrary<U>): Arbitrary<Either<T,U>>;
   function pair<T, U>(arbA: Arbitrary<T>, arbB: Arbitrary<U>): Arbitrary<[T, U]>;
 
   function tuple<A>(arbs: [Arbitrary<A>]): Arbitrary<[A]>;
@@ -134,18 +144,18 @@ declare namespace JSVerify {
   function assertForall(...args: any[]): any;
 
 	/* tslint:disable:max-line-length */
-  function checkForall<A>(arb1: Arbitrary<A>, prop: (t: A) => Property<A>): Result<A>;
-  function checkForall<A, B>(arb1: Arbitrary<A>, arb2: Arbitrary<B>, prop: (t: A, u: B) => Property<any>): Result<any>;
-  function checkForall<A, B, C>(arb1: Arbitrary<A>, arb2: Arbitrary<B>, arb3: Arbitrary<C>, prop: (t: A, u: B, v: C) => Property<any>): Result<any>;
-  function checkForall<A, B, C, D>(arb1: Arbitrary<A>, arb2: Arbitrary<B>, arb3: Arbitrary<C>, arb4: Arbitrary<D>, prop: (t: A, u: B, v: C, w: D) => Property<any>): Result<any>;
-  function checkForall<A, B, C, D, E>(arb1: Arbitrary<A>, arb2: Arbitrary<B>, arb3: Arbitrary<C>, arb4: Arbitrary<D>, arb5: Arbitrary<E>, prop: (t: A, u: B, v: C, w: D, e: E) => Property<any>): Result<any>;
-  function checkForall<A, B, C, D, E, F>(arb1: Arbitrary<A>, arb2: Arbitrary<B>, arb3: Arbitrary<C>, arb4: Arbitrary<D>, arb5: Arbitrary<E>, arb6: Arbitrary<F>, prop: (t: A, u: B, v: C, w: D, e: E, a: F) => Property<any>): Result<any>;
-  function checkForall<A, B, C, D, E, F, G>(arb1: Arbitrary<A>, arb2: Arbitrary<B>, arb3: Arbitrary<C>, arb4: Arbitrary<D>, arb5: Arbitrary<E>, arb6: Arbitrary<F>, arb7: Arbitrary<G>, prop: (t: A, u: B, v: C, w: D, e: E, a: F, b: G) => Property<any>): Result<any>;
-  function checkForall<A, B, C, D, E, F, G, H>(arb1: Arbitrary<A>, arb2: Arbitrary<B>, arb3: Arbitrary<C>, arb4: Arbitrary<D>, arb5: Arbitrary<E>, arb6: Arbitrary<F>, arb7: Arbitrary<G>, arb8: Arbitrary<H>, prop: (t: A, u: B, v: C, w: D, e: E, a: F, b: G, c: H) => Property<any>): Result<any>;
-  function checkForall<A, B, C, D, E, F, G, H, I>(arb1: Arbitrary<A>, arb2: Arbitrary<B>, arb3: Arbitrary<C>, arb4: Arbitrary<D>, arb5: Arbitrary<E>, arb6: Arbitrary<F>, arb7: Arbitrary<G>, arb8: Arbitrary<H>, arb9: Arbitrary<I>, prop: (t: A, u: B, v: C, w: D, e: E, a: F, b: G, c: H, d: I) => Property<any>): Result<any>;
-  function checkForall<A, B, C, D, E, F, G, H, I, J>(arb1: Arbitrary<A>, arb2: Arbitrary<B>, arb3: Arbitrary<C>, arb4: Arbitrary<D>, arb5: Arbitrary<E>, arb6: Arbitrary<F>, arb7: Arbitrary<G>, arb8: Arbitrary<H>, arb9: Arbitrary<I>, arb10: Arbitrary<J>, prop: (t: A, u: B, v: C, w: D, e: E, a: F, b: G, c: H, d: I, f: J) => Property<any>): Result<any>;
+  function checkForall<A>(arb1: Arbitrary<A>, prop: (t: A) => Property<A>): Result<A> | boolean;
+  function checkForall<A, B>(arb1: Arbitrary<A>, arb2: Arbitrary<B>, prop: (t: A, u: B) => Property<any>): Result<any> | boolean;
+  function checkForall<A, B, C>(arb1: Arbitrary<A>, arb2: Arbitrary<B>, arb3: Arbitrary<C>, prop: (t: A, u: B, v: C) => Property<any>): Result<any> | boolean;
+  function checkForall<A, B, C, D>(arb1: Arbitrary<A>, arb2: Arbitrary<B>, arb3: Arbitrary<C>, arb4: Arbitrary<D>, prop: (t: A, u: B, v: C, w: D) => Property<any>): Result<any> | boolean;
+  function checkForall<A, B, C, D, E>(arb1: Arbitrary<A>, arb2: Arbitrary<B>, arb3: Arbitrary<C>, arb4: Arbitrary<D>, arb5: Arbitrary<E>, prop: (t: A, u: B, v: C, w: D, e: E) => Property<any>): Result<any> | boolean;
+  function checkForall<A, B, C, D, E, F>(arb1: Arbitrary<A>, arb2: Arbitrary<B>, arb3: Arbitrary<C>, arb4: Arbitrary<D>, arb5: Arbitrary<E>, arb6: Arbitrary<F>, prop: (t: A, u: B, v: C, w: D, e: E, a: F) => Property<any>): Result<any> | boolean;
+  function checkForall<A, B, C, D, E, F, G>(arb1: Arbitrary<A>, arb2: Arbitrary<B>, arb3: Arbitrary<C>, arb4: Arbitrary<D>, arb5: Arbitrary<E>, arb6: Arbitrary<F>, arb7: Arbitrary<G>, prop: (t: A, u: B, v: C, w: D, e: E, a: F, b: G) => Property<any>): Result<any> | boolean;
+  function checkForall<A, B, C, D, E, F, G, H>(arb1: Arbitrary<A>, arb2: Arbitrary<B>, arb3: Arbitrary<C>, arb4: Arbitrary<D>, arb5: Arbitrary<E>, arb6: Arbitrary<F>, arb7: Arbitrary<G>, arb8: Arbitrary<H>, prop: (t: A, u: B, v: C, w: D, e: E, a: F, b: G, c: H) => Property<any>): Result<any> | boolean;
+  function checkForall<A, B, C, D, E, F, G, H, I>(arb1: Arbitrary<A>, arb2: Arbitrary<B>, arb3: Arbitrary<C>, arb4: Arbitrary<D>, arb5: Arbitrary<E>, arb6: Arbitrary<F>, arb7: Arbitrary<G>, arb8: Arbitrary<H>, arb9: Arbitrary<I>, prop: (t: A, u: B, v: C, w: D, e: E, a: F, b: G, c: H, d: I) => Property<any>): Result<any> | boolean;
+  function checkForall<A, B, C, D, E, F, G, H, I, J>(arb1: Arbitrary<A>, arb2: Arbitrary<B>, arb3: Arbitrary<C>, arb4: Arbitrary<D>, arb5: Arbitrary<E>, arb6: Arbitrary<F>, arb7: Arbitrary<G>, arb8: Arbitrary<H>, arb9: Arbitrary<I>, arb10: Arbitrary<J>, prop: (t: A, u: B, v: C, w: D, e: E, a: F, b: G, c: H, d: I, f: J) => Property<any>): Result<any> | boolean;
 	/* tslint:enable:max-line-length */
-  function checkForall(...args: any[]): Result<any>;
+  function checkForall(...args: any[]): Result<any> | boolean;
 
 	/* tslint:disable:max-line-length */
   function property<A>(description: String, arb1: Arbitrary<A>, prop: (t: A) => Property<A>): any;
@@ -172,9 +182,9 @@ declare namespace JSVerify {
   interface GeneratorFunctions {
     constant<U>(u: U): Generator<U>;
     oneof<U>(gens: Generator<U>[]): Generator<U>;
-    recursive<U>(genZ: Generator<U>, f: (u: U) => U): Generator<U>;
+    recursive<U>(genZ: Generator<U>, f: (u: Generator<U>) => Generator<U>): Generator<U>;
     pair<T, U>(genA: Generator<T>, genB: Generator<U>): Generator<[T, U]>;
-    either<T, U>(genA: Generator<T>, genB: Generator<U>): Generator<T | U>;
+    either<T, U>(genA: Generator<T>, genB: Generator<U>): Generator<Either<T, U>>;
 
     tuple(gens: Generator<any>[]): Generator<any[]>;
     sum(gens: Generator<any>[]): Generator<any>;
@@ -206,7 +216,7 @@ declare namespace JSVerify {
   interface ShrinkFunctions {
     noop: Shrink<any>;
     pair<T, U>(shrA: Shrink<T>, shrB: Shrink<U>): Shrink<[T, U]>;
-    either<T, U>(shrA: Shrink<T>, shrB: Shrink<U>): Shrink<T | U>;
+    either<T, U>(shrA: Shrink<T>, shrB: Shrink<U>): Shrink<Either<T, U>>;
 
     tuple(shrs: Shrink<any>[]): Shrink<any[]>;
     sum(shrs: Shrink<any>[]): Shrink<any>;
@@ -220,7 +230,7 @@ declare namespace JSVerify {
   interface ShowFunctions {
     def<T>(x: T): string;
     pair<T, U>(sA: Show<T>, sB: Show<U>, x: [T, U]): string;
-    either<T, U>(sA: Show<T>, sB: Show<U>, x: (T | U)): string;
+    either<T, U>(sA: Show<T>, sB: Show<U>, x: Either<T, U>): string;
 
     tuple(shs: Show<any>[], x: any[]): string;
     sum(shs: Show<any>[], x: any): string;

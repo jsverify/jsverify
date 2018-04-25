@@ -240,7 +240,7 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
     Transform `arbitrary a` into `arbitrary b`. For example:
 
     `g` should be a [right inverse](http://en.wikipedia.org/wiki/Surjective_function#Surjections_as_right_invertible_functions) of `f`, but doesn't need to be complete inverse.
-    i.e. i.e. `f` doesn't need to be invertible, only surjective.
+    i.e. `f` doesn't need to be invertible, only surjective.
 
     ```js
     var positiveIntegersArb = nat.smap(
@@ -262,7 +262,7 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
     _.identity(_uniq([0, 0])) = [0]] != [0, 0]
     ```
 
-    We need an inverse for shrinking, and there right inverse is enough. We can always *pull back* `smap`ped value, shrink the preimage, and *map* or *push forward* shrunken preimages again.
+    We need an inverse for shrinking, and the right inverse is enough. We can always *pull back* `smap`ped value, shrink the preimage, and *map* or *push forward* shrunken preimages again.
 
 - `bless(arb: {...}): arbitrary a`
 
@@ -272,13 +272,13 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
   ```js
   var arbTokens = jsc.bless({
-    generator: function () {
+    generator: jsc.generator.bless(function () {
       switch (jsc.random(0, 2)) {
         case 0: return "foo";
         case 1: return "bar";
         case 2: return "quux";
       }
-    }
+    })
   });
   ```
 
@@ -645,6 +645,9 @@ likely easy to write, even *complete* inverse doesn't exist.
 
 ## Release History
 
+- **0.8.4** &mdash; *2018-10-31* &mdash; Updates
+    - More typings: `oneof`, `tuple`, `either`
+    - Documentation grammar fixes
 - **0.8.3** &mdash; *2017-09-11* &mdash; Updates
     - Remove Jasmine 1 helper
     - Support async tests in Jasmine 2 helper
