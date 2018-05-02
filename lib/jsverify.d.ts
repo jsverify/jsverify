@@ -46,6 +46,16 @@ declare namespace JSVerify {
 
   type Show<T> = (t: T) => string;
   type Property<T> = boolean | void | T;
+
+  interface Either<T, U> {
+    value: T | U;
+    either<X>(l: (a: T) => X, r: (b: U) => X): X;
+    isEqual(other: Either<T, U>): boolean;
+    bimap<X, Y>(f: (a: T) => X, g: (b: U) => Y): Either<X, Y>;
+    first<X>(f: (a: T) => X): Either<X, U>;
+    second<Y>(g: (b: U) => Y): Either<T, Y>;
+  }
+
   type integerFn = (maxsize: number) => Arbitrary<number>;
   type integerFn2 = (minsize: number, maxsize: number) => Arbitrary<number>;
 
@@ -78,7 +88,7 @@ declare namespace JSVerify {
 
   //Combinators
   function nonshrink<T>(arb: Arbitrary<T>): Arbitrary<T>;
-  function either<T, U>(arbA: Arbitrary<T>, arbB: Arbitrary<U>): Arbitrary<T | U>;
+  function either<T, U>(arbA: Arbitrary<T>, arbB: Arbitrary<U>): Arbitrary<Either<T,U>>;
   function pair<T, U>(arbA: Arbitrary<T>, arbB: Arbitrary<U>): Arbitrary<[T, U]>;
 
   function tuple<A>(arbs: [Arbitrary<A>]): Arbitrary<[A]>;
@@ -174,7 +184,7 @@ declare namespace JSVerify {
     oneof<U>(gens: Generator<U>[]): Generator<U>;
     recursive<U>(genZ: Generator<U>, f: (u: U) => U): Generator<U>;
     pair<T, U>(genA: Generator<T>, genB: Generator<U>): Generator<[T, U]>;
-    either<T, U>(genA: Generator<T>, genB: Generator<U>): Generator<T | U>;
+    either<T, U>(genA: Generator<T>, genB: Generator<U>): Generator<Either<T, U>>;
 
     tuple(gens: Generator<any>[]): Generator<any[]>;
     sum(gens: Generator<any>[]): Generator<any>;
@@ -206,7 +216,7 @@ declare namespace JSVerify {
   interface ShrinkFunctions {
     noop: Shrink<any>;
     pair<T, U>(shrA: Shrink<T>, shrB: Shrink<U>): Shrink<[T, U]>;
-    either<T, U>(shrA: Shrink<T>, shrB: Shrink<U>): Shrink<T | U>;
+    either<T, U>(shrA: Shrink<T>, shrB: Shrink<U>): Shrink<Either<T, U>>;
 
     tuple(shrs: Shrink<any>[]): Shrink<any[]>;
     sum(shrs: Shrink<any>[]): Shrink<any>;
@@ -220,7 +230,7 @@ declare namespace JSVerify {
   interface ShowFunctions {
     def<T>(x: T): string;
     pair<T, U>(sA: Show<T>, sB: Show<U>, x: [T, U]): string;
-    either<T, U>(sA: Show<T>, sB: Show<U>, x: (T | U)): string;
+    either<T, U>(sA: Show<T>, sB: Show<U>, x: Either<T, U>): string;
 
     tuple(shs: Show<any>[], x: any[]): string;
     sum(shs: Show<any>[], x: any): string;
