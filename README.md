@@ -337,11 +337,32 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
 - `unit: arbitrary ()`
 
+```js
+> jsc.unit.generator()
+[]
+```
+
 - `either(arbA: arbitrary a, arbB : arbitrary b): arbitrary (either a b)`
+
+```js
+> const boolOrNat = jsc.either(jsc.bool, jsc.nat(100))
+> boolOrNat.generator()
+Left { value: false }
+> boolOrNat.generator()
+Right { value: 31 }
+```
 
 - `pair(arbA: arbitrary a, arbB : arbitrary b): arbitrary (pair a b)`
 
     If not specified `a` and `b` are equal to `value()`.
+
+```js
+> const boolAndNat = jsc.pair(jsc.bool, jsc.nat(100))
+> boolAndNat.generator()
+[ false, 30 ]
+> boolAndNat.generator()
+[ true, 96 ]
+```
 
 - `tuple(arbs: (arbitrary a, arbitrary b...)): arbitrary (a, b...)`
 
@@ -353,15 +374,58 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
 - `array(arb: arbitrary a): arbitrary (array a)`
 
+```js
+> const natArray = jsc.array(jsc.nat(100))
+> natArray.generator(5)
+[ 76, 33, 59 ]
+> natArray.generator(5)
+[ 38, 64 ]
+> natArray.generator(5)
+[]
+```
+
 - `nearray(arb: arbitrary a): arbitrary (array a)`
+
+```js
+> const atLeastOneNat = jsc.nearray(jsc.nat(100))
+> atLeastOneNat.generator(5)
+[ 61, 79 ]
+> atLeastOneNat.generator(5)
+[ 3, 54, 89 ]
+> atLeastOneNat.generator(5)
+[ 73 ]
+```
 
 - `json: arbitrary json`
 
      JavaScript Objects: boolean, number, string, null, array of `json` values or object with `json` values.
 
+```js
+> jsc.json.generator(1)
+{}
+> jsc.json.generator(1)
+[ true ]
+> jsc.json.generator(1)
+-0.9719089497812092
+> jsc.json.generator(2)
+{ '': { '': 0, v: true }, '$\u0000': {} }
+> jsc.json.generator(2)
+[ { 'ð': null }, 0.7178005408495665 ]
+```
+
 - `oneof(gs : array (arbitrary a)...) : arbitrary a`
 
     Randomly uses one of the given arbitraries.
+
+```js
+> const thing = jsc.oneof([jsc.bool, jsc.nat(100), jsc.constant("t")])
+> thing.generator()
+'t'
+> thing.generator()
+51
+> thing.generator()
+false
+```
 
 - ```js
   letrec(
@@ -388,7 +452,27 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
     Generates a javascript object with given record spec.
 
+```js
+> const obj = jsc.record({ "n": jsc.nat(100), "b": jsc.bool })
+> obj.generator()
+{ n: 99, b: false }
+> obj.generator()
+{ n: 28, b: true }
+> obj.generator()
+{ n: 4, b: false }
+```
+
 - `generator.record(gen: { key: generator a... }): generator { key: a... }`
+
+```js
+> const genN = () => jsc.random(0, 20)
+> const genM = () => jsc.random(21, 50)
+> const genNAndM = jsc.generator.record({ "n": genN, "m": genM })
+> genNAndM()
+{ n: 5, m: 34 }
+> genNAndM()
+{ n: 19, m: 33 }
+```
 
 - `shrink.record(shrs: { key: shrink a... }): shrink { key: a... }`
 
@@ -396,13 +480,51 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
 - `char: arbitrary char` &mdash; Single character
 
+```js
+> jsc.char.generator()
+'3'
+> jsc.char.generator()
+'¤'
+> jsc.char.generator()
+'W'
+```
+
 - `asciichar: arbitrary char` &mdash; Single ascii character (0x20-0x7e inclusive, no DEL)
 
+```js
+> jsc.asciichar.generator()
+'E'
+> jsc.asciichar.generator()
+'&'
+> jsc.asciichar.generator()
+'7'
+```
+
 - `string: arbitrary string`
+
+```js
+> jsc.string.generator(10)
+''
+> jsc.string.generator(10)
+'\u0005m'
+> jsc.string.generator(10)
+'?á'
+> jsc.string.generator(10)
+'5Ræ'
+```
 
 - `nestring: arbitrary string` &mdash; Generates strings which are not empty.
 
 - `asciistring: arbitrary string`
+
+```js
+> jsc.asciistring.generator(10)
+''
+> jsc.asciistring.generator(10)
+'SoT'
+> jsc.asciistring.generator(10)
+'\',^'
+```
 
 - `asciinestring: arbitrary string`
 
@@ -410,6 +532,18 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
 - `fn(arb: arbitrary a): arbitrary (b -> a)`
 - `fun(arb: arbitrary a): arbitrary (b -> a)`
+
+```js
+> const f = jsc.fn(jsc.nat(100)).generator()
+> f("a")
+29
+> f("a")
+29
+> f("b")
+89
+> f(1)
+65
+```
 
 ### Small arbitraries
 
@@ -432,6 +566,16 @@ jsc.property("small array of normal natural numbers", "(small array) nat", funct
 
 - `suchthat(arb: arbitrary a, userenv: env?, p : a -> bool): arbitrary a`
     Arbitrary of values that satisfy `p` predicate. It's advised that `p`'s accept rate is high.
+
+```js
+> const evenNat = jsc.suchthat(jsc.nat(100), n => n % 2 == 0)
+> evenNat.generator()
+32
+> evenNat.generator()
+84
+> evenNat.generator()
+96
+```
 
 ### Generator functions
 
