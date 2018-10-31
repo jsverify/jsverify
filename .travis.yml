@@ -2,11 +2,14 @@ sudo: false
 language: node_js
 
 node_js:
-  - "8.11"
+  - "11"
+  - "10"
+  - "8"
   - "8.10" # bionic
-  - "6.14"
-  - "4.9"
-  - "4.2"  # xenial
+  - "6"
+  # eslint doesn't support node 4 anymore?
+  # - "4"
+  # - "4.2"  # xenial
 
 branches:
   only:
