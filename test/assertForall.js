@@ -25,6 +25,6 @@ describe("assertForall function", function () {
     }
 
     assert(err);
-    assert(!(/foo/.test(err)));
+    assert(!((/foo/).test(err)));
   });
 });
