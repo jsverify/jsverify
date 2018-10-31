@@ -1,5 +1,8 @@
 ## Release History
 
+- **0.8.4** &mdash; *2018-10-31* &mdash; Updates
+    - More typings: `oneof`, `tuple`, `either`
+    - Documentation grammar fixes
 - **0.8.3** &mdash; *2017-09-11* &mdash; Updates
     - Remove Jasmine 1 helper
     - Support async tests in Jasmine 2 helper
