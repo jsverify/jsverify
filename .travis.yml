@@ -6,7 +6,10 @@ node_js:
   - "10"
   - "8"
   - "8.10" # bionic
-  - "6"
+
+  # Timeouts?
+  # - "6"
+
   # eslint doesn't support node 4 anymore?
   # - "4"
   # - "4.2"  # xenial
