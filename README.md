@@ -240,7 +240,7 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
     Transform `arbitrary a` into `arbitrary b`. For example:
 
     `g` should be a [right inverse](http://en.wikipedia.org/wiki/Surjective_function#Surjections_as_right_invertible_functions) of `f`, but doesn't need to be complete inverse.
-    i.e. i.e. `f` doesn't need to be invertible, only surjective.
+    i.e. `f` doesn't need to be invertible, only surjective.
 
     ```js
     var positiveIntegersArb = nat.smap(
