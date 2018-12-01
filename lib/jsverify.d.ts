@@ -114,6 +114,7 @@ declare namespace JSVerify {
   function oneof<A, B, C, D, E>(gs: [Arbitrary<A>, Arbitrary<B>, Arbitrary<C>, Arbitrary<D>, Arbitrary<E>]): Arbitrary<A | B | C | D | E>;
   function oneof<T>(gs: Arbitrary<T>[]): Arbitrary<T>;
   function record<T>(arbs: { [P in keyof T]: Arbitrary<T[P]> }): Arbitrary<T>;
+  function letrec<A>(tie: (f: (key: string) => Arbitrary<A>) => { [key: string]: Arbitrary<A> }): { [key: string]: Arbitrary<A> }
 
 	/* tslint:disable:max-line-length */
   function forall<A, T>(arb1: Arbitrary<A>, prop: (t: A) => Property<T>): Property<T>;
