@@ -272,12 +272,12 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
   ```js
   var arbTokens = jsc.bless({
-    generator: function () {
+    generator: jsc.generator.bless(function () {
       switch (jsc.random(0, 2)) {
         case 0: return "foo";
         case 1: return "bar";
         case 2: return "quux";
-      }
+      })
     }
   });
   ```
