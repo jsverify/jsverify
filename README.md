@@ -277,8 +277,8 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
         case 0: return "foo";
         case 1: return "bar";
         case 2: return "quux";
-      })
-    }
+      }
+    })
   });
   ```
 
