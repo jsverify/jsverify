@@ -5,6 +5,7 @@ BINDIR=node_modules/.bin
 JSHINT=$(BINDIR)/jshint
 ESLINT=$(BINDIR)/eslint
 JSCS=$(BINDIR)/jscs
+JEST=$(BINDIR)/jest
 TSLINT=$(BINDIR)/tslint
 MOCHA=$(BINDIR)/mocha
 IMOCHA=$(BINDIR)/_mocha
@@ -22,7 +23,7 @@ all : test
 test :
 	if [ "x${TRAVIS}" = "xtrue" ]; then $(MAKE) test-travis; else $(MAKE) test-default; fi
 
-test-default : jshint eslint jscs mocha istanbul mocha-ts david npm-freeze
+test-default : jshint eslint jscs jest mocha istanbul mocha-ts david npm-freeze
 
 test-travis : test-readme test-default
 
@@ -49,6 +50,9 @@ karma : tests-bundle.js
 
 jasmine : $(DIST)
 	$(KARMA) start karma.jasmine.conf.js
+
+jest :
+	$(JEST) helpers
 
 mocha :
 	$(MOCHA) --reporter spec test
