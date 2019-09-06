@@ -185,7 +185,7 @@ jsc.check(jsc.forall("array (array nat)", function (ls) {
   ## Better solver
 
   This *better* solver is still trivial.
-  We sort the input so larger sets are in the beginning, thus the fift property will be satisfied.
+  We sort the input so larger sets are in the beginning, thus the fifth property will be satisfied.
 */
 function better(ls) {
   var sorted = _.sortBy(ls, function (subls) {
