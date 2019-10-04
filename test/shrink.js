@@ -383,4 +383,20 @@ describe("shrink", function () {
       }), 100, true);
     });
   });
+
+  describe("issue #226", function () {
+    it("handles a slow shrinker gracefully", function () {
+      var arb = jsc.bless({
+        generator: jsc.constant(Number.MAX_SAFE_INTEGER).generator,
+        shrink: function (x) {
+          return [x > 0 ? x - 1 : x];
+        },
+      });
+      var property = jsc.forall(arb, function () {
+        return false;
+      });
+      var r = jsc.check(property, { quiet: true });
+      assert(!r, "test should fail after a certain number of shrinks");
+    });
+  });
 });
