@@ -2,7 +2,7 @@
 
 ### JavaScript
 
-- [JSCheck](http://www.jscheck.org/)
+- [JSCheck](https://www.crockford.com/jscheck.html)
 - [claire](https://npmjs.org/package/claire)
 - [gent](https://npmjs.org/package/gent)
 - [fatcheck](https://npmjs.org/package/fatcheck)
