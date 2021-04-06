@@ -137,7 +137,7 @@ for now in either identity or promise functor, for synchronous and promise prope
 
     Same as `check`, but throw exception if property doesn't hold.
 
-- `property(name: string, ...)`
+- `property(name: string, opts: checkoptions?, ...)`
 
    Assuming there is globally defined `it`, the same as:
 
@@ -152,6 +152,11 @@ for now in either identity or promise functor, for synchronous and promise prope
    jsc.property("+0 === -0", function () {
      return +0 === -0;
    });
+   ```
+
+   The standard `checkopts` can be passed through:
+   ```js
+   jsc.property("(b && b) === b", {tests: 10}, jsc.bool, b => (b && b) === b);
    ```
 
 - `compile(desc: string, env: typeEnv?): arbitrary a`
