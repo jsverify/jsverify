@@ -351,9 +351,9 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
 
     Generates a JavaScript object with properties of type `A`.
 
-- `array(arb: arbitrary a): arbitrary (array a)`
+- `array(arb: arbitrary a, scale?: number -> number): arbitrary (array a)`
 
-- `nearray(arb: arbitrary a): arbitrary (array a)`
+- `nearray(arb: arbitrary a, scale: number -> number): arbitrary (array a)`
 
 - `json: arbitrary json`
 
@@ -487,9 +487,9 @@ if the primitives from *random* module are used.
 
 - `generator.sum(gens: (generator a, generator b...)): generator (a | b...)`
 
-- `generator.array(gen: generator a): generator (array a)`
+- `generator.array(gen: generator a, scale?: number -> number): generator (array a)`
 
-- `generator.nearray(gen: generator a): generator (array a)`
+- `generator.nearray(gen: generator a, scale?: number -> number): generator (array a)`
 
 - `generator.dict(gen: generator a): generator (dict a)`
 

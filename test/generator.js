@@ -16,7 +16,7 @@ describe("jsc.generator", function () {
       }
       for (var i = 0; i < 20; i++) {
         assertPredicate(jsc.generator.array(jsc.nat().generator)(i));
-        assertPredicate(jsc.generator.array(jsc.nat().generator, i));
+        assertPredicate(jsc.generator.array(jsc.nat().generator, null, i));
       }
     });
   });
@@ -31,7 +31,7 @@ describe("jsc.generator", function () {
       }
       for (var i = 0; i < 20; i++) {
         assertPredicate(jsc.generator.nearray(jsc.nat().generator)(i));
-        assertPredicate(jsc.generator.nearray(jsc.nat().generator, i));
+        assertPredicate(jsc.generator.nearray(jsc.nat().generator, null, i));
       }
     });
   });
