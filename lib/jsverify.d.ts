@@ -175,6 +175,8 @@ declare namespace JSVerify {
   function check<T>(prop: Property<T>, opts?: Options): Result<T>;
   function assert<T>(prop: Property<T>, opts?: Options): T;
 
+  function throws(f: () => void, ctor?: typeof Error, message?: string): boolean;
+
   const generator: GeneratorFunctions;
   const shrink: ShrinkFunctions;
   const show: ShowFunctions;
