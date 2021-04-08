@@ -376,8 +376,8 @@ The DSL is based on a subset of language recognized by [typify-parser](https://g
   ```js
   { arb1, arb2 } = jsc.letrec(function (tie) {
     return {
-      arb1: jsc.tuple(jsc.int, jsc.oneof(jsc.const(null), tie("arb2"))),
-      arb2: jsc.tuple(jsc.bool, jsc.oneof(jsc.const(null), tie("arb1"))),
+      arb1: jsc.tuple(jsc.int, jsc.oneof(jsc.constant(null), tie("arb2"))),
+      arb2: jsc.tuple(jsc.bool, jsc.oneof(jsc.constant(null), tie("arb1"))),
     }
   });
   ```
